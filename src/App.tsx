@@ -17,6 +17,7 @@ import { EnhancedAuthPage } from "./components/auth/EnhancedAuthPage";
 import { DashboardRedirect } from "./components/auth/DashboardRedirect";
 import { SecureCustomerRoute, SecureProviderRoute, SecureAdminRoute } from "./components/auth/SecureRouteGuard";
 import { DevAdminAccess } from "./components/dev/DevAdminAccess";
+import { AdminLogin } from "./components/auth/AdminLogin";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AuthProvider } from "./hooks/useAuth";
 import "./utils/errorHandler"; // Initialize production error handling
@@ -97,6 +98,11 @@ const App = () => (
                   <EnhancedAdminDashboard />
                 </SecureAdminRoute>
               } />
+              <Route path="/dashboard/super_admin/*" element={
+                <SecureAdminRoute>
+                  <EnhancedAdminDashboard />
+                </SecureAdminRoute>
+              } />
               
               {/* Legacy routes for backward compatibility with enhanced security */}
               <Route path="/customer/*" element={
@@ -118,6 +124,9 @@ const App = () => (
               {/* Auth page */}
               <Route path="/auth" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/dashboard'} />} />
               <Route path="/login" element={<Navigate to="/auth" replace />} />
+              
+              {/* Admin login - dedicated route for admin authentication */}
+              <Route path="/admin-login" element={<AdminLogin />} />
               
               {/* Dev access */}
               <Route path="/dev-admin" element={<DevAdminAccess />} />

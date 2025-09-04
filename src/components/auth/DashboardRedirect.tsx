@@ -56,7 +56,14 @@ export const DashboardRedirect: React.FC = () => {
         }
         
         // Force redirect using window.location for more reliable navigation
-        const dashboardPath = `/dashboard/${targetRole}`;
+        // Handle super_admin role by redirecting to admin dashboard
+        let dashboardPath;
+        if (targetRole === 'super_admin') {
+          dashboardPath = '/dashboard/admin';
+          console.log('🎯 Super admin detected, redirecting to admin dashboard');
+        } else {
+          dashboardPath = `/dashboard/${targetRole}`;
+        }
         console.log('🎯 Force redirecting to:', dashboardPath);
         
         // Use window.location.href for immediate redirect
