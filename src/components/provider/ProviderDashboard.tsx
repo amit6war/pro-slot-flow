@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export const ProviderDashboard = () => {
-  const { user, profile, loading, secureSignOut } = useAuth();
+  const { user, profile, loading, secureSignOut, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
@@ -39,7 +39,13 @@ export const ProviderDashboard = () => {
       // Clear any local state
       setShowSignOutDialog(false);
       
-      await secureSignOut();
+      // Try secure sign out first, fallback to regular sign out if it fails
+      try {
+        await secureSignOut();
+      } catch (secureError) {
+        console.warn('Secure sign out failed, using regular sign out:', secureError);
+        await signOut();
+      }
       
       toast({
         title: "Signed Out Successfully",
@@ -50,11 +56,17 @@ export const ProviderDashboard = () => {
       window.location.href = '/auth';
     } catch (error) {
       console.error('Sign out error:', error);
+      
+      // Force clear local storage and redirect even if sign out fails
+      localStorage.clear();
+      sessionStorage.clear();
+      
       toast({
-        title: "Sign Out Error",
-        description: "There was an issue signing out. Please try again.",
-        variant: "destructive",
+        title: "Signed Out",
+        description: "You have been signed out.",
       });
+      
+      window.location.href = '/auth';
     } finally {
       setIsSigningOut(false);
     }

@@ -1,5 +1,5 @@
 // Secure storage utility for persistent user session and role management
-import CryptoJS from 'crypto-js';
+import * as CryptoJS from 'crypto-js';
 
 const STORAGE_KEY = 'pro_slot_flow_session';
 const ENCRYPTION_KEY = process.env.VITE_ENCRYPTION_KEY || 'default-key-change-in-production';
