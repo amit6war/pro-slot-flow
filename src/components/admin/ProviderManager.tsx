@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -117,6 +117,45 @@ export const ProviderManager = () => {
       return [...formattedPendingProviders, ...(approvedProviders || [])] as ServiceProvider[];
     }
   });
+
+  // Real-time subscription for providers
+  useEffect(() => {
+    const userProfilesChannel = supabase
+      .channel('provider-profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: 'role=eq.provider'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-providers'] });
+        }
+      )
+      .subscribe();
+
+    const serviceProvidersChannel = supabase
+      .channel('service-providers-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'service_providers'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-providers'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(userProfilesChannel);
+      supabase.removeChannel(serviceProvidersChannel);
+    };
+  }, [queryClient]);
 
   // Fetch provider documents when viewing details
   const fetchProviderDocuments = async (providerId: string) => {

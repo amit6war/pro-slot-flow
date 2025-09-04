@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +65,51 @@ export const AdminManager = () => {
       return data as AdminUser[];
     }
   });
+
+  // Real-time subscription for admin users
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: 'role=in.(admin,super_admin)'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-admin-users'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  // Real-time subscription for admin permissions
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-permissions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'admin_permissions'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-permissions'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const { data: adminPermissions } = useQuery({
     queryKey: ['admin-permissions'],

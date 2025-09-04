@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +43,29 @@ export const UserManager = () => {
       return data as any;
     }
   });
+
+  // Real-time subscription for user profiles
+  useEffect(() => {
+    const channel = supabase
+      .channel('user-profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: 'role=eq.customer'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<UserProfile> }) => {
