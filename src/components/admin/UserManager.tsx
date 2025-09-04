@@ -31,11 +31,12 @@ export const UserManager = () => {
   const [editForm, setEditForm] = useState({ full_name: '', phone: '', address: '' });
 
   const { data: users, isLoading } = useQuery({
-    queryKey: ['admin-all-users'],
+    queryKey: ['admin-customers'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
+        .eq('role', 'customer')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -55,7 +56,7 @@ export const UserManager = () => {
           table: 'user_profiles'
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-all-users'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
         }
       )
       .subscribe();
@@ -78,7 +79,7 @@ export const UserManager = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-all-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
       toast({ title: 'Success', description: 'User updated successfully' });
     },
     onError: () => {
@@ -100,7 +101,7 @@ export const UserManager = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-all-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
       toast({ title: 'Success', description: 'User deleted successfully' });
     },
     onError: () => {
@@ -166,8 +167,8 @@ export const UserManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-gray-600">Manage all user accounts, roles, and permissions</p>
+          <h1 className="text-3xl font-bold">Customer Management</h1>
+          <p className="text-gray-600">Manage customer accounts and preferences</p>
         </div>
         <Button variant="outline">
           Export Users
@@ -178,7 +179,7 @@ export const UserManager = () => {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
-          placeholder="Search users by name, phone, or role..."
+          placeholder="Search customers by name or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -189,22 +190,22 @@ export const UserManager = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { 
-            title: 'Total Users', 
+            title: 'Total Customers', 
             value: filteredUsers?.length || 0, 
             color: 'text-blue-600' 
           },
           { 
-            title: 'Customers', 
-            value: filteredUsers?.filter(u => u.role === 'customer').length || 0, 
+            title: 'Active Customers', 
+            value: filteredUsers?.filter(u => !u.is_blocked).length || 0, 
             color: 'text-green-600' 
           },
           { 
-            title: 'Providers', 
-            value: filteredUsers?.filter(u => u.role === 'provider').length || 0, 
+            title: 'New This Month', 
+            value: filteredUsers?.filter(u => new Date(u.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length || 0, 
             color: 'text-purple-600' 
           },
           { 
-            title: 'Blocked Users', 
+            title: 'Blocked Customers', 
             value: filteredUsers?.filter(u => u.is_blocked).length || 0, 
             color: 'text-red-600' 
           }
