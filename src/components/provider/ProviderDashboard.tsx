@@ -112,15 +112,15 @@ export const ProviderDashboard = () => {
     );
   }
 
-  // Check if user has provider access
+  // Check if user has provider access - skip check during sign out
   const hasProviderAccess = profile && (profile.auth_role === 'provider' || profile.role === 'provider');
   
-  if (!hasProviderAccess) {
+  if (!hasProviderAccess && !isSigningOut) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
-          <p className="text-gray-600">You don't have provider access to this area.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Authentication Required</h2>
+          <p className="text-muted-foreground">Please sign in to access the provider dashboard.</p>
         </div>
       </div>
     );
