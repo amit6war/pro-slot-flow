@@ -33,6 +33,7 @@ export const ProviderDashboard = () => {
 
   const handleSecureSignOut = async () => {
     console.log('🔐 handleSecureSignOut function called');
+    console.log('🔐 Setting isSigningOut to true');
     setIsSigningOut(true);
     try {
       console.log('🔐 Starting sign out process...');
@@ -380,13 +381,17 @@ export const ProviderDashboard = () => {
             <AlertDialogAction
               onClick={(e) => {
                 console.log('🔘 Sign Out Securely button clicked in dialog');
+                console.log('🔘 Event details:', e);
                 console.log('🔘 About to call handleSecureSignOut');
                 e.preventDefault();
                 e.stopPropagation();
+                console.log('🔘 Calling handleSecureSignOut now...');
                 handleSecureSignOut();
+                console.log('🔘 handleSecureSignOut called');
               }}
               disabled={isSigningOut}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 cursor-pointer"
+              style={{ pointerEvents: 'auto' }}
             >
               {isSigningOut ? (
                 <>
