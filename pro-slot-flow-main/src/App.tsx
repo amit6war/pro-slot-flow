@@ -14,22 +14,57 @@ import DatabaseCustomerDashboard from "./components/customer/DatabaseCustomerDas
 import ProfessionalCustomerDashboard from "./components/customer/ProfessionalCustomerDashboard";
 import { ProviderDashboard } from "./components/provider/ProviderDashboard";
 import { EnhancedAuthPage } from "./components/auth/EnhancedAuthPage";
+import { DashboardRedirect } from "./components/auth/DashboardRedirect";
+import { SecureCustomerRoute, SecureProviderRoute, SecureAdminRoute } from "./components/auth/SecureRouteGuard";
 import { DevAdminAccess } from "./components/dev/DevAdminAccess";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AuthProvider } from "./hooks/useAuth";
 import "./utils/errorHandler"; // Initialize production error handling
+import { initializeCSRFProtection, clearCSRFToken } from "./utils/csrfProtection";
+import { applySecurityHeaders, initializeSecurityMonitoring } from "./utils/securityHeaders";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
-// Removed AppContent component - direct routing for production stability
+// Security initialization component
+const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useEffect(() => {
+    console.log('🔐 Initializing production security features...');
+    
+    // Initialize CSRF protection
+    initializeCSRFProtection();
+    
+    // Apply security headers
+    applySecurityHeaders();
+    
+    // Initialize security monitoring
+    initializeSecurityMonitoring();
+    
+    // Clear CSRF token on page unload for security
+    const handleBeforeUnload = () => {
+      clearCSRFToken();
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    console.log('✅ Security features initialized successfully');
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+  
+  return <>{children}</>;
+};
 
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
+    <SecurityProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
           <BrowserRouter
             future={{
               v7_startTransition: true,
@@ -43,17 +78,42 @@ const App = () => (
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/profile" element={<Profile />} />
               
-              {/* Direct dashboard access - PROFESSIONAL UI */}
-              <Route path="/dashboard" element={<ProfessionalCustomerDashboard />} />
-              <Route path="/dashboard/*" element={<ProfessionalCustomerDashboard />} />
-              <Route path="/dashboard/customer/*" element={<ProfessionalCustomerDashboard />} />
-              <Route path="/customer/*" element={<ProfessionalCustomerDashboard />} />
+              {/* Role-based dashboard routing */}
+              <Route path="/dashboard" element={<DashboardRedirect />} />
               
-              {/* Provider and Admin with minimal auth */}
-              <Route path="/dashboard/provider/*" element={<ProviderDashboard />} />
-              <Route path="/provider/*" element={<ProviderDashboard />} />
-              <Route path="/dashboard/admin/*" element={<EnhancedAdminDashboard />} />
-              <Route path="/admin/*" element={<EnhancedAdminDashboard />} />
+              {/* Specific role-based dashboard routes with enhanced security */}
+              <Route path="/dashboard/customer/*" element={
+                <SecureCustomerRoute>
+                  <ProfessionalCustomerDashboard />
+                </SecureCustomerRoute>
+              } />
+              <Route path="/dashboard/provider/*" element={
+                <SecureProviderRoute>
+                  <ProviderDashboard />
+                </SecureProviderRoute>
+              } />
+              <Route path="/dashboard/admin/*" element={
+                <SecureAdminRoute>
+                  <EnhancedAdminDashboard />
+                </SecureAdminRoute>
+              } />
+              
+              {/* Legacy routes for backward compatibility with enhanced security */}
+              <Route path="/customer/*" element={
+                <SecureCustomerRoute>
+                  <ProfessionalCustomerDashboard />
+                </SecureCustomerRoute>
+              } />
+              <Route path="/provider/*" element={
+                <SecureProviderRoute>
+                  <ProviderDashboard />
+                </SecureProviderRoute>
+              } />
+              <Route path="/admin/*" element={
+                <SecureAdminRoute>
+                  <EnhancedAdminDashboard />
+                </SecureAdminRoute>
+              } />
               
               {/* Auth page */}
               <Route path="/auth" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/dashboard'} />} />
@@ -69,6 +129,7 @@ const App = () => (
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
+    </SecurityProvider>
   </ErrorBoundary>
 );
 

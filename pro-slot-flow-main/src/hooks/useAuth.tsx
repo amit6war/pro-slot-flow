@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { SecureStorage, SecureSessionData } from '@/utils/secureStorage';
 
 // Types for our authentication system
 export type UserRole = 'customer' | 'provider' | 'admin' | 'super_admin';
@@ -8,11 +9,14 @@ export type UserRole = 'customer' | 'provider' | 'admin' | 'super_admin';
 export interface UserProfile {
   id: string;
   user_id: string;
-  full_name: string | null;
+  full_name: string;
   auth_role: UserRole;
   role: UserRole;
-  business_name: string | null;
-  phone: string | null;
+  business_name?: string | null;
+  phone?: string | null;
+  registration_status?: 'pending' | 'approved' | 'rejected';
+  license_number?: string | null;
+  address?: string | null;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
@@ -33,25 +37,22 @@ export interface AuthContextType {
   hasPermission: (section: string) => boolean;
   isRole: (role: UserRole) => boolean;
   canAccess: (requiredRole: UserRole | UserRole[]) => boolean;
+  // Enhanced security methods
+  secureSignOut: () => Promise<void>;
+  validateSession: () => Promise<boolean>;
+  getSecureSession: () => SecureSessionData | null;
+  refreshSession: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user profile with role information
-  const fetchProfile = async (userId: string, retryCount = 0): Promise<UserProfile | null> => {
+  // Fetch user profile from database
+  const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
       const { data, error } = await (supabase as any)
         .from('user_profiles')
@@ -60,138 +61,153 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        // Check if it's an auth_role column missing error
-        if (error.message && error.message.includes('auth_role')) {
-          console.error('auth_role column is missing from user_profiles table');
-          console.error('Please run: ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS auth_role TEXT DEFAULT \'customer\';');
-          return null;
-        }
-
-        // If profile doesn't exist and this is first attempt, try to create it
-        if (error.code === 'PGRST116' && retryCount === 0) {
-          console.log('Profile not found, creating default profile...');
-          
-          // Try to create a default profile (handle missing auth_role gracefully)
-          try {
-            const { data: newProfile, error: createError } = await (supabase as any)
-              .from('user_profiles')
-              .insert({
-                user_id: userId,
-                role: 'customer',
-                onboarding_completed: false
-              })
-              .select('*')
-              .single();
-
-            if (createError) {
-              console.error('Error creating profile:', createError);
-              return null;
-            }
-
-            // Add auth_role if it doesn't exist in the returned data
-            if (newProfile && !newProfile.auth_role) {
-              newProfile.auth_role = newProfile.role || 'customer';
-            }
-
-            return newProfile as UserProfile;
-          } catch (createError) {
-            console.error('Failed to create profile:', createError);
-            return null;
-          }
-        }
-        
         console.error('Error fetching profile:', error);
         return null;
       }
 
-      // Handle case where profile exists but auth_role might be missing
-      if (data && !data.auth_role) {
-        data.auth_role = data.role || 'customer';
-      }
-
-      return data as UserProfile;
+      return data;
     } catch (error) {
-      console.error('Error in fetchProfile:', error);
+      console.error('Profile fetch error:', error);
       return null;
     }
   };
 
-  // Initialize auth state - SIMPLIFIED FOR PRODUCTION STABILITY
+  // Initialize auth state - WITH SECURE SESSION MANAGEMENT
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Get current session
+        console.log('🔐 Initializing secure authentication...');
+        
+        // Check for existing secure session first
+        const secureSession = SecureStorage.getSession();
+        
+        if (secureSession && !('needsRevalidation' in secureSession)) {
+          console.log('🔍 Secure session found, validating against database...');
+          
+          // Always validate against current Supabase session
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session?.user && session.user.id === secureSession.userId) {
+            setUser(session.user);
+            
+            // CRITICAL: Always fetch fresh profile from database to prevent role confusion
+            const freshProfile = await fetchProfile(session.user.id);
+            
+            if (freshProfile) {
+              // Verify the cached role matches the database role
+              const dbRole = freshProfile.auth_role || freshProfile.role;
+              
+              if (dbRole === secureSession.role) {
+                setProfile(freshProfile);
+                console.log('✅ Session validated - roles match:', { cached: secureSession.role, database: dbRole });
+                setLoading(false);
+                return;
+              } else {
+                console.warn('⚠️ Role mismatch detected! Cached:', secureSession.role, 'Database:', dbRole);
+                console.log('🔄 Updating secure session with correct role...');
+                
+                // Update secure session with correct role
+                const correctedSession = {
+                  ...secureSession,
+                  role: dbRole,
+                  lastValidated: Date.now()
+                };
+                
+                SecureStorage.setSession(correctedSession);
+                setProfile(freshProfile);
+                console.log('✅ Session corrected with database role:', dbRole);
+                setLoading(false);
+                return;
+              }
+            } else {
+              console.warn('⚠️ No profile found in database, clearing secure storage');
+              SecureStorage.clearSession();
+            }
+          } else {
+            console.warn('⚠️ Session user mismatch, clearing secure storage');
+            SecureStorage.clearSession();
+          }
+        }
+        
+        // Fallback to regular session initialization
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
           setUser(session.user);
           
-          // Create a simple default profile without database dependency
-          setProfile({
-            id: session.user.id,
-            user_id: session.user.id,
-            full_name: session.user.user_metadata?.full_name || 'User',
-            auth_role: 'customer',
-            role: 'customer',
-            business_name: null,
-            phone: session.user.user_metadata?.phone || null,
-            onboarding_completed: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-        }
-      } catch (error) {
-        console.debug('Auth initialization error (suppressed):', error);
-      } finally {
-        // Always set loading to false immediately for production stability
-        setLoading(false);
-      }
-    };
-
-    // Immediate timeout to prevent any loading delays
-    const timeoutId = setTimeout(() => {
-      setLoading(false);
-    }, 100); // 100ms timeout for instant loading
-
-    initializeAuth().finally(() => {
-      clearTimeout(timeoutId);
-      setLoading(false);
-    });
-
-    // Simplified auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        try {
-          if (event === 'SIGNED_IN' && session?.user) {
-            setUser(session.user);
-            setProfile({
+          // Fetch actual user profile from database
+          const userProfile = await fetchProfile(session.user.id);
+          
+          if (userProfile) {
+            setProfile(userProfile);
+            console.log('✅ User profile loaded:', { role: userProfile.role, auth_role: userProfile.auth_role });
+            
+            // Store in secure session
+            const sessionData: SecureSessionData = {
+              userId: session.user.id,
+              role: userProfile.auth_role || userProfile.role,
+              email: session.user.email || '',
+              sessionId: session.access_token.substring(0, 32),
+              expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000),
+              lastValidated: Date.now()
+            };
+            
+            SecureStorage.setSession(sessionData);
+            console.log('✅ Secure session created');
+          } else {
+            // Create default profile if none exists
+            console.log('⚠️ No profile found, creating default customer profile');
+            const defaultProfile = {
               id: session.user.id,
               user_id: session.user.id,
               full_name: session.user.user_metadata?.full_name || 'User',
-              auth_role: 'customer',
-              role: 'customer',
+              auth_role: 'customer' as UserRole,
+              role: 'customer' as UserRole,
               business_name: null,
               phone: session.user.user_metadata?.phone || null,
               onboarding_completed: true,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
-            });
-          } else if (event === 'SIGNED_OUT') {
-            setUser(null);
-            setProfile(null);
+            };
+            
+            setProfile(defaultProfile);
+            
+            // Store default session
+            const sessionData: SecureSessionData = {
+              userId: session.user.id,
+              role: 'customer',
+              email: session.user.email || '',
+              sessionId: session.access_token.substring(0, 32),
+              expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000),
+              lastValidated: Date.now()
+            };
+            
+            SecureStorage.setSession(sessionData);
           }
-        } catch (error) {
-          console.debug('Auth state change error (suppressed):', error);
-        } finally {
-          setLoading(false);
+        } else {
+          console.log('❌ No active session found');
+          SecureStorage.clearSession();
         }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        SecureStorage.clearSession();
+      } finally {
+        setLoading(false);
       }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeoutId);
     };
+
+    initializeAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setProfile(null);
+        SecureStorage.clearSession();
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Sign in function
@@ -220,12 +236,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
 
-    // If user is created and we have session, ensure profile exists
     if (data.user && data.session) {
-      // Wait a moment for database trigger
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Fetch or create profile
       const profile = await fetchProfile(data.user.id);
       if (profile) {
         setProfile(profile);
@@ -233,11 +245,118 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Sign out function
+  // Enhanced sign out function
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      console.log('🔐 Performing standard sign out...');
+      
+      // Clear secure storage first
+      SecureStorage.clearSession();
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        throw error;
+      }
+      
+      // Clear local state
+      setUser(null);
+      setProfile(null);
+      
+      console.log('✅ Standard sign out completed');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+      // Force clear even if server sign out fails
+      SecureStorage.clearSession();
+      setUser(null);
+      setProfile(null);
       throw error;
+    }
+  };
+
+  // Enhanced security methods
+  const secureSignOut = async (): Promise<void> => {
+    try {
+      console.log('🔐 Performing secure sign out...');
+      
+      SecureStorage.clearSession();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        throw error;
+      }
+      
+      setUser(null);
+      setProfile(null);
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      console.log('✅ Secure sign out completed');
+    } catch (error) {
+      console.error('Secure sign out failed:', error);
+      SecureStorage.clearSession();
+      setUser(null);
+      setProfile(null);
+      throw error;
+    }
+  };
+
+  const validateSession = async (): Promise<boolean> => {
+    try {
+      const secureSession = SecureStorage.getSession();
+      
+      if (!secureSession) {
+        return false;
+      }
+      
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session || session.user.id !== secureSession.userId) {
+        SecureStorage.clearSession();
+        return false;
+      }
+      
+      SecureStorage.updateLastValidated();
+      return true;
+    } catch (error) {
+      console.error('Session validation failed:', error);
+      return false;
+    }
+  };
+
+  const getSecureSession = (): SecureSessionData | null => {
+    return SecureStorage.getSession();
+  };
+
+  const refreshSession = async (): Promise<boolean> => {
+    try {
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      
+      if (error || !session) {
+        SecureStorage.clearSession();
+        return false;
+      }
+      
+      const currentSecureSession = SecureStorage.getSession();
+      
+      if (currentSecureSession) {
+        const updatedSession: SecureSessionData = {
+          ...currentSecureSession,
+          sessionId: session.access_token.substring(0, 32),
+          expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000),
+          lastValidated: Date.now()
+        };
+        
+        SecureStorage.setSession(updatedSession);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Session refresh failed:', error);
+      return false;
     }
   };
 
@@ -254,44 +373,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
 
-    // Refresh profile
     const updatedProfile = await fetchProfile(user.id);
     setProfile(updatedProfile);
   };
 
-  // Check if user has specific admin permission
+  // Permission checking functions
   const hasPermission = (section: string): boolean => {
     if (!profile) return false;
     
-    // Super admin has all permissions
     if (profile.auth_role === 'super_admin') return true;
-    
-    // Non-admin roles don't have admin permissions
     if (profile.auth_role !== 'admin') return false;
     
-    // For admin role, we need to check the admin_permissions table
-    // This would typically be done with a separate hook or query
-    // For now, return true for basic admin access
-    // TODO: Implement section-specific permission checking
     console.debug('Checking permission for section:', section);
     return true;
   };
 
-  // Check if user has specific role
   const isRole = (role: UserRole): boolean => {
     return profile?.auth_role === role;
   };
 
-  // Check if user can access based on role hierarchy
   const canAccess = (requiredRole: UserRole | UserRole[]): boolean => {
     if (!profile) return false;
 
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
     
-    // Super admin can access everything
     if (profile.auth_role === 'super_admin') return true;
     
-    // Check if user's role is in the required roles
     return roles.includes(profile.auth_role);
   };
 
@@ -310,7 +417,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasPermission,
     isRole,
     canAccess,
+    // Enhanced security methods
+    secureSignOut,
+    validateSession,
+    getSecureSession,
+    refreshSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
