@@ -33,21 +33,30 @@ export const ProviderDashboard = () => {
   const handleSecureSignOut = async () => {
     setIsSigningOut(true);
     try {
+      // Close mobile menu if open
+      setMobileMenuOpen(false);
+      
+      // Clear any local state
+      setShowSignOutDialog(false);
+      
       await secureSignOut();
+      
       toast({
         title: "Signed Out Successfully",
         description: "You have been securely signed out.",
       });
-      navigate('/auth', { replace: true });
+      
+      // Force redirect to auth page
+      window.location.href = '/auth';
     } catch (error) {
+      console.error('Sign out error:', error);
       toast({
         title: "Sign Out Error",
-        description: "There was an issue signing out.",
+        description: "There was an issue signing out. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSigningOut(false);
-      setShowSignOutDialog(false);
     }
   };
 
@@ -86,7 +95,8 @@ export const ProviderDashboard = () => {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="fixed top-4 left-4 z-50 md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-lg"
+          className="fixed top-4 left-4 z-50 md:hidden bg-blue-600 text-white p-3 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+          aria-label="Toggle menu"
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -134,7 +144,7 @@ export const ProviderDashboard = () => {
               </div>
             </nav>
 
-            {/* Sign Out Button for Pending Providers */}
+            {/* Sign Out Button for Pending Providers - Desktop */}
             <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
               <button
                 onClick={() => setShowSignOutDialog(true)}
@@ -195,7 +205,10 @@ export const ProviderDashboard = () => {
             {/* Sign Out Button for Pending Providers - Mobile */}
             <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
               <button
-                onClick={() => {setShowSignOutDialog(true); setMobileMenuOpen(false);}}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setShowSignOutDialog(true);
+                }}
                 disabled={isSigningOut}
                 className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300"
               >
