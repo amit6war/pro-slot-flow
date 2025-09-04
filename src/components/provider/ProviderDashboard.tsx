@@ -114,21 +114,23 @@ export const ProviderDashboard = () => {
 
   // Full dashboard for approved providers
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       <DatabaseStatus />
       
       <ProviderSidebar />
-      <div className="flex-1 ml-0 md:ml-64">
-        <div className="p-4 md:p-8 pt-16 md:pt-4">
-          <Routes>
-            <Route path="/" element={<ProviderOverview />} />
-            <Route path="/services" element={<ProviderServices />} />
-            <Route path="/bookings" element={<ProviderBookings />} />
-            <Route path="/schedule" element={<ProviderSchedule />} />
-            <Route path="/earnings" element={<ProviderEarnings />} />
-            <Route path="/profile" element={<ProviderProfile isPendingApproval={false} />} />
-            <Route path="*" element={<Navigate to="/provider" replace />} />
-          </Routes>
+      <div className="md:ml-64 min-h-screen">
+        <div className="h-screen overflow-y-auto">
+          <div className="p-4 md:p-8 pt-16 md:pt-4">
+            <Routes>
+              <Route path="/" element={<ProviderOverview />} />
+              <Route path="/services" element={<ProviderServices />} />
+              <Route path="/bookings" element={<ProviderBookings />} />
+              <Route path="/schedule" element={<ProviderSchedule />} />
+              <Route path="/earnings" element={<ProviderEarnings />} />
+              <Route path="/profile" element={<ProviderProfile isPendingApproval={false} />} />
+              <Route path="*" element={<Navigate to="/provider" replace />} />
+            </Routes>
+          </div>
         </div>
       </div>
     </div>
