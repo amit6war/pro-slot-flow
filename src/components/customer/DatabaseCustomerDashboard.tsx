@@ -134,7 +134,7 @@ const DatabaseCustomerDashboard: React.FC = () => {
 
   const loadBookings = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('bookings')
         .select(`
           id,
@@ -209,7 +209,7 @@ const DatabaseCustomerDashboard: React.FC = () => {
 
   const loadUserProfile = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_profiles')
         .select('*')
         .eq('user_id' as any, user?.id as any)

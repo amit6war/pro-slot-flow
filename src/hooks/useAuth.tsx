@@ -54,18 +54,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch user profile from database
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id' as any, userId as any)
-        .single();
+    const { data, error } = await (supabase as any)
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id' as any, userId as any)
+      .single();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return null;
+    }
 
-      return (data as any);
+    return (data as any);
     } catch (error) {
       console.error('Profile fetch error:', error);
       return null;
@@ -364,7 +364,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) throw new Error('No user logged in');
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('user_profiles')
       .update({ ...updates, updated_at: new Date().toISOString() } as any)
       .eq('user_id' as any, user.id as any);

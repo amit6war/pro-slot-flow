@@ -30,7 +30,7 @@ export interface CreateLocationData {
 export const categoriesService = {
   // Get all categories
   async getAll(): Promise<Category[]> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('categories')
       .select('*')
       .order('name');
@@ -41,7 +41,7 @@ export const categoriesService = {
 
   // Get category by ID
   async getById(id: string): Promise<Category | null> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('categories')
       .select('*')
       .eq('id' as any, id as any)
@@ -285,7 +285,7 @@ export const userProfilesService = {
     const { data, error } = await query;
     
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Get user profile by user_id
@@ -297,7 +297,7 @@ export const userProfilesService = {
       .single();
     
     if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
-    return data;
+    return (data as any);
   },
 
   // Create user profile
@@ -309,7 +309,7 @@ export const userProfilesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Update user profile
@@ -322,7 +322,7 @@ export const userProfilesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   }
 };
 
@@ -349,14 +349,14 @@ export const providerServicesService = {
     const { data, error } = await query;
     
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Create provider service
   async create(serviceData: CreateProviderServiceData): Promise<ProviderService> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('provider_services')
-      .insert([serviceData])
+      .insert([serviceData as any])
       .select(`
         *,
         provider:user_profiles(*),
@@ -368,7 +368,7 @@ export const providerServicesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Update provider service
@@ -388,7 +388,7 @@ export const providerServicesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Update service status (for admin approval)
@@ -408,7 +408,7 @@ export const providerServicesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   }
 };
 
@@ -421,8 +421,8 @@ export const databaseService = {
     
     for (const table of tables) {
       try {
-        const { error } = await supabase
-          .from(table)
+        const { error } = await (supabase as any)
+          .from(table as any)
           .select('*')
           .limit(1);
           

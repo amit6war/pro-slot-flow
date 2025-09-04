@@ -37,7 +37,7 @@ export const ServiceApprovalManager = () => {
       
       // Add approval notes if provided
       if (notes) {
-        await supabase
+        await (supabase as any)
           .from('provider_services')
           .update({ 
             approval_notes: notes,

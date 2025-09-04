@@ -20,7 +20,7 @@ export const useLocations = () => {
   const fetchLocations = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('locations' as any)
         .select('*')
         .eq('is_active' as any, true as any)
@@ -57,7 +57,7 @@ export const useLocations = () => {
 
   const updateLocation = async (id: string, updates: Partial<Location>) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('locations' as any)
         .update(updates as any)
         .eq('id' as any, id as any)
@@ -77,7 +77,7 @@ export const useLocations = () => {
 
   const deleteLocation = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('locations' as any)
         .update({ is_active: false } as any)
         .eq('id' as any, id as any);

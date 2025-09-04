@@ -61,7 +61,7 @@ export const ProviderManager = () => {
 
   const updateProviderMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ServiceProvider> }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('service_providers')
         .update(updates as any)
         .eq('id' as any, id as any)

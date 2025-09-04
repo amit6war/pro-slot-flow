@@ -101,7 +101,7 @@ export const csrfProtectedSupabaseOperation = {
   // Insert operation
   insert: async (table: string, data: any) => {
     return makeCSRFProtectedRequest(
-      async () => await supabase.from(table).insert(data),
+      async () => await (supabase as any).from(table as any).insert(data),
       { method: 'POST', data }
     );
   },
@@ -109,7 +109,7 @@ export const csrfProtectedSupabaseOperation = {
   // Update operation
   update: async (table: string, data: any, filter: any) => {
     return makeCSRFProtectedRequest(
-      async () => await supabase.from(table).update(data).match(filter),
+      async () => await (supabase as any).from(table as any).update(data).match(filter),
       { method: 'PUT', data }
     );
   },
@@ -117,7 +117,7 @@ export const csrfProtectedSupabaseOperation = {
   // Upsert operation
   upsert: async (table: string, data: any, options?: any) => {
     return makeCSRFProtectedRequest(
-      async () => await supabase.from(table).upsert(data, options),
+      async () => await (supabase as any).from(table as any).upsert(data, options),
       { method: 'POST', data }
     );
   },
@@ -125,7 +125,7 @@ export const csrfProtectedSupabaseOperation = {
   // Delete operation
   delete: async (table: string, filter: any) => {
     return makeCSRFProtectedRequest(
-      async () => await supabase.from(table).delete().match(filter),
+      async () => await (supabase as any).from(table as any).delete().match(filter),
       { method: 'DELETE' }
     );
   },

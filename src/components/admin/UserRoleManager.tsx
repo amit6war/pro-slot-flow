@@ -128,9 +128,9 @@ export const UserRoleManager: React.FC = () => {
       setPromotingUser(userId);
 
       // Call the promote_user_role function
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .rpc('promote_user_role', {
-          target_user_id: userId,
+          user_uuid: userId,
           new_role: newRole
         });
 

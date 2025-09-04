@@ -40,7 +40,7 @@ export const ProviderOverview = () => {
       
       try {
         // Fetch bookings
-        const { data: bookingsData } = await supabase
+        const { data: bookingsData } = await (supabase as any)
           .from('bookings')
           .select(`
             *,

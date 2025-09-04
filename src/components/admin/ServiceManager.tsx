@@ -53,7 +53,7 @@ export const ServiceManager = () => {
   const { data: subcategories } = useQuery({
     queryKey: ['subcategories-for-services'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('subcategories')
         .select('id, name, categories(name)')
         .eq('is_active' as any, true as any)
@@ -92,7 +92,7 @@ export const ServiceManager = () => {
   const updateServiceMutation = useMutation({
     mutationFn: async (service: Service) => {
       const { subcategories, ...serviceData } = service;
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('services')
         .update(serviceData as any)
         .eq('id' as any, service.id as any)
@@ -118,7 +118,7 @@ export const ServiceManager = () => {
 
   const deleteServiceMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('services')
         .delete()
         .eq('id' as any, id as any);

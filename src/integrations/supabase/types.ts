@@ -102,10 +102,15 @@ export type Database = {
           created_at: string
           customer_id: string | null
           id: string
+          location: string | null
+          notes: string | null
           payment_intent_id: string | null
           payment_status: string | null
           provider_id: string | null
+          provider_name: string | null
+          provider_phone: string | null
           service_id: string | null
+          service_name: string | null
           slot_reserved_until: string | null
           special_instructions: string | null
           status: string | null
@@ -118,10 +123,15 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          location?: string | null
+          notes?: string | null
           payment_intent_id?: string | null
           payment_status?: string | null
           provider_id?: string | null
+          provider_name?: string | null
+          provider_phone?: string | null
           service_id?: string | null
+          service_name?: string | null
           slot_reserved_until?: string | null
           special_instructions?: string | null
           status?: string | null
@@ -134,10 +144,15 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          location?: string | null
+          notes?: string | null
           payment_intent_id?: string | null
           payment_status?: string | null
           provider_id?: string | null
+          provider_name?: string | null
+          provider_phone?: string | null
           service_id?: string | null
+          service_name?: string | null
           slot_reserved_until?: string | null
           special_instructions?: string | null
           status?: string | null
@@ -163,37 +178,70 @@ export type Database = {
       }
       categories: {
         Row: {
-          color_gradient: string
-          created_at: string
+          created_at: string | null
           description: string | null
-          display_order: number | null
-          icon: string
+          icon: string | null
           id: string
           is_active: boolean | null
           name: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          color_gradient: string
-          created_at?: string
+          created_at?: string | null
           description?: string | null
-          display_order?: number | null
-          icon: string
+          icon?: string | null
           id?: string
           is_active?: boolean | null
           name: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          color_gradient?: string
-          created_at?: string
+          created_at?: string | null
           description?: string | null
-          display_order?: number | null
-          icon?: string
+          icon?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
-          updated_at?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      customer_favorites: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          location: string | null
+          price_range: string | null
+          provider_name: string
+          rating: number | null
+          service_id: string
+          service_name: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          location?: string | null
+          price_range?: string | null
+          provider_name: string
+          rating?: number | null
+          service_id: string
+          service_name: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          location?: string | null
+          price_range?: string | null
+          provider_name?: string
+          rating?: number | null
+          service_id?: string
+          service_name?: string
         }
         Relationships: []
       }
@@ -225,6 +273,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      locations: {
+        Row: {
+          address: string
+          city: string
+          country: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          postal_code: string
+          state: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          city: string
+          country?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          postal_code: string
+          state: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          city?: string
+          country?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          postal_code?: string
+          state?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -261,45 +354,96 @@ export type Database = {
       }
       provider_services: {
         Row: {
-          created_at: string
-          custom_price: number | null
+          created_at: string | null
+          description: string | null
           id: string
-          is_available: boolean | null
-          provider_id: string | null
-          service_id: string | null
+          is_active: boolean | null
+          license_document_url: string | null
+          license_number: string | null
+          price: number
+          provider_id: string
+          service_name: string
+          status: string | null
+          subcategory_id: string
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
-          custom_price?: number | null
+          created_at?: string | null
+          description?: string | null
           id?: string
-          is_available?: boolean | null
-          provider_id?: string | null
-          service_id?: string | null
+          is_active?: boolean | null
+          license_document_url?: string | null
+          license_number?: string | null
+          price: number
+          provider_id: string
+          service_name: string
+          status?: string | null
+          subcategory_id: string
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
-          custom_price?: number | null
+          created_at?: string | null
+          description?: string | null
           id?: string
-          is_available?: boolean | null
-          provider_id?: string | null
-          service_id?: string | null
+          is_active?: boolean | null
+          license_document_url?: string | null
+          license_number?: string | null
+          price?: number
+          provider_id?: string
+          service_name?: string
+          status?: string | null
+          subcategory_id?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "provider_services_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
-            referencedRelation: "service_providers"
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "provider_services_service_id_fkey"
-            columns: ["service_id"]
+            foreignKeyName: "provider_services_subcategory_id_fkey"
+            columns: ["subcategory_id"]
             isOneToOne: false
-            referencedRelation: "services"
+            referencedRelation: "subcategories"
             referencedColumns: ["id"]
           },
         ]
+      }
+      security_audit_log: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          risk_level: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          risk_level?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          risk_level?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       service_provider_documents: {
         Row: {
@@ -446,52 +590,41 @@ export type Database = {
           subcategory_id?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "services_subcategory_id_fkey"
-            columns: ["subcategory_id"]
-            isOneToOne: false
-            referencedRelation: "subcategories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       subcategories: {
         Row: {
-          base_price: number | null
-          category_id: string | null
-          created_at: string
+          category_id: string
+          created_at: string | null
           description: string | null
-          display_order: number | null
           id: string
-          image_url: string | null
           is_active: boolean | null
+          max_price: number
+          min_price: number
           name: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          base_price?: number | null
-          category_id?: string | null
-          created_at?: string
+          category_id: string
+          created_at?: string | null
           description?: string | null
-          display_order?: number | null
           id?: string
-          image_url?: string | null
           is_active?: boolean | null
+          max_price?: number
+          min_price?: number
           name: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          base_price?: number | null
-          category_id?: string | null
-          created_at?: string
+          category_id?: string
+          created_at?: string | null
           description?: string | null
-          display_order?: number | null
           id?: string
-          image_url?: string | null
           is_active?: boolean | null
+          max_price?: number
+          min_price?: number
           name?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -506,10 +639,12 @@ export type Database = {
       user_profiles: {
         Row: {
           address: string | null
-          availability_next_15_days: Json | null
+          auth_role: string | null
           business_name: string | null
+          city: string | null
           contact_person: string | null
-          created_at: string
+          created_at: string | null
+          date_of_birth: string | null
           emergency_offline: boolean | null
           full_name: string | null
           id: string
@@ -519,17 +654,20 @@ export type Database = {
           license_number: string | null
           onboarding_completed: boolean | null
           phone: string | null
+          preferences: Json | null
           registration_status: string | null
           role: string | null
-          updated_at: string
-          user_id: string | null
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
           address?: string | null
-          availability_next_15_days?: Json | null
+          auth_role?: string | null
           business_name?: string | null
+          city?: string | null
           contact_person?: string | null
-          created_at?: string
+          created_at?: string | null
+          date_of_birth?: string | null
           emergency_offline?: boolean | null
           full_name?: string | null
           id?: string
@@ -539,17 +677,20 @@ export type Database = {
           license_number?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null
+          preferences?: Json | null
           registration_status?: string | null
           role?: string | null
-          updated_at?: string
-          user_id?: string | null
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
           address?: string | null
-          availability_next_15_days?: Json | null
+          auth_role?: string | null
           business_name?: string | null
+          city?: string | null
           contact_person?: string | null
-          created_at?: string
+          created_at?: string | null
+          date_of_birth?: string | null
           emergency_offline?: boolean | null
           full_name?: string | null
           id?: string
@@ -559,10 +700,11 @@ export type Database = {
           license_number?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null
+          preferences?: Json | null
           registration_status?: string | null
           role?: string | null
-          updated_at?: string
-          user_id?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -571,7 +713,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_duplicate_credentials: {
+        Args: {
+          check_email: string
+          check_full_name?: string
+          check_phone?: string
+        }
+        Returns: {
+          existing_role: string
+          exists_email: boolean
+          exists_name: boolean
+          exists_phone: boolean
+        }[]
+      }
+      get_user_role: {
+        Args: { user_uuid?: string }
+        Returns: string
+      }
+      log_security_event: {
+        Args: {
+          p_event_data?: Json
+          p_event_type: string
+          p_risk_level?: string
+        }
+        Returns: undefined
+      }
+      promote_user_role: {
+        Args: { new_role: string; user_uuid: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
