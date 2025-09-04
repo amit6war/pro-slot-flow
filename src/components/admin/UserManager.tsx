@@ -32,11 +32,12 @@ export const UserManager = () => {
   const [editForm, setEditForm] = useState({ full_name: '', phone: '', address: '' });
 
   const { data: users, isLoading } = useQuery({
-    queryKey: ['admin-users'],
+    queryKey: ['admin-customers'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
+        .eq('role', 'customer')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -57,7 +58,7 @@ export const UserManager = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
       toast({ title: 'Success', description: 'User updated successfully' });
     },
     onError: () => {
@@ -79,7 +80,7 @@ export const UserManager = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
       toast({ title: 'Success', description: 'User deleted successfully' });
     },
     onError: () => {

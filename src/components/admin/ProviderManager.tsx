@@ -70,16 +70,51 @@ export const ProviderManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch from user_profiles for pending providers and service_providers for approved ones
   const { data: providers, isLoading } = useQuery({
     queryKey: ['admin-providers'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get approved providers from service_providers table
+      const { data: approvedProviders, error: approvedError } = await supabase
         .from('service_providers')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as ServiceProvider[];
+      if (approvedError) throw approvedError;
+
+      // Get pending providers from user_profiles table
+      const { data: pendingProviders, error: pendingError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('role', 'provider')
+        .eq('registration_status', 'pending')
+        .order('created_at', { ascending: false });
+      
+      if (pendingError) throw pendingError;
+
+      // Convert user_profiles to provider format for pending providers
+      const formattedPendingProviders = pendingProviders?.map(profile => ({
+        id: profile.id,
+        user_id: profile.user_id,
+        business_name: profile.business_name || 'N/A',
+        contact_person: profile.contact_person || profile.full_name || 'N/A',
+        phone: profile.phone || 'N/A',
+        email: 'N/A', // Email is in auth.users, not accessible here
+        address: profile.address || 'N/A',
+        license_number: profile.license_number,
+        license_document_url: profile.license_document_url,
+        id_document_url: profile.id_document_url,
+        status: 'pending',
+        is_featured: false,
+        is_emergency_offline: false,
+        rating: 0,
+        total_reviews: 0,
+        total_completed_jobs: 0,
+        response_time_minutes: 15,
+        created_at: profile.created_at
+      })) || [];
+      
+      return [...formattedPendingProviders, ...(approvedProviders || [])] as ServiceProvider[];
     }
   });
 

@@ -32,6 +32,7 @@ import { ProviderServiceManager } from './ProviderServiceManager';
 import { LocationManagement } from './LocationManagement';
 import { UserManager } from './UserManager';
 import { ProviderManager } from './ProviderManager';
+import { AdminManager } from './AdminManager';
 
 // Section components mapping
 const sectionComponents: Record<string, React.ComponentType> = {
@@ -46,6 +47,7 @@ const sectionComponents: Record<string, React.ComponentType> = {
   notifications: () => <NotificationCenterSection />,
   settings: () => <SystemSettingsSection />,
   permissions: () => <AdminPermissionsSection />,
+  admins: AdminManager,
 };
 
 // Section icons
@@ -61,6 +63,7 @@ const sectionIcons: Record<string, React.ReactNode> = {
   notifications: <Bell className="h-4 w-4" />,
   settings: <Settings className="h-4 w-4" />,
   permissions: <Shield className="h-4 w-4" />,
+  admins: <Crown className="h-4 w-4" />,
 };
 
 export const EnhancedAdminDashboard: React.FC = () => {
