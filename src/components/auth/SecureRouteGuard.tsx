@@ -295,11 +295,23 @@ export const SecureRouteGuard: React.FC<SecureRouteGuardProps> = ({
 // Security monitoring component for session management
 const SecurityMonitor: React.FC<{ sessionData: SecureSessionData | null }> = ({ sessionData }) => {
   const [showSecurityAlert, setShowSecurityAlert] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
-    // Only monitor if we have valid session data
-    if (!sessionData) {
-      console.log('🔐 No session data - stopping security monitoring');
+    // Check for logging out state in storage
+    const checkLoggingOutState = () => {
+      const loggingOutState = localStorage.getItem('isLoggingOut');
+      if (loggingOutState === 'true') {
+        setIsLoggingOut(true);
+        console.log('🔐 Logout in progress - stopping all security monitoring');
+        return true;
+      }
+      return false;
+    };
+
+    // Only monitor if we have valid session data and not logging out
+    if (!sessionData || checkLoggingOutState()) {
+      console.log('🔐 No session data or logout in progress - stopping security monitoring');
       return;
     }
 
@@ -307,6 +319,12 @@ const SecurityMonitor: React.FC<{ sessionData: SecureSessionData | null }> = ({ 
 
     // Monitor for session tampering
     const monitorSession = () => {
+      // Check if logout is in progress
+      if (checkLoggingOutState()) {
+        console.log('🔐 Logout detected during monitoring - stopping immediately');
+        return;
+      }
+
       const currentSession = SecureStorage.getSession();
       
       // If no current session, user has signed out - stop monitoring
@@ -327,14 +345,34 @@ const SecurityMonitor: React.FC<{ sessionData: SecureSessionData | null }> = ({ 
       }
     };
 
+    // Check immediately
+    monitorSession();
+    
     // Check every 30 seconds
-    const interval = setInterval(monitorSession, 30000);
+    const interval = setInterval(() => {
+      if (!checkLoggingOutState()) {
+        monitorSession();
+      }
+    }, 30000);
     
     return () => {
       console.log('🔐 Cleaning up security monitoring interval');
       clearInterval(interval);
     };
   }, [sessionData]);
+
+  // Listen for logout events to stop monitoring immediately
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'isLoggingOut' && e.newValue === 'true') {
+        console.log('🔐 Logout event detected - stopping security monitoring immediately');
+        setIsLoggingOut(true);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   if (showSecurityAlert) {
     return (

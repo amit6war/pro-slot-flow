@@ -36,25 +36,37 @@ export const ProviderDashboard = () => {
     try {
       console.log('🔐 Starting sign out process...');
       
-      // Close mobile menu if open
+      // Step 1: Set logging out flag to immediately stop all session monitoring
+      localStorage.setItem('isLoggingOut', 'true');
+      console.log('🔐 Logout flag set - stopping all background monitoring');
+      
+      // Step 2: Close mobile menu if open
       setMobileMenuOpen(false);
       
-      // Clear any local state
+      // Step 3: Clear any local state
       setShowSignOutDialog(false);
       
-      // Clear secure storage immediately to stop all monitoring
+      // Step 4: Clear secure storage immediately to stop all monitoring
       SecureStorage.clearSession();
+      console.log('🔐 Secure storage cleared');
       
-      // Clear all browser storage
-      localStorage.clear();
+      // Step 5: Clear all browser storage (but preserve logout flag temporarily)
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key !== 'isLoggingOut') {
+          localStorage.removeItem(key);
+        }
+      });
       sessionStorage.clear();
+      console.log('🔐 Browser storage cleared');
       
-      // Clear cookies
+      // Step 6: Clear cookies
       document.cookie.split(";").forEach(function(c) { 
         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
       });
+      console.log('🔐 Cookies cleared');
       
-      // Try secure sign out first, fallback to regular sign out if it fails
+      // Step 7: Try secure sign out first, fallback to regular sign out if it fails
       try {
         await secureSignOut();
         console.log('✅ Secure sign out completed');
@@ -69,18 +81,25 @@ export const ProviderDashboard = () => {
         }
       }
       
+      // Step 8: Show success message
       toast({
         title: "Signed Out Successfully",
         description: "You have been securely signed out.",
       });
       
+      // Step 9: Clear logout flag and redirect
+      localStorage.removeItem('isLoggingOut');
       console.log('🔄 Redirecting to auth page...');
-      // Force redirect to auth page
-      window.location.href = '/auth';
+      
+      // Add small delay to ensure all cleanup is complete
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
+      
     } catch (error) {
       console.error('Sign out error:', error);
       
-      // Force clear local storage and redirect even if sign out fails
+      // Force clear everything and redirect even if sign out fails
       SecureStorage.clearSession();
       localStorage.clear();
       sessionStorage.clear();
