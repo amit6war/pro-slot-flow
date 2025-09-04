@@ -379,8 +379,10 @@ export const ProviderDashboard = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
-                console.log('🔘 Sign Out Securely button clicked');
+                console.log('🔘 Sign Out Securely button clicked in dialog');
+                console.log('🔘 About to call handleSecureSignOut');
                 e.preventDefault();
+                e.stopPropagation();
                 handleSecureSignOut();
               }}
               disabled={isSigningOut}
