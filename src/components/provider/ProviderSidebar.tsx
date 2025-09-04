@@ -101,9 +101,15 @@ export const ProviderSidebar = () => {
   const renderSignOutButton = (isMobile = false) => (
     <div className={`flex-shrink-0 p-4 border-t border-gray-200 bg-white ${isMobile ? '' : ''}`}>
       <button
-        onClick={() => setShowSignOutDialog(true)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log(`🔘 ${isMobile ? 'Mobile' : 'Desktop'} ProviderSidebar Sign Out button clicked`);
+          setShowSignOutDialog(true);
+        }}
         disabled={isSigningOut}
-        className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300"
+        className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300 cursor-pointer relative z-10"
+        style={{ pointerEvents: 'auto' }}
       >
         {isSigningOut ? (
           <Loader2 className="h-5 w-5 animate-spin" />
