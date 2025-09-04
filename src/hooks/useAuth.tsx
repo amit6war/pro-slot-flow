@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id' as any, userId as any)
         .single();
 
       if (error) {
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
-      return data;
+      return (data as any);
     } catch (error) {
       console.error('Profile fetch error:', error);
       return null;
@@ -366,8 +366,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { error } = await supabase
       .from('user_profiles')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('user_id', user.id);
+      .update({ ...updates, updated_at: new Date().toISOString() } as any)
+      .eq('user_id' as any, user.id as any);
 
     if (error) {
       throw error;

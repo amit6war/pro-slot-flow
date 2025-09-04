@@ -276,7 +276,13 @@ export const ProviderServices = () => {
           service={editingService}
           categories={categories}
           onClose={() => setShowModal(false)}
-          onSave={editingService ? updateService : createService}
+          onSave={async (serviceData: any) => {
+            if (editingService) {
+              await updateService(editingService.id, serviceData);
+            } else {
+              await createService(serviceData);
+            }
+          }}
         />
       )}
     </div>

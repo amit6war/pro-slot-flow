@@ -94,9 +94,9 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
       };
 
       if (service) {
-        await onSave(service.id, serviceData);
+        await (onSave as any)(service.id, serviceData);
       } else {
-        await onSave(serviceData);
+        await (onSave as any)(serviceData);
       }
       
       onClose();

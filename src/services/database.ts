@@ -36,7 +36,7 @@ export const categoriesService = {
       .order('name');
     
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Get category by ID
@@ -44,36 +44,36 @@ export const categoriesService = {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
-      .eq('id', id)
+      .eq('id' as any, id as any)
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Create new category
   async create(categoryData: CreateCategoryData): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
-      .insert([categoryData])
+      .insert([categoryData as any])
       .select()
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Update category
   async update(id: string, updates: Partial<CreateCategoryData>): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
-      .update(updates)
-      .eq('id', id)
+      .update(updates as any)
+      .eq('id' as any, id as any)
       .select()
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Delete category
@@ -81,7 +81,7 @@ export const categoriesService = {
     const { error } = await supabase
       .from('categories')
       .delete()
-      .eq('id', id);
+      .eq('id' as any, id as any);
     
     if (error) throw error;
   },
@@ -90,8 +90,8 @@ export const categoriesService = {
   async toggleStatus(id: string, is_active: boolean): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
-      .update({ is_active })
-      .eq('id', id)
+      .update({ is_active } as any)
+      .eq('id' as any, id as any)
       .select()
       .single();
     

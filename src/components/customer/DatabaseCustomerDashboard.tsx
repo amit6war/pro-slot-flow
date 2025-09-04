@@ -174,7 +174,7 @@ const DatabaseCustomerDashboard: React.FC = () => {
   const loadFavorites = async () => {
     try {
       const { data, error } = await supabase
-        .from('customer_favorites')
+        .from('customer_favorites' as any)
         .select(`
           id,
           service_id,
@@ -322,7 +322,7 @@ const DatabaseCustomerDashboard: React.FC = () => {
   const removeFavorite = async (favoriteId: string) => {
     try {
       const { error } = await supabase
-        .from('customer_favorites')
+        .from('customer_favorites' as any)
         .delete()
         .eq('id' as any, favoriteId as any);
 
