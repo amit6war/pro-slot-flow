@@ -460,13 +460,13 @@ export const ProviderManager = () => {
                 </div>
 
                 {/* Controls */}
-                <div className="lg:col-span-3 space-y-3">
+                <div className="lg:col-span-3 flex flex-col space-y-3">
                   {provider.status === 'pending' && (
-                    <div className="flex space-x-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         size="sm"
                         onClick={() => handleStatusChange(provider.id, 'approved')}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 flex-shrink-0"
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
                         Approve
@@ -475,7 +475,7 @@ export const ProviderManager = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => handleStatusChange(provider.id, 'rejected')}
-                        className="border-red-300 text-red-600 hover:bg-red-50"
+                        className="border-red-300 text-red-600 hover:bg-red-50 flex-shrink-0"
                       >
                         <XCircle className="w-4 h-4 mr-1" />
                         Reject
@@ -483,7 +483,7 @@ export const ProviderManager = () => {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap gap-2">
                     <div className="flex items-center space-x-2">
                       <Switch
                         id={`featured-${provider.id}`}
