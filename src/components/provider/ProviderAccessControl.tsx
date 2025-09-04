@@ -19,18 +19,34 @@ export const ProviderAccessControl: React.FC<ProviderAccessControlProps> = ({ ch
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
+      // First check service_providers table for approved providers
+      const { data: serviceProvider, error: serviceError } = await supabase
         .from('service_providers')
         .select('status, business_name, created_at')
         .eq('user_id', user.id)
         .single();
       
-      if (error) {
-        console.error('Error fetching provider status:', error);
-        return null;
+      if (serviceProvider) {
+        return serviceProvider;
       }
       
-      return data;
+      // Then check user_profiles for pending providers
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('registration_status, business_name, created_at')
+        .eq('user_id', user.id)
+        .eq('role', 'provider')
+        .single();
+      
+      if (userProfile) {
+        return {
+          status: userProfile.registration_status || 'pending',
+          business_name: userProfile.business_name,
+          created_at: userProfile.created_at
+        };
+      }
+      
+      return null;
     },
     enabled: !!user?.id
   });

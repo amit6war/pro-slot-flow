@@ -181,11 +181,57 @@ export const ProviderManager = () => {
     }
   });
 
-  const handleStatusChange = (providerId: string, newStatus: string) => {
-    updateProviderMutation.mutate({
-      id: providerId,
-      updates: { status: newStatus }
-    });
+  const handleStatusChange = async (providerId: string, newStatus: string) => {
+    try {
+      if (newStatus === 'approved') {
+        // Use the approve_provider function for pending providers
+        const provider = providers?.find(p => p.id === providerId);
+        if (provider && provider.status === 'pending') {
+          const { data, error } = await supabase.rpc('approve_provider', {
+            provider_user_id: provider.user_id
+          });
+          
+          if (error) throw error;
+          
+          queryClient.invalidateQueries({ queryKey: ['admin-providers'] });
+          toast({ 
+            title: 'Success', 
+            description: 'Provider approved and moved to service providers' 
+          });
+          return;
+        }
+      } else if (newStatus === 'rejected') {
+        // Use the reject_provider function for pending providers
+        const provider = providers?.find(p => p.id === providerId);
+        if (provider && provider.status === 'pending') {
+          const { data, error } = await supabase.rpc('reject_provider', {
+            provider_user_id: provider.user_id
+          });
+          
+          if (error) throw error;
+          
+          queryClient.invalidateQueries({ queryKey: ['admin-providers'] });
+          toast({ 
+            title: 'Success', 
+            description: 'Provider registration rejected' 
+          });
+          return;
+        }
+      }
+
+      // For existing service providers, update directly
+      updateProviderMutation.mutate({
+        id: providerId,
+        updates: { status: newStatus }
+      });
+    } catch (error) {
+      console.error('Error changing provider status:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to update provider status',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleViewProvider = async (provider: ServiceProvider) => {
@@ -200,9 +246,9 @@ export const ProviderManager = () => {
 
   const filteredProviders = providers?.filter(provider => {
     const matchesSearch = !searchTerm || 
-      provider.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      provider.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      provider.email.toLowerCase().includes(searchTerm.toLowerCase());
+      provider.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      provider.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (provider.email && provider.email.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = statusFilter === 'all' || provider.status === statusFilter;
     
