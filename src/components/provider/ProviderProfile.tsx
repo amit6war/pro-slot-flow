@@ -33,7 +33,11 @@ export const ProviderProfile: React.FC<ProviderProfileProps> = ({ isPendingAppro
     business_name: profile?.business_name || '',
     email: user?.email || '',
     phone: profile?.phone || '',
-    address: profile?.address || '',
+    street_address: profile?.street_address || '',
+    city: profile?.city || '', 
+    state: profile?.state || '',
+    postal_code: profile?.postal_code || '',
+    country: profile?.country || 'United States',
     bio: '',
     license_number: profile?.license_number || '',
     years_experience: 0,
@@ -304,23 +308,98 @@ export const ProviderProfile: React.FC<ProviderProfileProps> = ({ isPendingAppro
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address
-                </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={profileData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <span>{profileData.address}</span>
-                  </div>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Street Address
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={profileData.street_address}
+                      onChange={(e) => handleInputChange('street_address', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter your street address"
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span>{profileData.street_address || 'Not provided'}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={profileData.city}
+                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter city"
+                    />
+                  ) : (
+                    <span>{profileData.city || 'Not provided'}</span>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    State
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={profileData.state}
+                      onChange={(e) => handleInputChange('state', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter state"
+                    />
+                  ) : (
+                    <span>{profileData.state || 'Not provided'}</span>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Zip/Postal Code
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={profileData.postal_code}
+                      onChange={(e) => handleInputChange('postal_code', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter zip/postal code"
+                    />
+                  ) : (
+                    <span>{profileData.postal_code || 'Not provided'}</span>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Country
+                  </label>
+                  {isEditing ? (
+                    <select
+                      value={profileData.country}
+                      onChange={(e) => handleInputChange('country', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="United States">United States</option>
+                      <option value="Canada">Canada</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="Australia">Australia</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  ) : (
+                    <span>{profileData.country}</span>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -367,7 +446,7 @@ export const ProviderProfile: React.FC<ProviderProfileProps> = ({ isPendingAppro
                   </p>
                 </div>
                 
-                {profile?.id_document_url && (
+                {(profile as any)?.id_document_url && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="h-5 w-5 text-green-600" />

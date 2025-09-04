@@ -24,10 +24,10 @@ export const useAuthAdmin = () => {
         const { data: profileData } = await supabase
           .from('user_profiles')
           .select('role, full_name, is_blocked')
-          .eq('user_id', session.user.id)
-          .single();
-        
-        setProfile(profileData);
+        .eq('user_id' as any, session.user.id as any)
+        .single();
+      
+      setProfile((profileData as any));
       }
       setLoading(false);
     };
@@ -42,10 +42,10 @@ export const useAuthAdmin = () => {
           const { data: profileData } = await supabase
             .from('user_profiles')
             .select('role, full_name, is_blocked')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          setProfile(profileData);
+          .eq('user_id' as any, session.user.id as any)
+          .single();
+        
+        setProfile((profileData as any));
         } else {
           setProfile(null);
         }

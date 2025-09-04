@@ -95,8 +95,8 @@ export const ProviderSchedule = () => {
   };
 
   const getTotalHours = () => {
-    return Object.values(schedule).reduce((total, daySlots) => {
-      return total + daySlots.reduce((dayTotal, slot) => {
+    return Object.values(schedule).reduce((total: number, daySlots: any) => {
+      return total + (daySlots as any).reduce((dayTotal: number, slot: any) => {
         if (!slot.available) return dayTotal;
         const start = new Date(`2000-01-01T${slot.start}:00`);
         const end = new Date(`2000-01-01T${slot.end}:00`);

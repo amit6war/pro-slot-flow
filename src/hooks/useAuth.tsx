@@ -17,6 +17,11 @@ export interface UserProfile {
   registration_status?: 'pending' | 'approved' | 'rejected';
   license_number?: string | null;
   address?: string | null;
+  street_address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
@@ -54,18 +59,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch user profile from database
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-      const { data, error } = await (supabase as any)
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+    const { data, error } = await (supabase as any)
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id' as any, userId as any)
+      .single();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return null;
+    }
 
-      return data;
+    return (data as any);
     } catch (error) {
       console.error('Profile fetch error:', error);
       return null;
@@ -201,9 +206,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
+        console.log('🔐 SIGNED_OUT event detected, clearing all auth data');
+        
+        // Clear all local state immediately
         setUser(null);
         setProfile(null);
+        
+        // Clear secure storage
         SecureStorage.clearSession();
+        
+        // Clear all browser storage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear cookies
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+        
+        console.log('✅ All auth data cleared on sign out');
       }
     });
 
@@ -366,8 +387,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { error } = await (supabase as any)
       .from('user_profiles')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('user_id', user.id);
+      .update({ ...updates, updated_at: new Date().toISOString() } as any)
+      .eq('user_id' as any, user.id as any);
 
     if (error) {
       throw error;

@@ -33,7 +33,7 @@ export const BookingManager = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Booking[];
+      return data as any;
     }
   });
 

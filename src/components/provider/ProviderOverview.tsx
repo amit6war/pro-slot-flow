@@ -40,35 +40,35 @@ export const ProviderOverview = () => {
       
       try {
         // Fetch bookings
-        const { data: bookingsData } = await supabase
+        const { data: bookingsData } = await (supabase as any)
           .from('bookings')
           .select(`
             *,
             service:provider_services(service_name, price),
             customer:user_profiles!customer_id(full_name)
           `)
-          .eq('provider_id', profile.id)
+          .eq('provider_id' as any, profile.id as any)
           .order('created_at', { ascending: false });
 
         setBookings(bookingsData || []);
 
         // Calculate earnings
-        const totalEarnings = bookingsData?.reduce((sum, booking) => 
+        const totalEarnings = (bookingsData as any)?.reduce((sum: any, booking: any) => 
           booking.payment_status === 'paid' ? sum + Number(booking.total_amount) : sum, 0) || 0;
         
-        const thisMonthEarnings = bookingsData?.filter(booking => {
+        const thisMonthEarnings = (bookingsData as any)?.filter((booking: any) => {
           const bookingDate = new Date(booking.created_at);
           const now = new Date();
           return bookingDate.getMonth() === now.getMonth() && 
                  bookingDate.getFullYear() === now.getFullYear() &&
                  booking.payment_status === 'paid';
-        }).reduce((sum, booking) => sum + Number(booking.total_amount), 0) || 0;
+        }).reduce((sum: any, booking: any) => sum + Number(booking.total_amount), 0) || 0;
 
         setEarnings({
           total: totalEarnings,
           thisMonth: thisMonthEarnings,
-          completed: bookingsData?.filter(b => b.status === 'completed').length || 0,
-          active: bookingsData?.filter(b => ['pending', 'confirmed'].includes(b.status)).length || 0
+          completed: (bookingsData as any)?.filter((b: any) => b.status === 'completed').length || 0,
+          active: (bookingsData as any)?.filter((b: any) => ['pending', 'confirmed'].includes(b.status)).length || 0
         });
 
       } catch (error) {
@@ -113,7 +113,7 @@ export const ProviderOverview = () => {
     hasApprovedServices: stats.approvedServices > 0,
     hasWorkingHours: services.some(s => s.working_hours && Object.keys(s.working_hours).length > 0),
     hasLicense: services.some(s => s.license_document_url),
-    hasDescription: !!profile?.bio,
+    hasDescription: !!(profile as any)?.bio,
     hasPhone: !!profile?.phone,
     hasAddress: !!profile?.address
   };
@@ -312,7 +312,7 @@ export const ProviderOverview = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge className={getStatusColor(booking.status)} size="sm">
+                      <Badge className={getStatusColor(booking.status)}>
                         {getStatusIcon(booking.status)}
                         {booking.status}
                       </Badge>
@@ -363,7 +363,7 @@ export const ProviderOverview = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge className={getStatusColor(service.status)} size="sm">
+                      <Badge className={getStatusColor(service.status)}>
                         {getStatusIcon(service.status)}
                         {service.status}
                       </Badge>

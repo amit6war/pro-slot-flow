@@ -15,23 +15,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 export const ProviderSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { secureSignOut } = useAuth();
   const { toast } = useToast();
-  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -40,23 +29,28 @@ export const ProviderSidebar = () => {
   }, [location.pathname]);
 
   const handleSecureSignOut = async () => {
+    console.log('🔐 ProviderSidebar handleSecureSignOut function called');
     setIsSigningOut(true);
     try {
+      console.log('🔐 Calling secureSignOut from useAuth...');
       await secureSignOut();
+      console.log('🔐 secureSignOut completed successfully');
       toast({
         title: "Signed Out Successfully",
         description: "You have been securely signed out.",
       });
+      console.log('🔐 Navigating to /auth...');
       navigate('/auth', { replace: true });
     } catch (error) {
+      console.error('🔐 Sign out error in ProviderSidebar:', error);
       toast({
         title: "Sign Out Error",
         description: "There was an issue signing out.",
         variant: "destructive",
       });
     } finally {
+      console.log('🔐 Cleaning up sign out states...');
       setIsSigningOut(false);
-      setShowSignOutDialog(false);
     }
   };
 
@@ -99,21 +93,30 @@ export const ProviderSidebar = () => {
   );
 
   const renderSignOutButton = (isMobile = false) => (
-    <div className={`flex-shrink-0 p-3 border-t border-gray-200 bg-white ${isMobile ? '' : 'lg:p-4'}`}>
+    <div className={`flex-shrink-0 p-4 border-t border-gray-200 bg-white ${isMobile ? '' : ''}`}>
       <button
-        onClick={() => setShowSignOutDialog(true)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log(`🔘 ${isMobile ? 'Mobile' : 'Desktop'} ProviderSidebar Sign Out button clicked`);
+          console.log('🔘 Calling handleSecureSignOut directly');
+          if (isMobile) {
+            setMobileMenuOpen(false);
+          }
+          handleSecureSignOut();
+        }}
         disabled={isSigningOut}
-        className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300"
       >
         {isSigningOut ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-5 w-5 animate-spin" />
         ) : (
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-5 w-5" />
         )}
-        <span className="font-medium">
+        <span className="font-semibold">
           {isSigningOut ? 'Signing Out...' : 'Sign Out'}
         </span>
-        <Shield className="h-3 w-3 ml-auto text-green-600" />
+        <Shield className="h-4 w-4 ml-auto text-green-600" />
       </button>
     </div>
   );
@@ -137,9 +140,9 @@ export const ProviderSidebar = () => {
       )}
 
       {/* --- Desktop Sidebar --- */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg z-40 flex-col lg:relative lg:shadow-none hidden md:flex">
+      <div className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg z-40 flex-col hidden md:flex overflow-hidden">
         <div className="flex flex-col h-full">
-          <div className="p-4 lg:p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Briefcase className="h-6 w-6 text-white" />
@@ -152,7 +155,7 @@ export const ProviderSidebar = () => {
           </div>
 
           {/* Navigation */}
-          <div className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             {renderNavLinks()}
           </div>
 
@@ -190,40 +193,7 @@ export const ProviderSidebar = () => {
         </div>
       </div>
 
-      {/* --- Secure Sign Out Dialog --- */}
-      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-600" />
-              Secure Sign Out
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This will securely sign you out from all devices.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSigningOut}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleSecureSignOut}
-              disabled={isSigningOut}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isSigningOut ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Signing Out...
-                </>
-              ) : (
-                <>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out Securely
-                </>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Remove the dialog completely */}
     </>
   );
 };

@@ -20,14 +20,14 @@ export const useLocations = () => {
   const fetchLocations = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('locations')
+      const { data, error } = await (supabase as any)
+        .from('locations' as any)
         .select('*')
-        .eq('is_active', true)
+        .eq('is_active' as any, true as any)
         .order('name');
 
       if (error) throw error;
-      setLocations(data || []);
+      setLocations((data as any) || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch locations');
       console.error('Error fetching locations:', err);
@@ -39,14 +39,14 @@ export const useLocations = () => {
   const createLocation = async (locationData: Omit<Location, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { data, error } = await supabase
-        .from('locations')
-        .insert([locationData])
+        .from('locations' as any)
+        .insert([locationData as any])
         .select()
         .single();
 
       if (error) throw error;
       
-      setLocations(prev => [...prev, data]);
+      setLocations((prev: any) => [...prev, data as any]);
       return { data, error: null };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create location';
@@ -57,16 +57,16 @@ export const useLocations = () => {
 
   const updateLocation = async (id: string, updates: Partial<Location>) => {
     try {
-      const { data, error } = await supabase
-        .from('locations')
-        .update(updates)
-        .eq('id', id)
+      const { data, error } = await (supabase as any)
+        .from('locations' as any)
+        .update(updates as any)
+        .eq('id' as any, id as any)
         .select()
         .single();
 
       if (error) throw error;
 
-      setLocations(prev => prev.map(loc => loc.id === id ? data : loc));
+      setLocations((prev: any) => prev.map((loc: any) => loc.id === id ? data as any : loc));
       return { data, error: null };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update location';
@@ -77,10 +77,10 @@ export const useLocations = () => {
 
   const deleteLocation = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('locations')
-        .update({ is_active: false })
-        .eq('id', id);
+      const { error } = await (supabase as any)
+        .from('locations' as any)
+        .update({ is_active: false } as any)
+        .eq('id' as any, id as any);
 
       if (error) throw error;
 

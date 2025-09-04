@@ -34,7 +34,7 @@ export const UserManager = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as UserProfile[];
+      return data as any;
     }
   });
 
@@ -42,8 +42,8 @@ export const UserManager = () => {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<UserProfile> }) => {
       const { data, error } = await supabase
         .from('user_profiles')
-        .update(updates)
-        .eq('id', id)
+        .update(updates as any)
+        .eq('id' as any, id as any)
         .select()
         .single();
       

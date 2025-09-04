@@ -30,50 +30,50 @@ export interface CreateLocationData {
 export const categoriesService = {
   // Get all categories
   async getAll(): Promise<Category[]> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('categories')
       .select('*')
       .order('name');
     
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Get category by ID
   async getById(id: string): Promise<Category | null> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('categories')
       .select('*')
-      .eq('id', id)
+      .eq('id' as any, id as any)
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Create new category
   async create(categoryData: CreateCategoryData): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
-      .insert([categoryData])
+      .insert([categoryData as any])
       .select()
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Update category
   async update(id: string, updates: Partial<CreateCategoryData>): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
-      .update(updates)
-      .eq('id', id)
+      .update(updates as any)
+      .eq('id' as any, id as any)
       .select()
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Delete category
@@ -81,7 +81,7 @@ export const categoriesService = {
     const { error } = await supabase
       .from('categories')
       .delete()
-      .eq('id', id);
+      .eq('id' as any, id as any);
     
     if (error) throw error;
   },
@@ -90,8 +90,8 @@ export const categoriesService = {
   async toggleStatus(id: string, is_active: boolean): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
-      .update({ is_active })
-      .eq('id', id)
+      .update({ is_active } as any)
+      .eq('id' as any, id as any)
       .select()
       .single();
     
@@ -285,7 +285,7 @@ export const userProfilesService = {
     const { data, error } = await query;
     
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Get user profile by user_id
@@ -297,7 +297,7 @@ export const userProfilesService = {
       .single();
     
     if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
-    return data;
+    return (data as any);
   },
 
   // Create user profile
@@ -309,7 +309,7 @@ export const userProfilesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Update user profile
@@ -322,7 +322,7 @@ export const userProfilesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   }
 };
 
@@ -349,14 +349,14 @@ export const providerServicesService = {
     const { data, error } = await query;
     
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Create provider service
   async create(serviceData: CreateProviderServiceData): Promise<ProviderService> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('provider_services')
-      .insert([serviceData])
+      .insert([serviceData as any])
       .select(`
         *,
         provider:user_profiles(*),
@@ -368,7 +368,7 @@ export const providerServicesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Update provider service
@@ -388,7 +388,7 @@ export const providerServicesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   },
 
   // Update service status (for admin approval)
@@ -408,7 +408,7 @@ export const providerServicesService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return (data as any);
   }
 };
 
@@ -421,8 +421,8 @@ export const databaseService = {
     
     for (const table of tables) {
       try {
-        const { error } = await supabase
-          .from(table)
+        const { error } = await (supabase as any)
+          .from(table as any)
           .select('*')
           .limit(1);
           

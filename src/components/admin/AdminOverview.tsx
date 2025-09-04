@@ -18,7 +18,7 @@ export const AdminOverview = () => {
         supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
         supabase.from('service_providers').select('*', { count: 'exact', head: true }),
         supabase.from('bookings').select('*', { count: 'exact', head: true }),
-        supabase.from('service_providers').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+        supabase.from('service_providers').select('*', { count: 'exact', head: true }).eq('status', 'pending' as any)
       ]);
 
       return {
@@ -116,23 +116,23 @@ export const AdminOverview = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentBookings?.map((booking) => (
-                <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              {recentBookings?.map((booking: any) => (
+                <div key={booking?.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="font-medium">{booking.services?.name}</p>
-                    <p className="text-sm text-gray-600">{booking.service_providers?.business_name}</p>
+                    <p className="font-medium">{booking?.services?.name}</p>
+                    <p className="text-sm text-gray-600">{booking?.service_providers?.business_name}</p>
                     <p className="text-xs text-gray-500">
-                      {booking.booking_date} at {booking.booking_time}
+                      {booking?.booking_date} at {booking?.booking_time}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${booking.total_amount}</p>
+                    <p className="font-medium">${booking?.total_amount}</p>
                     <span className={`px-2 py-1 text-xs rounded-full ${
-                      booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      booking?.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                      booking?.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {booking.status}
+                      {booking?.status}
                     </span>
                   </div>
                 </div>

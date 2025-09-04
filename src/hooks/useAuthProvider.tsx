@@ -41,10 +41,10 @@ export const useAuthProvider = () => {
       const { data: profileData } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('user_id', userId)
-        .single();
-      
-      setProfile(profileData);
+      .eq('user_id' as any, userId as any)
+      .single();
+    
+    setProfile((profileData as any));
     };
 
     getSession();
@@ -75,7 +75,7 @@ export const useAuthProvider = () => {
     role: 'provider',
     full_name: 'Development Provider',
     business_name: 'Dev Services LLC'
-  } as UserProfile : profile;
+  } as any : profile;
   
   const effectiveUser = shouldBypassAdminAuth() && !user ? { 
     id: DEV_CONFIG.MOCK_ADMIN_USER.id, 
