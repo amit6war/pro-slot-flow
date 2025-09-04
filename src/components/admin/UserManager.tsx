@@ -31,12 +31,11 @@ export const UserManager = () => {
   const [editForm, setEditForm] = useState({ full_name: '', phone: '', address: '' });
 
   const { data: users, isLoading } = useQuery({
-    queryKey: ['admin-customers'],
+    queryKey: ['admin-all-users'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('role', 'customer')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -53,11 +52,10 @@ export const UserManager = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'user_profiles',
-          filter: 'role=eq.customer'
+          table: 'user_profiles'
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-all-users'] });
         }
       )
       .subscribe();
@@ -80,7 +78,7 @@ export const UserManager = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-users'] });
       toast({ title: 'Success', description: 'User updated successfully' });
     },
     onError: () => {
@@ -102,7 +100,7 @@ export const UserManager = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-users'] });
       toast({ title: 'Success', description: 'User deleted successfully' });
     },
     onError: () => {
@@ -169,7 +167,7 @@ export const UserManager = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-gray-600">Manage user accounts, roles, and permissions</p>
+          <p className="text-gray-600">Manage all user accounts, roles, and permissions</p>
         </div>
         <Button variant="outline">
           Export Users
