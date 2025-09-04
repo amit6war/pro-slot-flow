@@ -209,10 +209,8 @@ export const ProviderDashboard = () => {
                   e.preventDefault();
                   e.stopPropagation();
                   console.log('🔘 Desktop Sign Out button clicked - ProviderDashboard');
-                  console.log('🔘 Current showSignOutDialog state:', showSignOutDialog);
-                  console.log('🔘 Current isSigningOut state:', isSigningOut);
-                  setShowSignOutDialog(true);
-                  console.log('🔘 Dialog state set to true');
+                  console.log('🔘 Calling handleSecureSignOut directly');
+                  handleSecureSignOut();
                 }}
                 disabled={isSigningOut}
                 className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300 cursor-pointer relative z-10"
@@ -276,11 +274,9 @@ export const ProviderDashboard = () => {
                   e.preventDefault();
                   e.stopPropagation();
                   console.log('🔘 Mobile Sign Out button clicked - ProviderDashboard');
-                  console.log('🔘 Current showSignOutDialog state:', showSignOutDialog);
-                  console.log('🔘 Current isSigningOut state:', isSigningOut);
+                  console.log('🔘 Calling handleSecureSignOut directly');
                   setMobileMenuOpen(false);
-                  setShowSignOutDialog(true);
-                  console.log('🔘 Dialog state set to true, mobile menu closed');
+                  handleSecureSignOut();
                 }}
                 disabled={isSigningOut}
                 className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300 cursor-pointer relative z-10"
