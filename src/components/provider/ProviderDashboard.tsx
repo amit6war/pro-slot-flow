@@ -12,22 +12,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { SecureStorage } from '@/utils/secureStorage';
 import { AlertCircle, Clock, LogOut, Loader2, Shield, Menu, X } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 export const ProviderDashboard = () => {
   const { user, profile, loading, secureSignOut, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -44,9 +33,6 @@ export const ProviderDashboard = () => {
       
       // Step 2: Close mobile menu if open
       setMobileMenuOpen(false);
-      
-      // Step 3: Clear any local state
-      setShowSignOutDialog(false);
       
       // Step 4: Clear secure storage immediately to stop all monitoring
       SecureStorage.clearSession();
@@ -349,61 +335,7 @@ export const ProviderDashboard = () => {
         </div>
       </div>
 
-      {/* Secure Sign Out Dialog */}
-      <AlertDialog open={showSignOutDialog} onOpenChange={(open) => {
-        console.log('🔘 AlertDialog onOpenChange called with:', open);
-        setShowSignOutDialog(open);
-      }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-600" />
-              Secure Sign Out
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This will securely sign you out from all devices.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel 
-              disabled={isSigningOut}
-              onClick={() => {
-                console.log('🔘 Cancel button clicked');
-                setShowSignOutDialog(false);
-              }}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                console.log('🔘 Sign Out Securely button clicked in dialog');
-                console.log('🔘 Event details:', e);
-                console.log('🔘 About to call handleSecureSignOut');
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('🔘 Calling handleSecureSignOut now...');
-                handleSecureSignOut();
-                console.log('🔘 handleSecureSignOut called');
-              }}
-              disabled={isSigningOut}
-              className="bg-red-600 hover:bg-red-700 cursor-pointer"
-              style={{ pointerEvents: 'auto' }}
-            >
-              {isSigningOut ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Signing Out...
-                </>
-              ) : (
-                <>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out Securely
-                </>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Remove the dialog completely */}
     </>
   );
 };

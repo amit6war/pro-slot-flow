@@ -15,23 +15,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 export const ProviderSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { secureSignOut } = useAuth();
   const { toast } = useToast();
-  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -62,7 +51,6 @@ export const ProviderSidebar = () => {
     } finally {
       console.log('🔐 Cleaning up sign out states...');
       setIsSigningOut(false);
-      setShowSignOutDialog(false);
     }
   };
 
@@ -111,15 +99,14 @@ export const ProviderSidebar = () => {
           e.preventDefault();
           e.stopPropagation();
           console.log(`🔘 ${isMobile ? 'Mobile' : 'Desktop'} ProviderSidebar Sign Out button clicked`);
-          console.log('🔘 Current showSignOutDialog state:', showSignOutDialog);
-          console.log('🔘 Current isSigningOut state:', isSigningOut);
-          console.log('🔘 Button disabled state:', isSigningOut);
-          setShowSignOutDialog(true);
-          console.log('🔘 Dialog state set to true in ProviderSidebar');
+          console.log('🔘 Calling handleSecureSignOut directly');
+          if (isMobile) {
+            setMobileMenuOpen(false);
+          }
+          handleSecureSignOut();
         }}
         disabled={isSigningOut}
-        className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300 cursor-pointer relative z-10"
-        style={{ pointerEvents: 'auto' }}
+        className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300"
       >
         {isSigningOut ? (
           <Loader2 className="h-5 w-5 animate-spin" />
@@ -206,55 +193,7 @@ export const ProviderSidebar = () => {
         </div>
       </div>
 
-      {/* --- Secure Sign Out Dialog --- */}
-      <AlertDialog open={showSignOutDialog} onOpenChange={(open) => {
-        console.log('🔘 ProviderSidebar AlertDialog onOpenChange called with:', open);
-        setShowSignOutDialog(open);
-      }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-600" />
-              Secure Sign Out
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This will securely sign you out from all devices.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel 
-              disabled={isSigningOut}
-              onClick={() => {
-                console.log('🔘 ProviderSidebar Cancel button clicked');
-                setShowSignOutDialog(false);
-              }}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                console.log('🔘 ProviderSidebar Sign Out Securely button clicked');
-                e.preventDefault();
-                handleSecureSignOut();
-              }}
-              disabled={isSigningOut}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isSigningOut ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Signing Out...
-                </>
-              ) : (
-                <>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out Securely
-                </>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Remove the dialog completely */}
     </>
   );
 };
