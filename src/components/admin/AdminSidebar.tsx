@@ -35,24 +35,33 @@ const navigationSections = [
     ]
   },
   {
-    name: 'Management',
+    name: 'User Management',
     items: [
       { name: 'User Management', href: '/dashboard/admin?section=users', icon: Users },
       { name: 'Provider Management', href: '/dashboard/admin?section=providers', icon: UserCheck },
-      { name: 'Booking Management', href: '/dashboard/admin?section=bookings', icon: Calendar },
+      { name: 'Admin Management', href: '/dashboard/admin?section=admins', icon: Crown },
     ]
   },
   {
-    name: 'Analytics & Operations',
+    name: 'Service Management',
     items: [
+      { name: 'Service Management', href: '/dashboard/admin?section=services', icon: Wrench },
+      { name: 'Category Management', href: '/dashboard/admin?section=categories', icon: FolderTree },
+      { name: 'Location Management', href: '/dashboard/admin?section=locations', icon: MapPin },
+    ]
+  },
+  {
+    name: 'Operations',
+    items: [
+      { name: 'Booking Management', href: '/dashboard/admin?section=bookings', icon: Calendar },
       { name: 'Reports & Analytics', href: '/dashboard/admin?section=reports', icon: BarChart3 },
       { name: 'Payment Management', href: '/dashboard/admin?section=payments', icon: CreditCard },
-      { name: 'Notification Center', href: '/dashboard/admin?section=notifications', icon: Bell },
     ]
   },
   {
     name: 'System',
     items: [
+      { name: 'Notification Center', href: '/dashboard/admin?section=notifications', icon: Bell },
       { name: 'System Settings', href: '/dashboard/admin?section=settings', icon: Settings },
       { name: 'Admin Permissions', href: '/dashboard/admin?section=permissions', icon: Shield },
     ]
