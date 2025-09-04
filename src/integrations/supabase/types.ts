@@ -643,6 +643,7 @@ export type Database = {
           business_name: string | null
           city: string | null
           contact_person: string | null
+          country: string | null
           created_at: string | null
           date_of_birth: string | null
           emergency_offline: boolean | null
@@ -654,9 +655,12 @@ export type Database = {
           license_number: string | null
           onboarding_completed: boolean | null
           phone: string | null
+          postal_code: string | null
           preferences: Json | null
           registration_status: string | null
           role: string | null
+          state: string | null
+          street_address: string | null
           updated_at: string | null
           user_id: string
         }
@@ -666,6 +670,7 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           contact_person?: string | null
+          country?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           emergency_offline?: boolean | null
@@ -677,9 +682,12 @@ export type Database = {
           license_number?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null
+          postal_code?: string | null
           preferences?: Json | null
           registration_status?: string | null
           role?: string | null
+          state?: string | null
+          street_address?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -689,6 +697,7 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           contact_person?: string | null
+          country?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           emergency_offline?: boolean | null
@@ -700,9 +709,12 @@ export type Database = {
           license_number?: string | null
           onboarding_completed?: boolean | null
           phone?: string | null
+          postal_code?: string | null
           preferences?: Json | null
           registration_status?: string | null
           role?: string | null
+          state?: string | null
+          street_address?: string | null
           updated_at?: string | null
           user_id?: string
         }

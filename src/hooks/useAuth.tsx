@@ -17,6 +17,11 @@ export interface UserProfile {
   registration_status?: 'pending' | 'approved' | 'rejected';
   license_number?: string | null;
   address?: string | null;
+  street_address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
