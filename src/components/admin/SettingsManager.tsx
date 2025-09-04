@@ -32,7 +32,7 @@ export const SettingsManager = () => {
         .order('key');
       
       if (error) throw error;
-      return data as AdminSetting[];
+      return data as any;
     }
   });
 
@@ -40,8 +40,8 @@ export const SettingsManager = () => {
     mutationFn: async ({ key, value }: { key: string; value: any }) => {
       const { data, error } = await supabase
         .from('admin_settings')
-        .update({ value, updated_at: new Date().toISOString() })
-        .eq('key', key)
+        .update({ value, updated_at: new Date().toISOString() } as any)
+        .eq('key' as any, key as any)
         .select()
         .single();
       

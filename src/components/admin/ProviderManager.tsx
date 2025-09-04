@@ -55,7 +55,7 @@ export const ProviderManager = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as ServiceProvider[];
+      return data as any;
     }
   });
 
@@ -63,8 +63,8 @@ export const ProviderManager = () => {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ServiceProvider> }) => {
       const { data, error } = await supabase
         .from('service_providers')
-        .update(updates)
-        .eq('id', id)
+        .update(updates as any)
+        .eq('id' as any, id as any)
         .select()
         .single();
       

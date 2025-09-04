@@ -49,7 +49,7 @@ export const AdminLogin: React.FC = () => {
         const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('role, is_blocked')
-          .eq('user_id', data.user.id)
+          .eq('user_id' as any, data.user.id as any)
           .single();
 
         if (profileError) {
@@ -63,7 +63,7 @@ export const AdminLogin: React.FC = () => {
                 full_name: data.user.email?.split('@')[0] || 'Admin',
                 is_blocked: false
               }
-            ]);
+            ] as any);
 
           if (!insertError) {
             navigate('/admin');
@@ -71,13 +71,13 @@ export const AdminLogin: React.FC = () => {
           }
         }
 
-        if (profile?.is_blocked) {
+        if ((profile as any)?.is_blocked) {
           setError('Your account has been blocked. Please contact support.');
           await supabase.auth.signOut();
           return;
         }
 
-        if (profile?.role === 'admin' || profile?.role === 'super_admin') {
+        if ((profile as any)?.role === 'admin' || (profile as any)?.role === 'super_admin') {
           navigate('/admin');
         } else {
           setError('Access denied. Admin privileges required.');
@@ -128,7 +128,7 @@ export const AdminLogin: React.FC = () => {
                 full_name: 'Demo Admin',
                 is_blocked: false
               }
-            ]);
+            ] as any);
 
           navigate('/admin');
         }

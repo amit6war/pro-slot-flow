@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch user profile from database
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
@@ -364,7 +364,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) throw new Error('No user logged in');
 
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('user_profiles')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('user_id', user.id);

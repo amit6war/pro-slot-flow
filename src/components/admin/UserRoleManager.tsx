@@ -78,7 +78,7 @@ export const UserRoleManager: React.FC = () => {
       
       // First get all users from auth.users (this requires service role key in production)
       // For now, we'll get users through their profiles
-      const { data: profiles, error } = await (supabase as any)
+      const { data: profiles, error } = await supabase
         .from('user_profiles')
         .select(`
           id,
@@ -128,7 +128,7 @@ export const UserRoleManager: React.FC = () => {
       setPromotingUser(userId);
 
       // Call the promote_user_role function
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .rpc('promote_user_role', {
           target_user_id: userId,
           new_role: newRole

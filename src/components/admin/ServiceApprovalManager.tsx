@@ -42,8 +42,8 @@ export const ServiceApprovalManager = () => {
           .update({ 
             approval_notes: notes,
             approved_at: status === 'approved' ? new Date().toISOString() : null
-          })
-          .eq('id', serviceId);
+          } as any)
+          .eq('id' as any, serviceId as any);
       }
 
       toast({

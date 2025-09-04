@@ -309,7 +309,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
         const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
         
         if (!authError && authUsers?.users) {
-          const emailExists = authUsers.users.some(user => user.email === signupData.email);
+          const emailExists = (authUsers as any)?.users?.some((user: any) => user.email === signupData.email);
           if (emailExists) {
             toast({
               title: "Email Already Registered",
@@ -328,7 +328,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
             check_full_name: signupData.fullName
           });
 
-        if (!checkError && duplicateCheck && duplicateCheck.length > 0) {
+        if (!checkError && duplicateCheck && (duplicateCheck as any)?.length > 0) {
           const result = duplicateCheck[0];
           
           if (result.exists_email) {
@@ -404,7 +404,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
             const { data: existingProfile, error: selectError } = await supabase
               .from('user_profiles')
               .select('*')
-              .eq('user_id', data.user.id)
+              .eq('user_id' as any, data.user.id as any)
               .maybeSingle();
 
             if (selectError && selectError.code !== 'PGRST116') {
@@ -428,8 +428,8 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
               // Profile exists, update it
               const { error: updateError } = await supabase
                 .from('user_profiles')
-                .update(profileData)
-                .eq('user_id', data.user.id);
+                .update(profileData as any)
+                .eq('user_id' as any, data.user.id as any);
               
               if (!updateError) {
                 profileCreated = true;
@@ -440,7 +440,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
               // Profile doesn't exist, create it
               const { error: insertError } = await supabase
                 .from('user_profiles')
-                .insert(profileData);
+                .insert(profileData as any);
               
               if (!insertError) {
                 profileCreated = true;

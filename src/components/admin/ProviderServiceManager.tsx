@@ -313,7 +313,7 @@ export const ProviderServiceManager = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSelectedService(service)}
+                        onClick={() => setSelectedService(service as any)}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
