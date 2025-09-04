@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ProviderSidebar } from './ProviderSidebar';
 import { ProviderOverview } from './ProviderOverview';
 import { ProviderServices } from './ProviderServices';
@@ -9,10 +9,46 @@ import { ProviderEarnings } from './ProviderEarnings';
 import { ProviderSchedule } from './ProviderSchedule';
 import { DatabaseStatus } from '../dev/DatabaseStatus';
 import { useAuth } from '@/hooks/useAuth';
-import { AlertCircle, Clock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { AlertCircle, Clock, LogOut, Loader2, Shield } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const ProviderDashboard = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, secureSignOut } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSecureSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await secureSignOut();
+      toast({
+        title: "Signed Out Successfully",
+        description: "You have been securely signed out.",
+      });
+      navigate('/auth', { replace: true });
+    } catch (error) {
+      toast({
+        title: "Sign Out Error",
+        description: "There was an issue signing out.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSigningOut(false);
+      setShowSignOutDialog(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -80,6 +116,25 @@ export const ProviderDashboard = () => {
                 </div>
               </div>
             </nav>
+
+            {/* Sign Out Button for Pending Providers */}
+            <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
+              <button
+                onClick={() => setShowSignOutDialog(true)}
+                disabled={isSigningOut}
+                className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300"
+              >
+                {isSigningOut ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <LogOut className="h-5 w-5" />
+                )}
+                <span className="font-semibold">
+                  {isSigningOut ? 'Signing Out...' : 'Sign Out'}
+                </span>
+                <Shield className="h-4 w-4 ml-auto text-green-600" />
+              </button>
+            </div>
           </div>
 
           {/* Main Content Area */}
@@ -114,25 +169,62 @@ export const ProviderDashboard = () => {
 
   // Full dashboard for approved providers
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DatabaseStatus />
-      
-      <ProviderSidebar />
-      <div className="md:ml-64 min-h-screen">
-        <div className="h-screen overflow-y-auto">
-          <div className="p-4 md:p-8 pt-16 md:pt-4">
-            <Routes>
-              <Route path="/" element={<ProviderOverview />} />
-              <Route path="/services" element={<ProviderServices />} />
-              <Route path="/bookings" element={<ProviderBookings />} />
-              <Route path="/schedule" element={<ProviderSchedule />} />
-              <Route path="/earnings" element={<ProviderEarnings />} />
-              <Route path="/profile" element={<ProviderProfile isPendingApproval={false} />} />
-              <Route path="*" element={<Navigate to="/provider" replace />} />
-            </Routes>
+    <>
+      <div className="min-h-screen bg-gray-50">
+        <DatabaseStatus />
+        
+        <ProviderSidebar />
+        <div className="md:ml-64 min-h-screen">
+          <div className="h-screen overflow-y-auto">
+            <div className="p-4 md:p-8 pt-16 md:pt-4">
+              <Routes>
+                <Route path="/" element={<ProviderOverview />} />
+                <Route path="/services" element={<ProviderServices />} />
+                <Route path="/bookings" element={<ProviderBookings />} />
+                <Route path="/schedule" element={<ProviderSchedule />} />
+                <Route path="/earnings" element={<ProviderEarnings />} />
+                <Route path="/profile" element={<ProviderProfile isPendingApproval={false} />} />
+                <Route path="*" element={<Navigate to="/provider" replace />} />
+              </Routes>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Secure Sign Out Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-blue-600" />
+              Secure Sign Out
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will securely sign you out from all devices.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSigningOut}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSecureSignOut}
+              disabled={isSigningOut}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isSigningOut ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Signing Out...
+                </>
+              ) : (
+                <>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out Securely
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
