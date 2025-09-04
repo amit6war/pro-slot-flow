@@ -10,6 +10,7 @@ import { ProviderSchedule } from './ProviderSchedule';
 import { DatabaseStatus } from '../dev/DatabaseStatus';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { SecureStorage } from '@/utils/secureStorage';
 import { AlertCircle, Clock, LogOut, Loader2, Shield, Menu, X } from 'lucide-react';
 import {
   AlertDialog,
@@ -33,18 +34,39 @@ export const ProviderDashboard = () => {
   const handleSecureSignOut = async () => {
     setIsSigningOut(true);
     try {
+      console.log('🔐 Starting sign out process...');
+      
       // Close mobile menu if open
       setMobileMenuOpen(false);
       
       // Clear any local state
       setShowSignOutDialog(false);
       
+      // Clear secure storage immediately to stop all monitoring
+      SecureStorage.clearSession();
+      
+      // Clear all browser storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear cookies
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+      
       // Try secure sign out first, fallback to regular sign out if it fails
       try {
         await secureSignOut();
+        console.log('✅ Secure sign out completed');
       } catch (secureError) {
         console.warn('Secure sign out failed, using regular sign out:', secureError);
-        await signOut();
+        try {
+          await signOut();
+          console.log('✅ Regular sign out completed');
+        } catch (regularError) {
+          console.warn('Regular sign out also failed:', regularError);
+          // Continue with force logout
+        }
       }
       
       toast({
@@ -52,12 +74,14 @@ export const ProviderDashboard = () => {
         description: "You have been securely signed out.",
       });
       
+      console.log('🔄 Redirecting to auth page...');
       // Force redirect to auth page
       window.location.href = '/auth';
     } catch (error) {
       console.error('Sign out error:', error);
       
       // Force clear local storage and redirect even if sign out fails
+      SecureStorage.clearSession();
       localStorage.clear();
       sessionStorage.clear();
       
@@ -66,6 +90,7 @@ export const ProviderDashboard = () => {
         description: "You have been signed out.",
       });
       
+      console.log('🔄 Force redirecting to auth page...');
       window.location.href = '/auth';
     } finally {
       setIsSigningOut(false);

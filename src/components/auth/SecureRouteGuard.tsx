@@ -297,13 +297,25 @@ const SecurityMonitor: React.FC<{ sessionData: SecureSessionData | null }> = ({ 
   const [showSecurityAlert, setShowSecurityAlert] = useState(false);
 
   useEffect(() => {
-    if (!sessionData) return;
+    // Only monitor if we have valid session data
+    if (!sessionData) {
+      console.log('🔐 No session data - stopping security monitoring');
+      return;
+    }
+
+    console.log('🔐 Starting security monitoring for session:', sessionData.sessionId.substring(0, 8) + '...');
 
     // Monitor for session tampering
     const monitorSession = () => {
       const currentSession = SecureStorage.getSession();
       
-      if (!currentSession || currentSession.sessionId !== sessionData.sessionId) {
+      // If no current session, user has signed out - stop monitoring
+      if (!currentSession) {
+        console.log('🔐 Session cleared - stopping security monitoring');
+        return;
+      }
+      
+      if (currentSession.sessionId !== sessionData.sessionId) {
         console.warn('🚨 Session tampering detected!');
         setShowSecurityAlert(true);
         
@@ -318,7 +330,10 @@ const SecurityMonitor: React.FC<{ sessionData: SecureSessionData | null }> = ({ 
     // Check every 30 seconds
     const interval = setInterval(monitorSession, 30000);
     
-    return () => clearInterval(interval);
+    return () => {
+      console.log('🔐 Cleaning up security monitoring interval');
+      clearInterval(interval);
+    };
   }, [sessionData]);
 
   if (showSecurityAlert) {

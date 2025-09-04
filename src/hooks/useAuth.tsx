@@ -206,9 +206,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
+        console.log('🔐 SIGNED_OUT event detected, clearing all auth data');
+        
+        // Clear all local state immediately
         setUser(null);
         setProfile(null);
+        
+        // Clear secure storage
         SecureStorage.clearSession();
+        
+        // Clear all browser storage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear cookies
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+        
+        console.log('✅ All auth data cleared on sign out');
       }
     });
 
