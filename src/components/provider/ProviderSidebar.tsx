@@ -40,21 +40,27 @@ export const ProviderSidebar = () => {
   }, [location.pathname]);
 
   const handleSecureSignOut = async () => {
+    console.log('🔐 ProviderSidebar handleSecureSignOut function called');
     setIsSigningOut(true);
     try {
+      console.log('🔐 Calling secureSignOut from useAuth...');
       await secureSignOut();
+      console.log('🔐 secureSignOut completed successfully');
       toast({
         title: "Signed Out Successfully",
         description: "You have been securely signed out.",
       });
+      console.log('🔐 Navigating to /auth...');
       navigate('/auth', { replace: true });
     } catch (error) {
+      console.error('🔐 Sign out error in ProviderSidebar:', error);
       toast({
         title: "Sign Out Error",
         description: "There was an issue signing out.",
         variant: "destructive",
       });
     } finally {
+      console.log('🔐 Cleaning up sign out states...');
       setIsSigningOut(false);
       setShowSignOutDialog(false);
     }
@@ -105,7 +111,11 @@ export const ProviderSidebar = () => {
           e.preventDefault();
           e.stopPropagation();
           console.log(`🔘 ${isMobile ? 'Mobile' : 'Desktop'} ProviderSidebar Sign Out button clicked`);
+          console.log('🔘 Current showSignOutDialog state:', showSignOutDialog);
+          console.log('🔘 Current isSigningOut state:', isSigningOut);
+          console.log('🔘 Button disabled state:', isSigningOut);
           setShowSignOutDialog(true);
+          console.log('🔘 Dialog state set to true in ProviderSidebar');
         }}
         disabled={isSigningOut}
         className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300 cursor-pointer relative z-10"
@@ -197,7 +207,10 @@ export const ProviderSidebar = () => {
       </div>
 
       {/* --- Secure Sign Out Dialog --- */}
-      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+      <AlertDialog open={showSignOutDialog} onOpenChange={(open) => {
+        console.log('🔘 ProviderSidebar AlertDialog onOpenChange called with:', open);
+        setShowSignOutDialog(open);
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -209,9 +222,21 @@ export const ProviderSidebar = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSigningOut}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel 
+              disabled={isSigningOut}
+              onClick={() => {
+                console.log('🔘 ProviderSidebar Cancel button clicked');
+                setShowSignOutDialog(false);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleSecureSignOut}
+              onClick={(e) => {
+                console.log('🔘 ProviderSidebar Sign Out Securely button clicked');
+                e.preventDefault();
+                handleSecureSignOut();
+              }}
               disabled={isSigningOut}
               className="bg-red-600 hover:bg-red-700"
             >

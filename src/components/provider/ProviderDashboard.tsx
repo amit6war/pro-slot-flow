@@ -32,6 +32,7 @@ export const ProviderDashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSecureSignOut = async () => {
+    console.log('🔐 handleSecureSignOut function called');
     setIsSigningOut(true);
     try {
       console.log('🔐 Starting sign out process...');
@@ -206,8 +207,11 @@ export const ProviderDashboard = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('🔘 Desktop Sign Out button clicked');
+                  console.log('🔘 Desktop Sign Out button clicked - ProviderDashboard');
+                  console.log('🔘 Current showSignOutDialog state:', showSignOutDialog);
+                  console.log('🔘 Current isSigningOut state:', isSigningOut);
                   setShowSignOutDialog(true);
+                  console.log('🔘 Dialog state set to true');
                 }}
                 disabled={isSigningOut}
                 className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300 cursor-pointer relative z-10"
@@ -270,9 +274,12 @@ export const ProviderDashboard = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('🔘 Mobile Sign Out button clicked');
+                  console.log('🔘 Mobile Sign Out button clicked - ProviderDashboard');
+                  console.log('🔘 Current showSignOutDialog state:', showSignOutDialog);
+                  console.log('🔘 Current isSigningOut state:', isSigningOut);
                   setMobileMenuOpen(false);
                   setShowSignOutDialog(true);
+                  console.log('🔘 Dialog state set to true, mobile menu closed');
                 }}
                 disabled={isSigningOut}
                 className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full justify-start disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300 cursor-pointer relative z-10"
@@ -346,7 +353,10 @@ export const ProviderDashboard = () => {
       </div>
 
       {/* Secure Sign Out Dialog */}
-      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+      <AlertDialog open={showSignOutDialog} onOpenChange={(open) => {
+        console.log('🔘 AlertDialog onOpenChange called with:', open);
+        setShowSignOutDialog(open);
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -358,9 +368,21 @@ export const ProviderDashboard = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSigningOut}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel 
+              disabled={isSigningOut}
+              onClick={() => {
+                console.log('🔘 Cancel button clicked');
+                setShowSignOutDialog(false);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleSecureSignOut}
+              onClick={(e) => {
+                console.log('🔘 Sign Out Securely button clicked');
+                e.preventDefault();
+                handleSecureSignOut();
+              }}
               disabled={isSigningOut}
               className="bg-red-600 hover:bg-red-700"
             >
