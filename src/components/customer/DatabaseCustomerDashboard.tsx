@@ -147,11 +147,11 @@ const DatabaseCustomerDashboard: React.FC = () => {
           location,
           provider_phone
         `)
-        .eq('customer_id', user?.id)
+        .eq('customer_id' as any, user?.id as any)
         .order('booking_date', { ascending: false });
 
       if (error) throw error;
-      setBookings(data || []);
+      setBookings((data as any) || []);
     } catch (error) {
       console.error('Error loading bookings:', error);
       // Create sample data if table doesn't exist
@@ -185,10 +185,10 @@ const DatabaseCustomerDashboard: React.FC = () => {
           price_range,
           location
         `)
-        .eq('customer_id', user?.id);
+        .eq('customer_id' as any, user?.id as any);
 
       if (error) throw error;
-      setFavorites(data || []);
+      setFavorites((data as any) || []);
     } catch (error) {
       console.error('Error loading favorites:', error);
       // Create sample data if table doesn't exist
@@ -212,19 +212,19 @@ const DatabaseCustomerDashboard: React.FC = () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id' as any, user?.id as any)
         .single();
 
       if (error) throw error;
       
       const profileData = {
-        id: data.id,
-        full_name: data.full_name || user?.user_metadata?.full_name || 'User',
+        id: (data as any).id,
+        full_name: (data as any).full_name || user?.user_metadata?.full_name || 'User',
         email: user?.email || '',
-        phone: data.phone || '',
-        address: data.address || '',
-        city: data.city || '',
-        created_at: data.created_at
+        phone: (data as any).phone || '',
+        address: (data as any).address || '',
+        city: (data as any).city || '',
+        created_at: (data as any).created_at
       };
       
       setUserProfile(profileData);
@@ -296,7 +296,7 @@ const DatabaseCustomerDashboard: React.FC = () => {
           address: profileForm.address,
           city: profileForm.city,
           updated_at: new Date().toISOString()
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -324,7 +324,7 @@ const DatabaseCustomerDashboard: React.FC = () => {
       const { error } = await supabase
         .from('customer_favorites')
         .delete()
-        .eq('id', favoriteId);
+        .eq('id' as any, favoriteId as any);
 
       if (error) throw error;
 

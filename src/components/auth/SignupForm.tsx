@@ -31,7 +31,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onToggleMode 
       const { data: existingProfile } = await supabase
         .from('user_profiles')
         .select('phone')
-        .eq('phone', formData.phone)
+        .eq('phone' as any, formData.phone as any)
         .single();
 
       if (existingProfile) {
