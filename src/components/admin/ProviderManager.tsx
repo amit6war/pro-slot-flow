@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   CheckCircle, 
   XCircle, 
@@ -15,7 +18,13 @@ import {
   Award,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  Search,
+  FileText,
+  Download,
+  AlertCircle,
+  Trash2,
+  Edit2
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,10 +48,25 @@ interface ServiceProvider {
   total_reviews: number;
   total_completed_jobs: number;
   response_time_minutes: number;
+  created_at: string;
+}
+
+interface ProviderDocument {
+  id: string;
+  provider_id: string;
+  document_type: string;
+  document_name: string;
+  document_url: string;
+  verification_status: string;
+  verification_notes?: string;
+  uploaded_at: string;
 }
 
 export const ProviderManager = () => {
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [providerDocuments, setProviderDocuments] = useState<ProviderDocument[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -55,9 +79,25 @@ export const ProviderManager = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as any;
+      return data as ServiceProvider[];
     }
   });
+
+  // Fetch provider documents when viewing details
+  const fetchProviderDocuments = async (providerId: string) => {
+    const { data, error } = await supabase
+      .from('service_provider_documents')
+      .select('*')
+      .eq('provider_id', providerId)
+      .order('uploaded_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching documents:', error);
+      return [];
+    }
+    
+    return data as ProviderDocument[];
+  };
 
   const updateProviderMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ServiceProvider> }) => {
@@ -84,12 +124,57 @@ export const ProviderManager = () => {
     }
   });
 
+  const deleteProviderMutation = useMutation({
+    mutationFn: async (providerId: string) => {
+      const { error } = await supabase
+        .from('service_providers')
+        .delete()
+        .eq('id', providerId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-providers'] });
+      toast({ title: 'Success', description: 'Provider deleted successfully' });
+    },
+    onError: () => {
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to delete provider',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const handleStatusChange = (providerId: string, newStatus: string) => {
     updateProviderMutation.mutate({
       id: providerId,
       updates: { status: newStatus }
     });
   };
+
+  const handleViewProvider = async (provider: ServiceProvider) => {
+    setSelectedProvider(provider);
+    const documents = await fetchProviderDocuments(provider.id);
+    setProviderDocuments(documents);
+  };
+
+  const handleDeleteProvider = (providerId: string) => {
+    deleteProviderMutation.mutate(providerId);
+  };
+
+  const filteredProviders = providers?.filter(provider => {
+    const matchesSearch = !searchTerm || 
+      provider.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      provider.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      provider.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || provider.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  }) || [];
+
+  const pendingProviders = filteredProviders.filter(p => p.status === 'pending');
 
   const handleFeaturedToggle = (providerId: string, isFeatured: boolean) => {
     updateProviderMutation.mutate({
@@ -125,6 +210,14 @@ export const ProviderManager = () => {
         <div>
           <h1 className="text-3xl font-bold">Provider Management</h1>
           <p className="text-gray-600">Approve, manage, and monitor service providers</p>
+          {pendingProviders.length > 0 && (
+            <div className="flex items-center mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-yellow-600 mr-2" />
+              <span className="text-yellow-800 text-sm font-medium">
+                {pendingProviders.length} provider{pendingProviders.length !== 1 ? 's' : ''} pending approval
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex space-x-2">
           <Button variant="outline">
@@ -136,27 +229,51 @@ export const ProviderManager = () => {
         </div>
       </div>
 
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search providers by name, contact, or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+        >
+          <option value="all">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="blocked">Blocked</option>
+        </select>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { 
             title: 'Total Providers', 
-            value: providers?.length || 0, 
+            value: filteredProviders?.length || 0, 
             color: 'text-blue-600' 
           },
           { 
             title: 'Pending Approval', 
-            value: providers?.filter(p => p.status === 'pending').length || 0, 
+            value: filteredProviders?.filter(p => p.status === 'pending').length || 0, 
             color: 'text-yellow-600' 
           },
           { 
             title: 'Approved', 
-            value: providers?.filter(p => p.status === 'approved').length || 0, 
+            value: filteredProviders?.filter(p => p.status === 'approved').length || 0, 
             color: 'text-green-600' 
           },
           { 
             title: 'Featured', 
-            value: providers?.filter(p => p.is_featured).length || 0, 
+            value: filteredProviders?.filter(p => p.is_featured).length || 0, 
             color: 'text-purple-600' 
           }
         ].map((stat, index) => (
@@ -171,7 +288,7 @@ export const ProviderManager = () => {
 
       {/* Provider List */}
       <div className="space-y-4">
-        {providers?.map((provider) => (
+        {filteredProviders?.map((provider) => (
           <Card key={provider.id} className="overflow-hidden">
             <CardContent className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
@@ -277,7 +394,7 @@ export const ProviderManager = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setSelectedProvider(provider)}
+                      onClick={() => handleViewProvider(provider)}
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       View Details
@@ -303,6 +420,36 @@ export const ProviderManager = () => {
                         Unblock
                       </Button>
                     ) : null}
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Provider</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the provider account and all associated data.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDeleteProvider(provider.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete Provider
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </div>
@@ -311,66 +458,201 @@ export const ProviderManager = () => {
         ))}
       </div>
 
-      {/* Provider Details Modal would go here */}
+      {/* Enhanced Provider Details Modal */}
       {selectedProvider && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                Provider Details
-                <Button variant="ghost" onClick={() => setSelectedProvider(null)}>
-                  <XCircle className="w-5 h-5" />
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Business Name</Label>
-                  <p className="font-medium">{selectedProvider.business_name}</p>
+        <Dialog open={!!selectedProvider} onOpenChange={() => setSelectedProvider(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex justify-between items-center">
+                <span>Provider Details - {selectedProvider.business_name}</span>
+                <div className="flex items-center space-x-2">
+                  <Badge className={getStatusColor(selectedProvider.status)}>
+                    {selectedProvider.status.toUpperCase()}
+                  </Badge>
+                  {selectedProvider.status === 'pending' && (
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          handleStatusChange(selectedProvider.id, 'approved');
+                          setSelectedProvider(null);
+                        }}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          handleStatusChange(selectedProvider.id, 'rejected');
+                          setSelectedProvider(null);
+                        }}
+                        className="border-red-300 text-red-600 hover:bg-red-50"
+                      >
+                        <XCircle className="w-4 h-4 mr-1" />
+                        Reject
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <Label>Contact Person</Label>
-                  <p className="font-medium">{selectedProvider.contact_person}</p>
+              </DialogTitle>
+            </DialogHeader>
+            <DialogContent className="space-y-6">
+              {/* Provider Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Business Information</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div>
+                      <Label className="text-sm text-gray-600">Business Name</Label>
+                      <p className="font-medium">{selectedProvider.business_name}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Contact Person</Label>
+                      <p className="font-medium">{selectedProvider.contact_person}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Phone</Label>
+                      <p className="font-medium">{selectedProvider.phone}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Email</Label>
+                      <p className="font-medium">{selectedProvider.email}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Address</Label>
+                      <p className="font-medium">{selectedProvider.address}</p>
+                    </div>
+                    {selectedProvider.license_number && (
+                      <div>
+                        <Label className="text-sm text-gray-600">License Number</Label>
+                        <p className="font-medium">{selectedProvider.license_number}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Performance Metrics</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div>
+                      <Label className="text-sm text-gray-600">Rating</Label>
+                      <div className="flex items-center">
+                        <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
+                        <span className="font-medium">{selectedProvider.rating}</span>
+                        <span className="text-gray-500 ml-1">({selectedProvider.total_reviews} reviews)</span>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Completed Jobs</Label>
+                      <p className="font-medium">{selectedProvider.total_completed_jobs}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Response Time</Label>
+                      <p className="font-medium">~{selectedProvider.response_time_minutes} minutes</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Member Since</Label>
+                      <p className="font-medium">{new Date(selectedProvider.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Featured Provider</Label>
+                      <Badge variant={selectedProvider.is_featured ? "default" : "secondary"}>
+                        {selectedProvider.is_featured ? "Yes" : "No"}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              {selectedProvider.license_number && (
-                <div>
-                  <Label>License Number</Label>
-                  <p className="font-medium">{selectedProvider.license_number}</p>
-                </div>
-              )}
-              
+
+              {/* ID Documents Section */}
               <div>
-                <Label>Full Address</Label>
-                <p className="font-medium">{selectedProvider.address}</p>
+                <h3 className="text-lg font-semibold mb-4">Verification Documents</h3>
+                {providerDocuments.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {providerDocuments.map((doc) => (
+                      <Card key={doc.id} className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-3">
+                            <FileText className="w-5 h-5 text-blue-500 mt-1" />
+                            <div>
+                              <p className="font-medium">{doc.document_name}</p>
+                              <p className="text-sm text-gray-600 capitalize">{doc.document_type.replace('_', ' ')}</p>
+                              <Badge 
+                                variant={
+                                  doc.verification_status === 'verified' ? 'default' :
+                                  doc.verification_status === 'rejected' ? 'destructive' : 'secondary'
+                                }
+                                className="mt-1"
+                              >
+                                {doc.verification_status}
+                              </Badge>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Uploaded: {new Date(doc.uploaded_at).toLocaleDateString()}
+                              </p>
+                              {doc.verification_notes && (
+                                <p className="text-sm text-gray-600 mt-2">
+                                  <strong>Notes:</strong> {doc.verification_notes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            asChild
+                          >
+                            <a href={doc.document_url} target="_blank" rel="noopener noreferrer">
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </a>
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No documents uploaded yet</p>
+                  </div>
+                )}
+
+                {/* Legacy document URLs */}
+                {(selectedProvider.license_document_url || selectedProvider.id_document_url) && (
+                  <div className="mt-6">
+                    <h4 className="font-medium mb-3">Legacy Documents</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProvider.license_document_url && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={selectedProvider.license_document_url} target="_blank" rel="noopener noreferrer">
+                            <Download className="w-4 h-4 mr-1" />
+                            License Document
+                          </a>
+                        </Button>
+                      )}
+                      {selectedProvider.id_document_url && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={selectedProvider.id_document_url} target="_blank" rel="noopener noreferrer">
+                            <Download className="w-4 h-4 mr-1" />
+                            ID Document
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {selectedProvider.license_document_url && (
-                <div>
-                  <Label>License Document</Label>
-                  <Button variant="outline" asChild>
-                    <a href={selectedProvider.license_document_url} target="_blank" rel="noopener noreferrer">
-                      View Document
-                    </a>
-                  </Button>
-                </div>
-              )}
-
-              {selectedProvider.id_document_url && (
-                <div>
-                  <Label>ID Document</Label>
-                  <Button variant="outline" asChild>
-                    <a href={selectedProvider.id_document_url} target="_blank" rel="noopener noreferrer">
-                      View Document
-                    </a>
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+            </DialogContent>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSelectedProvider(null)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

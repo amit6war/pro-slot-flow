@@ -31,11 +31,12 @@ import { ServiceApprovalManager } from './ServiceApprovalManager';
 import { ProviderServiceManager } from './ProviderServiceManager';
 import { LocationManagement } from './LocationManagement';
 import { UserManager } from './UserManager';
+import { ProviderManager } from './ProviderManager';
 
 // Section components mapping
 const sectionComponents: Record<string, React.ComponentType> = {
   users: UserManager,
-  providers: () => <ProviderManagementSection />,
+  providers: ProviderManager,
   services: ServiceApprovalManager,
   bookings: () => <BookingManagementSection />,
   categories: CategoryManager,
@@ -247,13 +248,7 @@ const AdminPermissionsSection: React.FC = () => (
 
 // UserManagementSection is now replaced by the imported UserManager component
 
-const ProviderManagementSection: React.FC = () => (
-  <div className="space-y-4">
-    <h3 className="text-lg font-semibold">Provider Management</h3>
-    <p className="text-muted-foreground">Manage service providers and their approvals.</p>
-    <ProviderServiceManager />
-  </div>
-);
+const ProviderManagementSection: React.FC = () => <ProviderManager />;
 
 const BookingManagementSection: React.FC = () => (
   <div className="space-y-4">

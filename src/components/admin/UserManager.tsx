@@ -1,11 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { UserX, UserCheck, Mail, Phone, Calendar } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { UserX, UserCheck, Mail, Phone, Calendar, Edit2, Trash2, Search, Eye, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +27,9 @@ interface UserProfile {
 export const UserManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [editForm, setEditForm] = useState({ full_name: '', phone: '', address: '' });
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -63,12 +69,63 @@ export const UserManager = () => {
     }
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase
+        .from('user_profiles')
+        .delete()
+        .eq('id', userId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({ title: 'Success', description: 'User deleted successfully' });
+    },
+    onError: () => {
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to delete user',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const handleBlockToggle = (userId: string, isBlocked: boolean) => {
     updateUserMutation.mutate({
       id: userId,
       updates: { is_blocked: isBlocked }
     });
   };
+
+  const handleEditUser = (user: UserProfile) => {
+    setEditingUser(user);
+    setEditForm({
+      full_name: user.full_name || '',
+      phone: user.phone || '',
+      address: user.address || ''
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingUser) return;
+    
+    updateUserMutation.mutate({
+      id: editingUser.id,
+      updates: editForm
+    });
+    setEditingUser(null);
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    deleteUserMutation.mutate(userId);
+  };
+
+  const filteredUsers = users?.filter(user =>
+    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.phone?.includes(searchTerm) ||
+    user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -96,27 +153,38 @@ export const UserManager = () => {
         </Button>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder="Search users by name, phone, or role..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { 
             title: 'Total Users', 
-            value: users?.length || 0, 
+            value: filteredUsers?.length || 0, 
             color: 'text-blue-600' 
           },
           { 
             title: 'Customers', 
-            value: users?.filter(u => u.role === 'customer').length || 0, 
+            value: filteredUsers?.filter(u => u.role === 'customer').length || 0, 
             color: 'text-green-600' 
           },
           { 
             title: 'Providers', 
-            value: users?.filter(u => u.role === 'provider').length || 0, 
+            value: filteredUsers?.filter(u => u.role === 'provider').length || 0, 
             color: 'text-purple-600' 
           },
           { 
             title: 'Blocked Users', 
-            value: users?.filter(u => u.is_blocked).length || 0, 
+            value: filteredUsers?.filter(u => u.is_blocked).length || 0, 
             color: 'text-red-600' 
           }
         ].map((stat, index) => (
@@ -131,7 +199,7 @@ export const UserManager = () => {
 
       {/* User List */}
       <div className="space-y-4">
-        {users?.map((user) => (
+        {filteredUsers?.map((user) => (
           <Card key={user.id}>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
@@ -192,6 +260,15 @@ export const UserManager = () => {
                     </div>
                     
                     <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditUser(user)}
+                      >
+                        <Edit2 className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                      
                       {user.is_blocked ? (
                         <Button
                           size="sm"
@@ -212,6 +289,36 @@ export const UserManager = () => {
                           Block
                         </Button>
                       )}
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-red-300 text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the user account and all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Delete User
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </div>
@@ -220,6 +327,55 @@ export const UserManager = () => {
           </Card>
         ))}
       </div>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user information. Changes will be saved immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input
+                id="full_name"
+                value={editForm.full_name}
+                onChange={(e) => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
+                placeholder="Enter full name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                value={editForm.phone}
+                onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="Enter phone number"
+              />
+            </div>
+            <div>
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                value={editForm.address}
+                onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Enter address"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingUser(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
