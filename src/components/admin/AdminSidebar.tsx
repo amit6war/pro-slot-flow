@@ -168,7 +168,7 @@ export const AdminSidebar = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200 fixed lg:relative inset-y-0 left-0 w-64">
+    <div className="flex flex-col h-screen bg-white border-r border-gray-200 w-64">
       {/* Main sidebar container with fixed height and flex structure */}
       <div className="flex flex-col h-full">
         {/* Header with logo and title - fixed at top */}

@@ -116,10 +116,10 @@ export const EnhancedAdminDashboard: React.FC = () => {
       )}
 
       {/* Main layout with sidebar and content */}
-      <div className="flex min-h-screen w-full">
+      <div className="flex h-screen w-full">
         {/* Sidebar - Fixed position */}
         <div className={`
-          fixed lg:static inset-y-0 left-0 z-50 w-64 
+          fixed lg:static inset-y-0 left-0 z-50 w-64 flex-shrink-0
           bg-white shadow-xl lg:shadow-none
           transform transition-transform duration-300 ease-in-out lg:transform-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -128,9 +128,9 @@ export const EnhancedAdminDashboard: React.FC = () => {
         </div>
 
         {/* Main content area - Fixed positioning with scroll */}
-        <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-          <div className="flex-1 overflow-y-auto">
-            <div className="container mx-auto p-4 lg:p-6 space-y-6">
+        <div className="flex-1 flex flex-col h-screen lg:ml-0">
+          <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
               {/* Header */}
               <div className="flex items-center justify-between">
                 <div>
