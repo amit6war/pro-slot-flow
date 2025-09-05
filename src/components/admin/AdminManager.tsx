@@ -365,18 +365,6 @@ export const AdminManager = () => {
         </Card>
       </div>
 
-      {/* Admin Permissions Panel (Super Admin Only) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Shield className="h-5 w-5 mr-2" />
-            System Permissions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AdminPermissionsPanel />
-        </CardContent>
-      </Card>
 
       {/* Admin List */}
       <div className="space-y-4">
@@ -550,34 +538,24 @@ export const AdminManager = () => {
                   Super Admins have full access to all sections and cannot have permissions modified.
                 </p>
               </div>
+            ) : isRole('super_admin') ? (
+              <div className="space-y-4">
+                <div className="text-center py-4">
+                  <Shield className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                  <h3 className="text-lg font-semibold mb-2">Manage System Permissions</h3>
+                  <p className="text-muted-foreground">
+                    Control which sections this admin can access. Changes apply system-wide for all admin users.
+                  </p>
+                </div>
+                <AdminPermissionsPanel />
+              </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {adminPermissions?.map((permission) => (
-                  <Card key={permission.section}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{permission.display_name}</h4>
-                          <p className="text-xs text-gray-500 mt-1">{permission.description}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={permission.is_enabled ? "default" : "secondary"}>
-                            {permission.is_enabled ? 'Enabled' : 'Disabled'}
-                          </Badge>
-                          {isRole('super_admin') && (
-                            <Switch
-                              checked={permission.is_enabled}
-                              onCheckedChange={(checked) => {
-                                // Update permission using the hook
-                                updatePermission(permission.id, checked);
-                              }}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="text-center py-8">
+                <Shield className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-semibold mb-2">Permission Access</h3>
+                <p className="text-muted-foreground">
+                  Only Super Admins can view and modify admin permissions.
+                </p>
               </div>
             )}
             <div className="text-sm text-gray-500 italic">
