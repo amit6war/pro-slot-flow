@@ -116,8 +116,8 @@ export const EnhancedAdminDashboard: React.FC = () => {
       )}
 
       {/* Main layout with sidebar and content */}
-      <div className="flex min-h-screen">
-        {/* Sidebar - Fixed on mobile, static on desktop */}
+      <div className="flex min-h-screen w-full">
+        {/* Sidebar - Fixed position */}
         <div className={`
           fixed lg:static inset-y-0 left-0 z-50 w-64 
           bg-white shadow-xl lg:shadow-none
@@ -127,103 +127,105 @@ export const EnhancedAdminDashboard: React.FC = () => {
           <AdminSidebar />
         </div>
 
-        {/* Main content area */}
-        <div className="flex-1 lg:pl-0">
-          <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center">
-            {isSuperAdmin ? (
-              <Crown className="h-8 w-8 mr-3 text-yellow-500" />
-            ) : (
-              <Shield className="h-8 w-8 mr-3 text-blue-500" />
-            )}
-            {isSuperAdmin ? 'Super Admin' : 'Admin'} Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Welcome back, {profile?.full_name || 'Administrator'}
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant={isSuperAdmin ? "default" : "secondary"}>
-            {isSuperAdmin ? 'Super Admin' : 'Admin'}
-          </Badge>
-          <Badge variant="outline">
-            {enabledSections.length} Sections Available
-          </Badge>
-        </div>
-      </div>
-
-      {/* Super Admin message - Permissions moved to dedicated section */}
-      {isSuperAdmin && sectionFromUrl !== 'permissions' && (
-        <div className="mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2 text-blue-600">
-                <Shield className="h-5 w-5" />
-                <p>Admin permissions can now be managed in the <Link to="/dashboard/admin?section=permissions" className="font-medium underline">Admin Permissions</Link> section.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Admin Dashboard Content */}
-      {availableSections.length > 0 ? (
-        <div className="space-y-6">
-          {/* Display the current section based on URL parameter */}
-          {(() => {
-            const currentSection = sectionFromUrl || availableSections[0]?.section;
-            const section = availableSections.find(s => s.section === currentSection);
-            
-            if (!section) return null;
-            
-            const SectionComponent = sectionComponents[section.section];
-            
-            return (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    {sectionIcons[section.section]}
-                    <span className="ml-2">{section.display_name}</span>
-                    {!section.is_enabled && isAdmin && (
-                      <Badge variant="secondary" className="ml-2">
-                        Disabled
-                      </Badge>
+        {/* Main content area - Fixed positioning with scroll */}
+        <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+          <div className="flex-1 overflow-y-auto">
+            <div className="container mx-auto p-4 lg:p-6 space-y-6">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold flex items-center">
+                    {isSuperAdmin ? (
+                      <Crown className="h-8 w-8 mr-3 text-yellow-500" />
+                    ) : (
+                      <Shield className="h-8 w-8 mr-3 text-blue-500" />
                     )}
-                  </CardTitle>
-                  {section.description && (
-                    <CardDescription>{section.description}</CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {SectionComponent ? (
-                    <SectionComponent />
-                  ) : (
-                    <ComingSoonSection title={section.display_name} />
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })()}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-12">
-              <Shield className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No Sections Available</h3>
-              <p className="text-muted-foreground">
-                {isAdmin 
-                  ? "No admin sections have been enabled for your account. Contact your Super Admin."
-                  : "No admin sections are configured."
-                }
-              </p>
+                    {isSuperAdmin ? 'Super Admin' : 'Admin'} Dashboard
+                  </h1>
+                  <p className="text-muted-foreground mt-1">
+                    Welcome back, {profile?.full_name || 'Administrator'}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant={isSuperAdmin ? "default" : "secondary"}>
+                    {isSuperAdmin ? 'Super Admin' : 'Admin'}
+                  </Badge>
+                  <Badge variant="outline">
+                    {enabledSections.length} Sections Available
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Super Admin message - Permissions moved to dedicated section */}
+              {isSuperAdmin && sectionFromUrl !== 'permissions' && (
+                <div className="mb-8">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center space-x-2 text-blue-600">
+                        <Shield className="h-5 w-5" />
+                        <p>Admin permissions can now be managed in the <Link to="/dashboard/admin?section=permissions" className="font-medium underline">Admin Permissions</Link> section.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Admin Dashboard Content */}
+              {availableSections.length > 0 ? (
+                <div className="space-y-6">
+                  {/* Display the current section based on URL parameter */}
+                  {(() => {
+                    const currentSection = sectionFromUrl || availableSections[0]?.section;
+                    const section = availableSections.find(s => s.section === currentSection);
+                    
+                    if (!section) return null;
+                    
+                    const SectionComponent = sectionComponents[section.section];
+                    
+                    return (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center">
+                            {sectionIcons[section.section]}
+                            <span className="ml-2">{section.display_name}</span>
+                            {!section.is_enabled && isAdmin && (
+                              <Badge variant="secondary" className="ml-2">
+                                Disabled
+                              </Badge>
+                            )}
+                          </CardTitle>
+                          {section.description && (
+                            <CardDescription>{section.description}</CardDescription>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          {SectionComponent ? (
+                            <SectionComponent />
+                          ) : (
+                            <ComingSoonSection title={section.display_name} />
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12">
+                      <Shield className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">No Sections Available</h3>
+                      <p className="text-muted-foreground">
+                        {isAdmin 
+                          ? "No admin sections have been enabled for your account. Contact your Super Admin."
+                          : "No admin sections are configured."
+                        }
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
           </div>
         </div>
       </div>

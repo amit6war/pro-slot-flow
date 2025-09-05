@@ -24,20 +24,23 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useAdminPermissions } from '@/hooks/useAdminPermissions';
 import { AdminPermissionsPanel } from './AdminPermissionsPanel';
 
 interface AdminUser {
   id: string;
   user_id: string;
   full_name: string;
-  phone: string;
-  address: string;
+  phone?: string;
+  address?: string;
   role: string;
   is_blocked: boolean;
   created_at: string;
 }
 
 interface AdminPermission {
+  id: string;
   section: string;
   display_name: string;
   is_enabled: boolean;
@@ -46,53 +49,76 @@ interface AdminPermission {
 
 export const AdminManager = () => {
   const { toast } = useToast();
+  const { isRole } = useAuth();
+  const { updatePermission } = useAdminPermissions();
   const queryClient = useQueryClient();
+
+  // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null);
   const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
-  const [editForm, setEditForm] = useState({ full_name: '', phone: '', address: '' });
+  const [editForm, setEditForm] = useState({
+    full_name: '',
+    phone: '',
+    address: ''
+  });
 
+  // Fetch admin users (admin + super_admin roles)
   const { data: adminUsers, isLoading } = useQuery({
-    queryKey: ['admin-admin-users'],
+    queryKey: ['admin-users'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .in('role', ['admin', 'super_admin'])
+        .in('auth_role', ['admin', 'super_admin'])
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as AdminUser[];
     }
   });
 
-  // Real-time subscription for admin users
+  // Set up real-time subscriptions for admin users
   useEffect(() => {
-    const channel = supabase
-      .channel('admin-profiles-changes')
+    const subscription = supabase
+      .channel('admin_users_changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'user_profiles',
-          filter: 'role=in.(admin,super_admin)'
+          filter: 'auth_role=in.(admin,super_admin)'
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-admin-users'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-users'] });
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      subscription.unsubscribe();
     };
   }, [queryClient]);
 
-  // Real-time subscription for admin permissions
+  // Fetch admin permissions
+  const { data: adminPermissions } = useQuery({
+    queryKey: ['admin-permissions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('admin_permissions')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+      return data as AdminPermission[];
+    }
+  });
+
+  // Set up real-time subscriptions for permissions
   useEffect(() => {
-    const channel = supabase
-      .channel('admin-permissions-changes')
+    const subscription = supabase
+      .channel('admin_permissions_changes')
       .on(
         'postgres_changes',
         {
@@ -107,97 +133,111 @@ export const AdminManager = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      subscription.unsubscribe();
     };
   }, [queryClient]);
 
-  const { data: adminPermissions } = useQuery({
-    queryKey: ['admin-permissions'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('admin_permissions')
-        .select('*')
-        .order('sort_order', { ascending: true });
-      
-      if (error) throw error;
-      return data as AdminPermission[];
-    }
-  });
-
+  // Update admin mutation
   const updateAdminMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<AdminUser> }) => {
+    mutationFn: async (updates: { id: string; data: Partial<AdminUser> }) => {
       const { data, error } = await supabase
         .from('user_profiles')
-        .update(updates as any)
-        .eq('id', id)
-        .select()
-        .single();
-      
+        .update(updates.data)
+        .eq('id', updates.id);
+
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-admin-users'] });
-      toast({ title: 'Success', description: 'Admin updated successfully' });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: "Success",
+        description: "Admin user updated successfully",
+      });
     },
-    onError: () => {
-      toast({ 
-        title: 'Error', 
-        description: 'Failed to update admin',
-        variant: 'destructive'
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update admin user",
+        variant: "destructive",
       });
     }
   });
 
+  // Delete admin mutation
   const deleteAdminMutation = useMutation({
     mutationFn: async (adminId: string) => {
       const { error } = await supabase
         .from('user_profiles')
         .delete()
         .eq('id', adminId);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-admin-users'] });
-      toast({ title: 'Success', description: 'Admin deleted successfully' });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: "Success",
+        description: "Admin user deleted successfully",
+      });
     },
-    onError: () => {
-      toast({ 
-        title: 'Error', 
-        description: 'Failed to delete admin',
-        variant: 'destructive'
+    onError: (error: any) => {
+      toast({
+        title: "Error", 
+        description: error.message || "Failed to delete admin user",
+        variant: "destructive",
       });
     }
   });
 
+  // Promote user to admin mutation
   const promoteToAdminMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      const { data, error } = await supabase.rpc('promote_user_role', {
-        user_uuid: userId,
-        new_role: 'admin'
-      });
-      
+    mutationFn: async (data: { userId: string; role: 'admin' | 'super_admin' }) => {
+      const { error } = await supabase
+        .rpc('promote_user_role', {
+          user_uuid: data.userId,
+          new_role: data.role
+        });
+
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-admin-users'] });
-      toast({ title: 'Success', description: 'User promoted to admin successfully' });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: "Success",
+        description: "User promoted to admin successfully",
+      });
     },
-    onError: () => {
-      toast({ 
-        title: 'Error', 
-        description: 'Failed to promote user',
-        variant: 'destructive'
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to promote user",
+        variant: "destructive",
       });
     }
   });
 
-  const handleBlockToggle = (adminId: string, isBlocked: boolean) => {
+  // Helper functions
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'super_admin':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'admin':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getRoleIcon = (role: string) => {
+    return role === 'super_admin' ? <Crown className="w-3 h-3" /> : <Shield className="w-3 h-3" />;
+  };
+
+  // Event handlers
+  const handleBlockToggle = (adminId: string, blocked: boolean) => {
     updateAdminMutation.mutate({
       id: adminId,
-      updates: { is_blocked: isBlocked }
+      data: { is_blocked: blocked }
     });
   };
 
@@ -212,11 +252,12 @@ export const AdminManager = () => {
 
   const handleSaveEdit = () => {
     if (!editingAdmin) return;
-    
+
     updateAdminMutation.mutate({
       id: editingAdmin.id,
-      updates: editForm
+      data: editForm
     });
+
     setEditingAdmin(null);
   };
 
@@ -224,99 +265,115 @@ export const AdminManager = () => {
     deleteAdminMutation.mutate(adminId);
   };
 
+  // Filter admins based on search term
   const filteredAdmins = adminUsers?.filter(admin =>
     admin.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    admin.phone?.includes(searchTerm) ||
     admin.role.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'super_admin': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'admin': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getRoleIcon = (role: string) => {
-    return role === 'super_admin' ? <Crown className="w-4 h-4" /> : <Shield className="w-4 h-4" />;
+  // Statistics
+  const stats = {
+    total: adminUsers?.length || 0,
+    superAdmins: adminUsers?.filter(a => a.role === 'super_admin').length || 0,
+    regularAdmins: adminUsers?.filter(a => a.role === 'admin').length || 0,
+    blocked: adminUsers?.filter(a => a.is_blocked).length || 0
   };
 
   if (isLoading) {
-    return <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading admin users...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      {/* Header with Export Button */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center">
-            <Crown className="h-8 w-8 mr-3 text-purple-600" />
-            Admin Management
-          </h1>
-          <p className="text-gray-600">Manage admin users and their system permissions</p>
+          <h2 className="text-2xl font-bold">Admin Management</h2>
+          <p className="text-muted-foreground">Manage system administrators and their permissions</p>
         </div>
         <Button variant="outline">
-          Export Admins
+          <Settings className="w-4 h-4 mr-2" />
+          Export Data
         </Button>
       </div>
 
       {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input
-          placeholder="Search admins by name, phone, or role..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search admins by name or role..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { 
-            title: 'Total Admins', 
-            value: filteredAdmins?.length || 0, 
-            color: 'text-blue-600' 
-          },
-          { 
-            title: 'Super Admins', 
-            value: filteredAdmins?.filter(u => u.role === 'super_admin').length || 0, 
-            color: 'text-purple-600' 
-          },
-          { 
-            title: 'Regular Admins', 
-            value: filteredAdmins?.filter(u => u.role === 'admin').length || 0, 
-            color: 'text-blue-600' 
-          },
-          { 
-            title: 'Blocked Admins', 
-            value: filteredAdmins?.filter(u => u.is_blocked).length || 0, 
-            color: 'text-red-600' 
-          }
-        ].map((stat, index) => (
-          <Card key={index}>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className={`text-sm ${stat.color}`}>{stat.title}</div>
-            </CardContent>
-          </Card>
-        ))}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Shield className="h-8 w-8 text-blue-500" />
+              <div>
+                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-sm text-muted-foreground">Total Admins</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Crown className="h-8 w-8 text-purple-500" />
+              <div>
+                <p className="text-2xl font-bold">{stats.superAdmins}</p>
+                <p className="text-sm text-muted-foreground">Super Admins</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <UserCheck className="h-8 w-8 text-green-500" />
+              <div>
+                <p className="text-2xl font-bold">{stats.regularAdmins}</p>
+                <p className="text-sm text-muted-foreground">Regular Admins</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <UserX className="h-8 w-8 text-red-500" />
+              <div>
+                <p className="text-2xl font-bold">{stats.blocked}</p>
+                <p className="text-sm text-muted-foreground">Blocked</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Admin Permissions Management */}
+      {/* Admin Permissions Panel (Super Admin Only) */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Settings className="h-5 w-5 mr-2" />
-            System Permissions Control
+            <Shield className="h-5 w-5 mr-2" />
+            System Permissions
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600 mb-4">
-            Control which dashboard sections are accessible to regular Admin users.
-          </p>
           <AdminPermissionsPanel />
         </CardContent>
       </Card>
@@ -376,7 +433,7 @@ export const AdminManager = () => {
 
                 {/* Status & Actions */}
                 <div className="lg:col-span-4">
-                  <div className="flex items-center justify-between">
+                  <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <Switch
                         id={`blocked-${admin.id}`}
@@ -388,31 +445,30 @@ export const AdminManager = () => {
                         {admin.is_blocked ? 'Blocked' : 'Active'}
                       </Label>
                     </div>
-                    
-                    <div className="flex space-x-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setSelectedAdmin(admin)}
+                        className="text-blue-600 border-blue-300 hover:bg-blue-50 flex-shrink-0"
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         Permissions
                       </Button>
-                      
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleEditAdmin(admin)}
+                        className="text-green-600 border-green-300 hover:bg-green-50 flex-shrink-0"
                       >
                         <Edit2 className="w-4 h-4 mr-1" />
                         Edit
                       </Button>
-                      
                       {admin.is_blocked ? (
                         <Button
                           size="sm"
                           onClick={() => handleBlockToggle(admin.id, false)}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-green-600 hover:bg-green-700 flex-shrink-0"
                           disabled={admin.role === 'super_admin'}
                         >
                           <UserCheck className="w-4 h-4 mr-1" />
@@ -423,21 +479,20 @@ export const AdminManager = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => handleBlockToggle(admin.id, true)}
-                          className="border-red-300 text-red-600 hover:bg-red-50"
+                          className="border-red-300 text-red-600 hover:bg-red-50 flex-shrink-0"
                           disabled={admin.role === 'super_admin'}
                         >
                           <UserX className="w-4 h-4 mr-1" />
                           Block
                         </Button>
                       )}
-
                       {admin.role !== 'super_admin' && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-red-300 text-red-600 hover:bg-red-50"
+                              className="border-red-300 text-red-600 hover:bg-red-50 flex-shrink-0"
                             >
                               <Trash2 className="w-4 h-4 mr-1" />
                               Delete
@@ -473,34 +528,58 @@ export const AdminManager = () => {
 
       {/* Admin Permissions Dialog */}
       <Dialog open={!!selectedAdmin} onOpenChange={() => setSelectedAdmin(null)}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center">
               <Shield className="h-5 w-5 mr-2" />
               Admin Permissions - {selectedAdmin?.full_name}
             </DialogTitle>
             <DialogDescription>
-              View the current system permissions for this admin user. Only Super Admins can modify these permissions.
+              {isRole('super_admin') 
+                ? `Manage system permissions for this admin user. Toggle permissions to control access to different sections.`
+                : `View the current system permissions for this admin user. Only Super Admins can modify these permissions.`
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {adminPermissions?.map((permission) => (
-                <Card key={permission.section}>
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-sm">{permission.display_name}</h4>
-                        <p className="text-xs text-gray-500">{permission.description}</p>
+            {selectedAdmin?.role === 'super_admin' ? (
+              <div className="text-center py-8">
+                <Shield className="h-16 w-16 mx-auto mb-4 text-blue-500" />
+                <h3 className="text-lg font-semibold mb-2">Super Admin Access</h3>
+                <p className="text-muted-foreground">
+                  Super Admins have full access to all sections and cannot have permissions modified.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {adminPermissions?.map((permission) => (
+                  <Card key={permission.section}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-sm">{permission.display_name}</h4>
+                          <p className="text-xs text-gray-500 mt-1">{permission.description}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={permission.is_enabled ? "default" : "secondary"}>
+                            {permission.is_enabled ? 'Enabled' : 'Disabled'}
+                          </Badge>
+                          {isRole('super_admin') && (
+                            <Switch
+                              checked={permission.is_enabled}
+                              onCheckedChange={(checked) => {
+                                // Update permission using the hook
+                                updatePermission(permission.id, checked);
+                              }}
+                            />
+                          )}
+                        </div>
                       </div>
-                      <Badge variant={permission.is_enabled ? "default" : "secondary"}>
-                        {permission.is_enabled ? 'Enabled' : 'Disabled'}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
             <div className="text-sm text-gray-500 italic">
               * Super Admin users have access to all sections regardless of these settings
             </div>
