@@ -269,7 +269,7 @@ export const UserManager = () => {
 
                 {/* Status & Actions */}
                 <div className="lg:col-span-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col space-y-3">
                     <div className="flex items-center space-x-2">
                       <Switch
                         id={`blocked-${user.id}`}
@@ -281,14 +281,14 @@ export const UserManager = () => {
                       </Label>
                     </div>
                     
-                    <div className="flex space-x-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleEditUser(user)}
                       >
-                        <Edit2 className="w-4 h-4 mr-1" />
-                        Edit
+                        <Edit2 className="w-4 h-4" />
+                        <span className="ml-1 hidden sm:inline">Edit</span>
                       </Button>
                       
                       {user.is_blocked ? (
@@ -297,8 +297,8 @@ export const UserManager = () => {
                           onClick={() => handleBlockToggle(user.id, false)}
                           className="bg-green-600 hover:bg-green-700"
                         >
-                          <UserCheck className="w-4 h-4 mr-1" />
-                          Unblock
+                          <UserCheck className="w-4 h-4" />
+                          <span className="ml-1 hidden sm:inline">Unblock</span>
                         </Button>
                       ) : (
                         <Button
@@ -307,8 +307,8 @@ export const UserManager = () => {
                           onClick={() => handleBlockToggle(user.id, true)}
                           className="border-red-300 text-red-600 hover:bg-red-50"
                         >
-                          <UserX className="w-4 h-4 mr-1" />
-                          Block
+                          <UserX className="w-4 h-4" />
+                          <span className="ml-1 hidden sm:inline">Block</span>
                         </Button>
                       )}
 
@@ -319,8 +319,8 @@ export const UserManager = () => {
                             variant="outline"
                             className="border-red-300 text-red-600 hover:bg-red-50"
                           >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Delete
+                            <Trash2 className="w-4 h-4" />
+                            <span className="ml-1 hidden sm:inline">Delete</span>
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

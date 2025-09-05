@@ -33,20 +33,21 @@ import { LocationManagement } from './LocationManagement';
 import { UserManager } from './UserManager';
 import { ProviderManager } from './ProviderManager';
 import { AdminManager } from './AdminManager';
+import { BookingManager } from './BookingManager';
+import { SettingsManager } from './SettingsManager';
 
 // Section components mapping
 const sectionComponents: Record<string, React.ComponentType> = {
   users: UserManager,
   providers: ProviderManager,
   services: ServiceApprovalManager,
-  bookings: () => <BookingManagementSection />,
+  bookings: BookingManager,
   categories: CategoryManager,
   locations: LocationManagement,
   reports: () => <ReportsSection />,
   payments: () => <PaymentManagementSection />,
   notifications: () => <NotificationCenterSection />,
-  settings: () => <SystemSettingsSection />,
-  permissions: () => <AdminPermissionsSection />,
+  settings: SettingsManager,
   admins: AdminManager,
 };
 
@@ -62,7 +63,6 @@ const sectionIcons: Record<string, React.ReactNode> = {
   payments: <CreditCard className="h-4 w-4" />,
   notifications: <Bell className="h-4 w-4" />,
   settings: <Settings className="h-4 w-4" />,
-  permissions: <Shield className="h-4 w-4" />,
   admins: <Crown className="h-4 w-4" />,
 };
 
@@ -156,19 +156,6 @@ export const EnhancedAdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Super Admin message - Permissions moved to dedicated section */}
-              {isSuperAdmin && sectionFromUrl !== 'permissions' && (
-                <div className="mb-8">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center space-x-2 text-blue-600">
-                        <Shield className="h-5 w-5" />
-                        <p>Admin permissions can now be managed in the <Link to="/dashboard/admin?section=permissions" className="font-medium underline">Admin Permissions</Link> section.</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
 
               {/* Admin Dashboard Content */}
               {availableSections.length > 0 ? (
@@ -242,26 +229,7 @@ const ComingSoonSection: React.FC<{ title: string }> = ({ title }) => (
   </div>
 );
 
-// Add AdminPermissionsSection component
-const AdminPermissionsSection: React.FC = () => (
-  <div className="space-y-4">
-    <h3 className="text-lg font-semibold">Admin Permissions Management</h3>
-    <p className="text-muted-foreground">Control which dashboard sections are accessible to Admin users.</p>
-    <AdminPermissionsPanel />
-  </div>
-);
-
-// UserManagementSection is now replaced by the imported UserManager component
-
 const ProviderManagementSection: React.FC = () => <ProviderManager />;
-
-const BookingManagementSection: React.FC = () => (
-  <div className="space-y-4">
-    <h3 className="text-lg font-semibold">Booking Management</h3>
-    <p className="text-muted-foreground">View and manage all system bookings.</p>
-    <ComingSoonSection title="Booking Management" />
-  </div>
-);
 
 const ReportsSection: React.FC = () => (
   <div className="space-y-4">
@@ -284,13 +252,5 @@ const NotificationCenterSection: React.FC = () => (
     <h3 className="text-lg font-semibold">Notification Center</h3>
     <p className="text-muted-foreground">Send and manage system notifications.</p>
     <ComingSoonSection title="Notification Center" />
-  </div>
-);
-
-const SystemSettingsSection: React.FC = () => (
-  <div className="space-y-4">
-    <h3 className="text-lg font-semibold">System Settings</h3>
-    <p className="text-muted-foreground">Configure system-wide settings.</p>
-    <ComingSoonSection title="System Settings" />
   </div>
 );
