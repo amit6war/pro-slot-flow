@@ -209,6 +209,48 @@ export type Database = {
           },
         ]
       }
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          price: number
+          provider_id: string | null
+          provider_name: string | null
+          quantity: number
+          service_details: Json | null
+          service_id: string
+          service_name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          price: number
+          provider_id?: string | null
+          provider_name?: string | null
+          quantity?: number
+          service_details?: Json | null
+          service_id: string
+          service_name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          price?: number
+          provider_id?: string | null
+          provider_name?: string | null
+          quantity?: number
+          service_details?: Json | null
+          service_id?: string
+          service_name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string | null
@@ -306,6 +348,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      guest_cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          price: number
+          provider_id: string | null
+          provider_name: string | null
+          quantity: number
+          service_details: Json | null
+          service_id: string
+          service_name: string
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          price: number
+          provider_id?: string | null
+          provider_name?: string | null
+          quantity?: number
+          service_details?: Json | null
+          service_id: string
+          service_name: string
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          price?: number
+          provider_id?: string | null
+          provider_name?: string | null
+          quantity?: number
+          service_details?: Json | null
+          service_id?: string
+          service_name?: string
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       locations: {
         Row: {

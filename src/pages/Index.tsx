@@ -5,6 +5,7 @@ import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AddToCartButton } from '@/components/AddToCartButton';
 import { 
   Search, 
   MapPin, 
@@ -227,8 +228,8 @@ export default function Index() {
     }, 500);
   };
 
-  // Show loading if either auth or categories are still loading
-  if (loading || categoriesLoading) {
+  // Only show loading for categories (not auth - allow anonymous access)
+  if (categoriesLoading) {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
@@ -388,13 +389,30 @@ export default function Index() {
                         </div>
                         
                         {/* Show available services for this subcategory */}
-                        <div className="space-y-2 mb-6">
+                        <div className="space-y-3 mb-6">
                           {categoryServices?.filter((service: any) => 
                             service.subcategories?.id === subcategory.id
                           ).slice(0, 3).map((service: any, serviceIndex: number) => (
-                            <Badge key={serviceIndex} className="badge-secondary text-sm mr-2 mb-2">
-                              {service.service_name} - ${service.price}
-                            </Badge>
+                            <div key={serviceIndex} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge className="badge-secondary text-sm">
+                                    {service.service_name}
+                                  </Badge>
+                                  <span className="text-lg font-semibold text-primary">${service.price}</span>
+                                </div>
+                                <p className="text-sm text-gray-600">{service.description || 'Professional service'}</p>
+                              </div>
+                              <AddToCartButton
+                                serviceId={service.id}
+                                serviceName={service.service_name}
+                                providerId={service.provider_id}
+                                price={Number(service.price)}
+                                size="sm"
+                                variant="outline"
+                                className="ml-3"
+                              />
+                            </div>
                           ))}
                         </div>
                         

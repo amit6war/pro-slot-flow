@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/hooks/useCart';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -19,6 +20,7 @@ import {
 
 export const Header = () => {
   const { user, isAuthenticated, signOut, isAdmin, isCustomer, isProvider } = useAuth();
+  const { itemCount } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -88,11 +90,18 @@ export const Header = () => {
             {/* Right Side Actions */}
             <div className="flex items-center space-x-4">
               {/* Cart */}
-              <Button variant="ghost" size="sm" className="relative hover:bg-gray-100 p-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="relative hover:bg-gray-100 p-3"
+                onClick={() => navigate('/cart')}
+              >
                 <ShoppingCart className="h-6 w-6" />
-                <Badge className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0 text-xs bg-primary text-white">
-                  0
-                </Badge>
+                {itemCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0 text-xs bg-primary text-white">
+                    {itemCount}
+                  </Badge>
+                )}
               </Button>
 
               {/* Desktop Auth */}

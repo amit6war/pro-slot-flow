@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
+import Cart from "./pages/Cart";
 import Orders from "./pages/Orders";
 import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
@@ -20,6 +21,7 @@ import { DevAdminAccess } from "./components/dev/DevAdminAccess";
 import { AdminLogin } from "./components/auth/AdminLogin";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AuthProvider } from "./hooks/useAuth";
+import { CartProvider } from "./hooks/useCart";
 import "./utils/errorHandler"; // Initialize production error handling
 import { initializeCSRFProtection, clearCSRFToken } from "./utils/csrfProtection";
 import { applySecurityHeaders, initializeSecurityMonitoring } from "./utils/securityHeaders";
@@ -64,80 +66,83 @@ const App = () => (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <AuthProvider>
-            <Toaster />
-            <Sonner />
-          <BrowserRouter
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true
-            }}
-          >
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/favorites" element={<Favorites />} />
-              <Route path="/profile" element={<Profile />} />
-              
-              {/* Role-based dashboard routing */}
-              <Route path="/dashboard" element={<DashboardRedirect />} />
-              
-              {/* Specific role-based dashboard routes with enhanced security */}
-              <Route path="/dashboard/customer/*" element={
-                <SecureCustomerRoute>
-                  <ProfessionalCustomerDashboard />
-                </SecureCustomerRoute>
-              } />
-              <Route path="/dashboard/provider/*" element={
-                <SecureProviderRoute>
-                  <ProviderDashboard />
-                </SecureProviderRoute>
-              } />
-              <Route path="/dashboard/admin/*" element={
-                <SecureAdminRoute>
-                  <EnhancedAdminDashboard />
-                </SecureAdminRoute>
-              } />
-              <Route path="/dashboard/super_admin/*" element={
-                <SecureAdminRoute>
-                  <EnhancedAdminDashboard />
-                </SecureAdminRoute>
-              } />
-              
-              {/* Legacy routes for backward compatibility with enhanced security */}
-              <Route path="/customer/*" element={
-                <SecureCustomerRoute>
-                  <ProfessionalCustomerDashboard />
-                </SecureCustomerRoute>
-              } />
-              <Route path="/provider/*" element={
-                <SecureProviderRoute>
-                  <ProviderDashboard />
-                </SecureProviderRoute>
-              } />
-              <Route path="/admin/*" element={
-                <SecureAdminRoute>
-                  <EnhancedAdminDashboard />
-                </SecureAdminRoute>
-              } />
-              
-              {/* Auth page */}
-              <Route path="/auth" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/dashboard'} />} />
-              <Route path="/login" element={<Navigate to="/auth" replace />} />
-              
-              {/* Admin login - dedicated route for admin authentication */}
-              <Route path="/admin-login" element={<AdminLogin />} />
-              
-              {/* Dev access */}
-              <Route path="/dev-admin" element={<DevAdminAccess />} />
-              
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+            <CartProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true
+                }}
+              >
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/orders" element={<Orders />} />
+                  <Route path="/favorites" element={<Favorites />} />
+                  <Route path="/profile" element={<Profile />} />
+                  
+                  {/* Role-based dashboard routing */}
+                  <Route path="/dashboard" element={<DashboardRedirect />} />
+                  
+                  {/* Specific role-based dashboard routes with enhanced security */}
+                  <Route path="/dashboard/customer/*" element={
+                    <SecureCustomerRoute>
+                      <ProfessionalCustomerDashboard />
+                    </SecureCustomerRoute>
+                  } />
+                  <Route path="/dashboard/provider/*" element={
+                    <SecureProviderRoute>
+                      <ProviderDashboard />
+                    </SecureProviderRoute>
+                  } />
+                  <Route path="/dashboard/admin/*" element={
+                    <SecureAdminRoute>
+                      <EnhancedAdminDashboard />
+                    </SecureAdminRoute>
+                  } />
+                  <Route path="/dashboard/super_admin/*" element={
+                    <SecureAdminRoute>
+                      <EnhancedAdminDashboard />
+                    </SecureAdminRoute>
+                  } />
+                  
+                  {/* Legacy routes for backward compatibility with enhanced security */}
+                  <Route path="/customer/*" element={
+                    <SecureCustomerRoute>
+                      <ProfessionalCustomerDashboard />
+                    </SecureCustomerRoute>
+                  } />
+                  <Route path="/provider/*" element={
+                    <SecureProviderRoute>
+                      <ProviderDashboard />
+                    </SecureProviderRoute>
+                  } />
+                  <Route path="/admin/*" element={
+                    <SecureAdminRoute>
+                      <EnhancedAdminDashboard />
+                    </SecureAdminRoute>
+                  } />
+                  
+                  {/* Auth page */}
+                  <Route path="/auth" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/dashboard'} />} />
+                  <Route path="/login" element={<Navigate to="/auth" replace />} />
+                  
+                  {/* Admin login - dedicated route for admin authentication */}
+                  <Route path="/admin-login" element={<AdminLogin />} />
+                  
+                  {/* Dev access */}
+                  <Route path="/dev-admin" element={<DevAdminAccess />} />
+                  
+                  {/* 404 */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </CartProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
     </SecurityProvider>
   </ErrorBoundary>
 );
