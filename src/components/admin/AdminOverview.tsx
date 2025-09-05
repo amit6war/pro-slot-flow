@@ -83,35 +83,49 @@ export const AdminOverview = () => {
     }
   ];
 
-  const { data: recentActivity } = useQuery({
-    queryKey: ['recent-activity'],
+  const { data: systemMetrics } = useQuery({
+    queryKey: ['system-metrics'],
     queryFn: async () => {
       const [
         { data: recentUsers },
-        { data: recentProviders },
-        { data: recentCategories }
+        { data: pendingProviders },
+        { data: activeServices },
+        { data: monthlyRevenue }
       ] = await Promise.all([
         supabase
           .from('user_profiles')
           .select('full_name, role, created_at')
+          .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
           .limit(5),
         supabase
-          .from('service_providers')
-          .select('business_name, status, created_at')
+          .from('user_profiles')
+          .select('business_name, registration_status, created_at')
+          .eq('role', 'provider')
+          .eq('registration_status', 'pending')
           .order('created_at', { ascending: false })
           .limit(5),
         supabase
-          .from('categories')
-          .select('name, is_active, created_at')
+          .from('provider_services')
+          .select('service_name, status, price, created_at')
+          .eq('status', 'approved')
+          .eq('is_active', true)
           .order('created_at', { ascending: false })
-          .limit(5)
+          .limit(5),
+        supabase
+          .from('bookings')
+          .select('total_amount, created_at')
+          .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
       ]);
 
+      const totalRevenue = monthlyRevenue?.reduce((sum: number, booking: any) => 
+        sum + (parseFloat(booking.total_amount) || 0), 0) || 0;
+
       return {
-        users: recentUsers || [],
-        providers: recentProviders || [],
-        categories: recentCategories || []
+        recentUsers: recentUsers || [],
+        pendingProviders: pendingProviders || [],
+        activeServices: activeServices || [],
+        monthlyRevenue: totalRevenue
       };
     }
   });
@@ -180,39 +194,69 @@ export const AdminOverview = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>System Activity</CardTitle>
+            <CardTitle>This Week's Activity</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity?.users?.length > 0 ? (
+              {systemMetrics?.recentUsers?.length > 0 ? (
                 <>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">New Users</h4>
-                    {recentActivity.users.slice(0, 3).map((user: any, index: number) => (
-                      <div key={index} className="flex justify-between py-1">
-                        <span className="text-sm text-gray-600">{user.full_name}</span>
-                        <span className="text-xs text-gray-400">{user.role}</span>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">New Registrations (7 days)</h4>
+                    {systemMetrics.recentUsers.slice(0, 3).map((user: any, index: number) => (
+                      <div key={index} className="flex justify-between py-1 border-b border-gray-100 last:border-0">
+                        <span className="text-sm text-gray-600">{user.full_name || 'Anonymous'}</span>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{user.role}</span>
                       </div>
                     ))}
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">New Providers</h4>
-                    {recentActivity?.providers?.slice(0, 2).map((provider: any, index: number) => (
-                      <div key={index} className="flex justify-between py-1">
-                        <span className="text-sm text-gray-600">{provider.business_name}</span>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          provider.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {provider.status}
-                        </span>
-                      </div>
-                    ))}
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Pending Providers</h4>
+                    {systemMetrics?.pendingProviders?.length > 0 ? (
+                      systemMetrics.pendingProviders.slice(0, 3).map((provider: any, index: number) => (
+                        <div key={index} className="flex justify-between py-1 border-b border-gray-100 last:border-0">
+                          <span className="text-sm text-gray-600">{provider.business_name || 'Business'}</span>
+                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-gray-500">No pending providers</p>
+                    )}
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-gray-500 text-center py-4">No recent activity</p>
+                <p className="text-sm text-gray-500 text-center py-4">No activity this week</p>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue & Services</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="text-sm font-medium text-green-800 mb-1">Monthly Revenue</h4>
+                <div className="text-2xl font-bold text-green-900">
+                  ${systemMetrics?.monthlyRevenue?.toLocaleString() || '0'}
+                </div>
+                <p className="text-xs text-green-700">Current month total</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Recent Services</h4>
+                {systemMetrics?.activeServices?.length > 0 ? (
+                  systemMetrics.activeServices.slice(0, 3).map((service: any, index: number) => (
+                    <div key={index} className="flex justify-between py-1 border-b border-gray-100 last:border-0">
+                      <span className="text-sm text-gray-600 truncate">{service.service_name}</span>
+                      <span className="text-xs text-gray-500">${service.price}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-gray-500">No active services</p>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

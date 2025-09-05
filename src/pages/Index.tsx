@@ -311,12 +311,13 @@ export default function Index() {
             {categoriesLoading ? (
               <div className="col-span-full text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-gray-500">Loading categories...</p>
               </div>
-            ) : (
-              categories?.map((category: any, index: number) => (
+            ) : categories && categories.length > 0 ? (
+              categories.map((category: any, index: number) => (
                 <Card 
                   key={category.id} 
-                  className={`card-premium group border-0 bg-gradient-to-br from-white via-gray-50/30 to-white animate-fade-in animate-stagger-${index + 1} hover:shadow-premium cursor-pointer`}
+                  className={`card-premium group border-0 bg-gradient-to-br from-white via-gray-50/30 to-white animate-fade-in animate-stagger-${index + 1} hover:shadow-premium cursor-pointer ${selectedCategory === category.id ? 'ring-2 ring-primary' : ''}`}
                   onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
                 >
                   <CardContent className="p-6 lg:p-10 text-center">
@@ -327,14 +328,19 @@ export default function Index() {
                     <p className="text-gray-600 mb-6 lg:mb-8 leading-relaxed text-sm lg:text-base">{category.description || 'Professional services for all your needs'}</p>
                     <Button 
                       variant="outline" 
-                      className="btn-secondary group-hover:btn-primary group-hover:text-white transition-all duration-300 w-full sm:w-auto"
+                      className={`btn-secondary group-hover:btn-primary group-hover:text-white transition-all duration-300 w-full sm:w-auto ${selectedCategory === category.id ? 'btn-primary text-white' : ''}`}
                     >
-                      Explore Services
+                      {selectedCategory === category.id ? 'Selected' : 'Explore Services'}
                       <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </CardContent>
                 </Card>
               ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 text-lg">No service categories available yet.</p>
+                <p className="text-gray-400 text-sm mt-2">Categories will appear here once they are added by administrators.</p>
+              </div>
             )}
           </div>
 
