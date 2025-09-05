@@ -107,6 +107,30 @@ const mockFavorites = new Set([1, 3]);
 
 // Removed mockCities - now using dynamic locations from admin
 
+// Icon mapping for categories
+const categoryIconMap: Record<string, string> = {
+  car: '🚗',
+  sparkles: '✨',
+  heart: '❤️',
+  home: '🏠',
+  laptop: '💻',
+  wrench: '🔧',
+  scissors: '✂️',
+  stethoscope: '🩺',
+  dumbbell: '🏋️',
+  camera: '📸',
+  paintbrush: '🎨',
+  book: '📚',
+  music: '🎵',
+  briefcase: '💼',
+  shield: '🛡️',
+  star: '⭐',
+  flower: '🌸',
+  leaf: '🍃',
+  sun: '☀️',
+  moon: '🌙'
+};
+
 const formatTime = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
@@ -322,7 +346,7 @@ export default function Index() {
                 >
                   <CardContent className="p-6 lg:p-10 text-center">
                     <div className="w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-3xl bg-gradient-to-r from-primary to-primary-hover flex items-center justify-center mx-auto mb-6 lg:mb-8 group-hover:scale-110 transition-all duration-300 shadow-medium">
-                      <span className="text-2xl lg:text-4xl">{category.icon || '🔧'}</span>
+                      <span className="text-2xl lg:text-4xl">{categoryIconMap[category.icon] || category.icon || '🔧'}</span>
                     </div>
                     <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-4">{category.name}</h3>
                     <p className="text-gray-600 mb-6 lg:mb-8 leading-relaxed text-sm lg:text-base">{category.description || 'Professional services for all your needs'}</p>
