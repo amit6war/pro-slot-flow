@@ -227,8 +227,8 @@ export default function Index() {
     }, 500);
   };
 
-  // Only show loading if auth is still loading AND we don't have categories yet
-  if (loading && categoriesLoading) {
+  // Show loading if either auth or categories are still loading
+  if (loading || categoriesLoading) {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
