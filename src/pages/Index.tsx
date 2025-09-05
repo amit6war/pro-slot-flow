@@ -20,6 +20,9 @@ import {
 import { LocationModal } from '@/components/LocationModal';
 import { ProviderDetailsModal } from '@/components/ProviderDetailsModal';
 import { SlotBookingModal } from '@/components/SlotBookingModal';
+import { useCategories, useSubcategories } from '@/hooks/useCategories';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface TimeSlot {
   id: number;
@@ -62,45 +65,6 @@ interface Provider {
   description: string;
 }
 
-// Updated categories with sections
-const sections = [
-  {
-    id: 'men',
-    name: 'Men\'s Services',
-    icon: '👨',
-    description: 'Grooming and styling services for men',
-    gradient: 'from-blue-500 to-indigo-600',
-    categories: [
-      { id: 1, name: 'Hair & Beard', icon: '✂️', services: ['Haircut', 'Beard Trim', 'Hair Styling'] },
-      { id: 2, name: 'Spa & Massage', icon: '💆‍♂️', services: ['Deep Tissue Massage', 'Facial', 'Body Scrub'] },
-      { id: 3, name: 'Fitness', icon: '💪', services: ['Personal Training', 'Yoga', 'Nutrition Coaching'] },
-    ]
-  },
-  {
-    id: 'women',
-    name: 'Women\'s Services',
-    icon: '👩',
-    description: 'Beauty and wellness services for women',
-    gradient: 'from-pink-500 to-rose-600',
-    categories: [
-      { id: 4, name: 'Salon', icon: '💇‍♀️', services: ['Hair Cut', 'Hair Color', 'Hair Treatment'] },
-      { id: 5, name: 'Spa & Wellness', icon: '🧖‍♀️', services: ['Facial', 'Massage', 'Body Treatment'] },
-      { id: 6, name: 'Beauty', icon: '💄', services: ['Makeup', 'Eyebrow Threading', 'Manicure & Pedicure'] },
-    ]
-  },
-  {
-    id: 'home',
-    name: 'Home Services',
-    icon: '🏠',
-    description: 'Professional home maintenance and cleaning',
-    gradient: 'from-green-500 to-emerald-600',
-    categories: [
-      { id: 7, name: 'Cleaning', icon: '🧹', services: ['House Cleaning', 'Deep Cleaning', 'Move-in/out Cleaning'] },
-      { id: 8, name: 'Repairs & Maintenance', icon: '🔧', services: ['Plumbing', 'Electrical', 'Carpentry'] },
-      { id: 9, name: 'Appliance Services', icon: '🔌', services: ['AC Service', 'Washing Machine Repair', 'Refrigerator Repair'] },
-    ]
-  }
-];
 
 const mockServices: Service[] = [
   { id: 1, name: 'House Cleaning', price: 50, duration: '2 hours', rating: 4.8, category: 'Home Services', description: 'Professional house cleaning service', isPopular: true },
@@ -154,7 +118,7 @@ export default function Index() {
   const navigate = useNavigate();
   
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState('Moncton, NB');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
@@ -165,6 +129,44 @@ export default function Index() {
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [slotTimer, setSlotTimer] = useState<number | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
+
+  // Fetch categories and their subcategories
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { subcategories } = useSubcategories(selectedCategory);
+
+  // Fetch provider services for the selected category
+  const { data: categoryServices } = useQuery({
+    queryKey: ['category-services', selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory) return [];
+      
+      const { data, error } = await supabase
+        .from('provider_services')
+        .select(`
+          *,
+          subcategories (
+            id,
+            name,
+            category_id,
+            categories (
+              id,
+              name
+            )
+          )
+        `)
+        .eq('subcategories.category_id', selectedCategory)
+        .eq('status', 'approved')
+        .eq('is_active', true);
+      
+      if (error) {
+        console.error('Error fetching services:', error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: !!selectedCategory
+  });
 
   const handleProviderClick = (provider: Provider) => {
     setSelectedProvider(provider);
@@ -306,60 +308,81 @@ export default function Index() {
           </div>
 
           <div className="grid-responsive mb-12 lg:mb-16">
-            {sections.map((section, index) => (
-              <Card 
-                key={section.id} 
-                className={`card-premium group border-0 bg-gradient-to-br from-white via-gray-50/30 to-white animate-fade-in animate-stagger-${index + 1} hover:shadow-premium`}
-                onClick={() => setSelectedSection(selectedSection === section.id ? null : section.id)}
-              >
-                <CardContent className="p-6 lg:p-10 text-center">
-                  <div className={`w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-3xl bg-gradient-to-r ${section.gradient} flex items-center justify-center mx-auto mb-6 lg:mb-8 group-hover:scale-110 transition-all duration-300 shadow-medium`}>
-                    <span className="text-2xl lg:text-4xl">{section.icon}</span>
-                  </div>
-                  <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-4">{section.name}</h3>
-                  <p className="text-gray-600 mb-6 lg:mb-8 leading-relaxed text-sm lg:text-base">{section.description}</p>
-                  <Button 
-                    variant="outline" 
-                    className="btn-secondary group-hover:btn-primary group-hover:text-white transition-all duration-300 w-full sm:w-auto"
-                  >
-                    Explore Services
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {categoriesLoading ? (
+              <div className="col-span-full text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              </div>
+            ) : (
+              categories?.map((category: any, index: number) => (
+                <Card 
+                  key={category.id} 
+                  className={`card-premium group border-0 bg-gradient-to-br from-white via-gray-50/30 to-white animate-fade-in animate-stagger-${index + 1} hover:shadow-premium cursor-pointer`}
+                  onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
+                >
+                  <CardContent className="p-6 lg:p-10 text-center">
+                    <div className="w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-3xl bg-gradient-to-r from-primary to-primary-hover flex items-center justify-center mx-auto mb-6 lg:mb-8 group-hover:scale-110 transition-all duration-300 shadow-medium">
+                      <span className="text-2xl lg:text-4xl">{category.icon || '🔧'}</span>
+                    </div>
+                    <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-4">{category.name}</h3>
+                    <p className="text-gray-600 mb-6 lg:mb-8 leading-relaxed text-sm lg:text-base">{category.description || 'Professional services for all your needs'}</p>
+                    <Button 
+                      variant="outline" 
+                      className="btn-secondary group-hover:btn-primary group-hover:text-white transition-all duration-300 w-full sm:w-auto"
+                    >
+                      Explore Services
+                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
 
-          {/* Expanded Section Categories */}
-          {selectedSection && (
+          {/* Expanded Category Services */}
+          {selectedCategory && (
             <div className="mt-12 animate-fade-in">
-              {sections.filter(s => s.id === selectedSection).map(section => (
-                <div key={section.id} className="bg-gradient-secondary rounded-3xl p-10 shadow-medium">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                    {section.name} Categories
-                  </h3>
-                  <div className="grid-responsive">
-                    {section.categories.map((category, index) => (
-                      <Card key={category.id} className={`card-floating group animate-slide-up animate-stagger-${index + 1} hover:shadow-floating`}>
-                        <CardContent className="p-8 text-center">
-                          <div className="text-5xl mb-6">{category.icon}</div>
-                          <h4 className="text-xl font-semibold text-gray-900 mb-4">{category.name}</h4>
-                          <div className="space-y-3 mb-6">
-                            {category.services.map((service, index) => (
-                              <Badge key={index} className="badge-secondary text-sm mr-2 mb-2">
-                                {service}
-                              </Badge>
-                            ))}
-                          </div>
-                          <Button className="btn-primary w-full" size="sm">
-                            View Services
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+              <div className="bg-gradient-secondary rounded-3xl p-10 shadow-medium">
+                <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+                  {categories?.find(c => c.id === selectedCategory)?.name} Services
+                </h3>
+                <div className="grid-responsive">
+                  {subcategories?.map((subcategory: any, index: number) => (
+                    <Card key={subcategory.id} className={`card-floating group animate-slide-up animate-stagger-${index + 1} hover:shadow-floating`}>
+                      <CardContent className="p-8 text-center">
+                        <div className="text-5xl mb-6">⚡</div>
+                        <h4 className="text-xl font-semibold text-gray-900 mb-4">{subcategory.name}</h4>
+                        <p className="text-sm text-gray-600 mb-4">{subcategory.description}</p>
+                        <div className="text-sm text-gray-500 mb-6">
+                          Price range: ${subcategory.min_price} - ${subcategory.max_price}
+                        </div>
+                        
+                        {/* Show available services for this subcategory */}
+                        <div className="space-y-2 mb-6">
+                          {categoryServices?.filter((service: any) => 
+                            service.subcategories?.id === subcategory.id
+                          ).slice(0, 3).map((service: any, serviceIndex: number) => (
+                            <Badge key={serviceIndex} className="badge-secondary text-sm mr-2 mb-2">
+                              {service.service_name} - ${service.price}
+                            </Badge>
+                          ))}
+                        </div>
+                        
+                        <Button className="btn-primary w-full" size="sm">
+                          View All Services ({categoryServices?.filter((service: any) => 
+                            service.subcategories?.id === subcategory.id
+                          ).length || 0})
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              ))}
+                
+                {(!subcategories || subcategories.length === 0) && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No services available in this category yet.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
