@@ -1,26 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Layout } from '@/components/layout/Layout';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Layout } from '@/components/layout/Layout';
+import { LocationModal } from '@/components/LocationModal';
+import { ProviderDetailsModal } from '@/components/ProviderDetailsModal';
+import { SlotBookingModal } from '@/components/SlotBookingModal';
+import { AddToCartButton } from '@/components/AddToCartButton';
 import { 
   Search, 
   MapPin, 
   Star, 
-  Clock, 
-  Phone, 
-  Heart,
-  ArrowRight,
-  TrendingUp,
-  Award,
-  Shield
+  ArrowRight, 
+  Shield, 
+  Award, 
+  TrendingUp, 
+  Heart, 
+  Clock 
 } from 'lucide-react';
-import { LocationModal } from '@/components/LocationModal';
-import { ProviderDetailsModal } from '@/components/ProviderDetailsModal';
-import { SlotBookingModal } from '@/components/SlotBookingModal';
+import { useAuth } from '@/hooks/useAuth';
+import { useCategories, useSubcategories } from '@/hooks/useCategories';
+import { supabase } from '@/integrations/supabase/client';
 
+// Types (matching existing interfaces)
 interface TimeSlot {
   id: number;
   time: string;
@@ -33,7 +36,7 @@ interface Service {
   id: number;
   name: string;
   price: number;
-  duration: string;
+  duration: number;
   rating: number;
   category: string;
   description: string;
@@ -47,125 +50,174 @@ interface Provider {
   reviews: number;
   location: string;
   distance: string;
+  responseTime: string;
+  verified: boolean;
+  completedJobs: number;
+  description: string;
   phone: string;
   email: string;
-  address: string;
   services: string[];
-  responseTime: string;
-  completedJobs: number;
-  isVerified: boolean;
-  verified: boolean;
-  profileImage: string;
-  availability: string;
   price: number;
   originalPrice?: number;
-  description: string;
+  isVerified?: boolean;
+  address?: string;
+  availability?: any;
 }
 
-// Updated categories with sections
-const sections = [
-  {
-    id: 'men',
-    name: 'Men\'s Services',
-    icon: '👨',
-    description: 'Grooming and styling services for men',
-    gradient: 'from-blue-500 to-indigo-600',
-    categories: [
-      { id: 1, name: 'Hair & Beard', icon: '✂️', services: ['Haircut', 'Beard Trim', 'Hair Styling'] },
-      { id: 2, name: 'Spa & Massage', icon: '💆‍♂️', services: ['Deep Tissue Massage', 'Facial', 'Body Scrub'] },
-      { id: 3, name: 'Fitness', icon: '💪', services: ['Personal Training', 'Yoga', 'Nutrition Coaching'] },
-    ]
-  },
-  {
-    id: 'women',
-    name: 'Women\'s Services',
-    icon: '👩',
-    description: 'Beauty and wellness services for women',
-    gradient: 'from-pink-500 to-rose-600',
-    categories: [
-      { id: 4, name: 'Salon', icon: '💇‍♀️', services: ['Hair Cut', 'Hair Color', 'Hair Treatment'] },
-      { id: 5, name: 'Spa & Wellness', icon: '🧖‍♀️', services: ['Facial', 'Massage', 'Body Treatment'] },
-      { id: 6, name: 'Beauty', icon: '💄', services: ['Makeup', 'Eyebrow Threading', 'Manicure & Pedicure'] },
-    ]
-  },
-  {
-    id: 'home',
-    name: 'Home Services',
-    icon: '🏠',
-    description: 'Professional home maintenance and cleaning',
-    gradient: 'from-green-500 to-emerald-600',
-    categories: [
-      { id: 7, name: 'Cleaning', icon: '🧹', services: ['House Cleaning', 'Deep Cleaning', 'Move-in/out Cleaning'] },
-      { id: 8, name: 'Repairs & Maintenance', icon: '🔧', services: ['Plumbing', 'Electrical', 'Carpentry'] },
-      { id: 9, name: 'Appliance Services', icon: '🔌', services: ['AC Service', 'Washing Machine Repair', 'Refrigerator Repair'] },
-    ]
-  }
-];
-
+// Mock data for demonstration
 const mockServices: Service[] = [
-  { id: 1, name: 'House Cleaning', price: 50, duration: '2 hours', rating: 4.8, category: 'Home Services', description: 'Professional house cleaning service', isPopular: true },
-  { id: 2, name: 'Plumbing Repair', price: 75, duration: '1 hour', rating: 4.9, category: 'Home Services', description: 'Quick plumbing fixes', isPopular: false },
-  { id: 3, name: 'Haircut & Styling', price: 30, duration: '45 min', rating: 4.7, category: 'Beauty & Wellness', description: 'Professional hair styling', isPopular: true },
+  { id: 1, name: 'House Cleaning', price: 120, duration: 120, rating: 4.8, category: 'cleaning', description: 'Professional deep cleaning', isPopular: true },
+  { id: 2, name: 'Plumbing Repair', price: 85, duration: 60, rating: 4.6, category: 'home-repair', description: 'Emergency plumbing services', isPopular: false },
+  { id: 3, name: 'Hair Styling', price: 45, duration: 90, rating: 4.9, category: 'beauty', description: 'Professional hair styling', isPopular: true },
 ];
 
 const mockProviders: Provider[] = [
   {
     id: 1,
-    name: 'John\'s Cleaning Service',
+    name: 'Elite Cleaning Services',
     rating: 4.8,
-    reviews: 124,
+    reviews: 156,
     location: 'Downtown',
-    distance: '0.8 km',
-    phone: '+1-555-0123',
-    email: 'john@cleaningservice.com',
-    address: '123 Main St, Downtown',
-    services: ['House Cleaning', 'Deep Cleaning', 'Office Cleaning'],
-    responseTime: '15 min',
-    completedJobs: 89,
-    isVerified: true,
+    distance: '1.2 km',
+    responseTime: '15min',
     verified: true,
-    profileImage: '/placeholder.svg',
-    availability: 'Available today',
-    price: 50,
-    originalPrice: 60,
-    description: 'Professional cleaning service with 5+ years of experience. We provide thorough and reliable cleaning services for homes and offices.'
+    completedJobs: 200,
+    description: 'Professional cleaning services',
+    phone: '+1234567890',
+    email: 'elite@cleaning.com',
+    services: ['House Cleaning', 'Deep Cleaning', 'Office Cleaning'],
+    price: 120,
+    originalPrice: 150
   },
+  {
+    id: 2,
+    name: 'Pro Handyman Services',
+    rating: 4.6,
+    reviews: 89,
+    location: 'Midtown',
+    distance: '2.1 km',
+    responseTime: '30min',
+    verified: true,
+    completedJobs: 120,
+    description: 'Expert handyman services',
+    phone: '+1234567891',
+    email: 'pro@handyman.com',
+    services: ['Plumbing', 'Electrical', 'Carpentry'],
+    price: 85
+  },
+  {
+    id: 3,
+    name: 'Beauty Experts Salon',
+    rating: 4.9,
+    reviews: 234,
+    location: 'Uptown',
+    distance: '1.8 km',
+    responseTime: '20min',
+    verified: true,
+    completedJobs: 400,
+    description: 'Professional beauty services',
+    phone: '+1234567892',
+    email: 'beauty@experts.com',
+    services: ['Hair Styling', 'Manicure', 'Facial'],
+    price: 45,
+    originalPrice: 60
+  }
 ];
 
 const mockTimeSlots: TimeSlot[] = [
-  { id: 1, time: '9:00 AM', available: true, price: 50, date: '2024-01-15' },
-  { id: 2, time: '11:00 AM', available: true, price: 50, date: '2024-01-15' },
-  { id: 3, time: '2:00 PM', available: true, price: 55, date: '2024-01-15' },
-  { id: 4, time: '4:00 PM', available: false, price: 55, date: '2024-01-15' },
+  { id: 1, time: '09:00', available: true, price: 120, date: '2024-03-15' },
+  { id: 2, time: '10:30', available: true, price: 120, date: '2024-03-15' },
+  { id: 3, time: '14:00', available: false, price: 120, date: '2024-03-15' },
+  { id: 4, time: '16:30', available: true, price: 150, date: '2024-03-15' },
 ];
 
 const mockFavorites = new Set([1, 3]);
 
-// Removed mockCities - now using dynamic locations from admin
+// Icon mapping for categories
+const categoryIconMap: { [key: string]: string } = {
+  '🏠': '🏠',
+  '🔧': '🔧',
+  '💄': '💄',
+  '🚗': '🚗',
+  '💻': '💻',
+  '🏃': '🏃',
+  'home': '🏠',
+  'repair': '🔧',
+  'beauty': '💄',
+  'automotive': '🚗',
+  'technology': '💻',
+  'fitness': '🏃',
+};
 
+// Utility function
 const formatTime = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
 export default function Index() {
-  const { user, isAuthenticated, loading } = useAuth();
-  const navigate = useNavigate();
-  
+  // State management
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState('Moncton, NB');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState('Select your location');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [favorites, setFavorites] = useState(mockFavorites);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-  const [slotTimer, setSlotTimer] = useState<number | null>(null);
+  const [slotTimer, setSlotTimer] = useState(0);
+  const [favorites, setFavorites] = useState(mockFavorites);
   const [locationLoading, setLocationLoading] = useState(false);
 
+  // Hooks
+  const { isAuthenticated } = useAuth();
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { subcategories } = useSubcategories(selectedCategory);
+
+  // Query for services based on selected subcategory
+  const { data: categoryServices, isLoading: servicesLoading } = useQuery({
+    queryKey: ['provider-services', selectedSubcategory],
+    queryFn: async () => {
+      if (!selectedSubcategory) return [];
+      
+      const { data, error } = await supabase
+        .from('provider_services')
+        .select(`
+          *,
+          subcategories!inner (
+            id,
+            name,
+            description,
+            min_price,
+            max_price
+          ),
+          service_providers (
+            id,
+            business_name,
+            rating,
+            total_reviews,
+            address,
+            status,
+            response_time_minutes
+          )
+        `)
+        .eq('subcategory_id', selectedSubcategory)
+        .eq('status', 'approved')
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Error fetching services:', error);
+        return [];
+      }
+
+      return data || [];
+    },
+    enabled: !!selectedSubcategory,
+  });
+
+  // Event handlers
   const handleProviderClick = (provider: Provider) => {
     setSelectedProvider(provider);
     setShowProviderModal(true);
@@ -173,39 +225,47 @@ export default function Index() {
 
   const handleBookService = (provider: Provider) => {
     setSelectedProvider(provider);
-    setSelectedService(mockServices[0]);
     setShowSlotModal(true);
   };
 
   const handleSlotSelect = (slot: TimeSlot) => {
     setSelectedSlot(slot);
-    setSlotTimer(600);
+    setSlotTimer(300); // 5 minutes
   };
 
   const toggleFavorite = (providerId: number) => {
-    const newFavorites = new Set(favorites);
-    if (newFavorites.has(providerId)) {
-      newFavorites.delete(providerId);
-    } else {
-      newFavorites.add(providerId);
-    }
-    setFavorites(newFavorites);
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(providerId)) {
+        newFavorites.delete(providerId);
+      } else {
+        newFavorites.add(providerId);
+      }
+      return newFavorites;
+    });
   };
 
   const handleLocationSelect = (location: string) => {
-    setLocationLoading(true);
-    setTimeout(() => {
-      setSelectedLocation(location);
-      setShowLocationModal(false);
-      setLocationLoading(false);
-    }, 500);
+    setSelectedLocation(location);
+    setShowLocationModal(false);
   };
 
-  if (loading) {
+  // Timer effect for slot booking
+  useEffect(() => {
+    if (slotTimer > 0) {
+      const timer = setInterval(() => {
+        setSlotTimer(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [slotTimer]);
+
+  // Loading state
+  if (categoriesLoading) {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </Layout>
     );
@@ -293,7 +353,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Service Sections */}
+      {/* Service Categories Section */}
       <section className="section-padding bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-16">
@@ -305,67 +365,207 @@ export default function Index() {
             </p>
           </div>
 
+          {/* Categories Grid */}
           <div className="grid-responsive mb-12 lg:mb-16">
-            {sections.map((section, index) => (
-              <Card 
-                key={section.id} 
-                className={`card-premium group border-0 bg-gradient-to-br from-white via-gray-50/30 to-white animate-fade-in animate-stagger-${index + 1} hover:shadow-premium`}
-                onClick={() => setSelectedSection(selectedSection === section.id ? null : section.id)}
-              >
-                <CardContent className="p-6 lg:p-10 text-center">
-                  <div className={`w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-3xl bg-gradient-to-r ${section.gradient} flex items-center justify-center mx-auto mb-6 lg:mb-8 group-hover:scale-110 transition-all duration-300 shadow-medium`}>
-                    <span className="text-2xl lg:text-4xl">{section.icon}</span>
-                  </div>
-                  <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-4">{section.name}</h3>
-                  <p className="text-gray-600 mb-6 lg:mb-8 leading-relaxed text-sm lg:text-base">{section.description}</p>
-                  <Button 
-                    variant="outline" 
-                    className="btn-secondary group-hover:btn-primary group-hover:text-white transition-all duration-300 w-full sm:w-auto"
-                  >
-                    Explore Services
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {categoriesLoading ? (
+              <div className="col-span-full text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-gray-500">Loading categories...</p>
+              </div>
+            ) : categories && categories.length > 0 ? (
+              categories.map((category: any, index: number) => (
+                <Card 
+                  key={category.id} 
+                  className={`card-premium group border-0 bg-gradient-to-br from-white via-gray-50/30 to-white animate-fade-in animate-stagger-${index + 1} hover:shadow-premium cursor-pointer ${selectedCategory === category.id ? 'ring-2 ring-primary' : ''}`}
+                  onClick={() => {
+                    setSelectedCategory(selectedCategory === category.id ? null : category.id);
+                    setSelectedSubcategory(null); // Reset subcategory selection
+                  }}
+                >
+                  <CardContent className="p-6 lg:p-10 text-center">
+                    <div className="w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-3xl bg-gradient-to-r from-primary to-primary-hover flex items-center justify-center mx-auto mb-6 lg:mb-8 group-hover:scale-110 transition-all duration-300 shadow-medium">
+                      <span className="text-2xl lg:text-4xl">{categoryIconMap[category.icon] || category.icon || '🔧'}</span>
+                    </div>
+                    <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-4">{category.name}</h3>
+                    <p className="text-gray-600 mb-6 lg:mb-8 leading-relaxed text-sm lg:text-base">{category.description || 'Professional services for all your needs'}</p>
+                    <Button 
+                      variant="outline" 
+                      className={`btn-secondary group-hover:btn-primary group-hover:text-white transition-all duration-300 w-full sm:w-auto ${selectedCategory === category.id ? 'btn-primary text-white' : ''}`}
+                    >
+                      {selectedCategory === category.id ? 'Selected' : 'Explore Services'}
+                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 text-lg">No service categories available yet.</p>
+                <p className="text-gray-400 text-sm mt-2">Categories will appear here once they are added by administrators.</p>
+              </div>
+            )}
           </div>
 
-          {/* Expanded Section Categories */}
-          {selectedSection && (
+          {/* Subcategories Section */}
+          {selectedCategory && (
             <div className="mt-12 animate-fade-in">
-              {sections.filter(s => s.id === selectedSection).map(section => (
-                <div key={section.id} className="bg-gradient-secondary rounded-3xl p-10 shadow-medium">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                    {section.name} Categories
-                  </h3>
-                  <div className="grid-responsive">
-                    {section.categories.map((category, index) => (
-                      <Card key={category.id} className={`card-floating group animate-slide-up animate-stagger-${index + 1} hover:shadow-floating`}>
-                        <CardContent className="p-8 text-center">
-                          <div className="text-5xl mb-6">{category.icon}</div>
-                          <h4 className="text-xl font-semibold text-gray-900 mb-4">{category.name}</h4>
-                          <div className="space-y-3 mb-6">
-                            {category.services.map((service, index) => (
-                              <Badge key={index} className="badge-secondary text-sm mr-2 mb-2">
-                                {service}
-                              </Badge>
-                            ))}
+              <div className="bg-gradient-secondary rounded-3xl p-10 shadow-medium">
+                <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+                  {categories?.find(c => c.id === selectedCategory)?.name} Services
+                </h3>
+                <div className="grid-responsive">
+                  {subcategories?.map((subcategory: any, index: number) => (
+                    <Card 
+                      key={subcategory.id} 
+                      className={`card-floating group animate-slide-up animate-stagger-${index + 1} hover:shadow-floating cursor-pointer ${selectedSubcategory === subcategory.id ? 'ring-2 ring-primary' : ''}`}
+                      onClick={() => setSelectedSubcategory(selectedSubcategory === subcategory.id ? null : subcategory.id)}
+                    >
+                      <CardContent className="p-8 text-center">
+                        <div className="text-5xl mb-6">⚡</div>
+                        <h4 className="text-xl font-semibold text-gray-900 mb-4">{subcategory.name}</h4>
+                        <p className="text-sm text-gray-600 mb-4">{subcategory.description}</p>
+                        <div className="text-sm text-gray-500 mb-6">
+                          Price range: ${subcategory.min_price} - ${subcategory.max_price}
+                        </div>
+                        
+                        <Button 
+                          variant={selectedSubcategory === subcategory.id ? "default" : "outline"}
+                          className="w-full"
+                        >
+                          {selectedSubcategory === subcategory.id ? 'View Providers' : 'Select Category'}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                
+                {(!subcategories || subcategories.length === 0) && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No services available in this category yet.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Providers Section */}
+          {selectedSubcategory && (
+            <div className="mt-12 animate-fade-in">
+              <div className="bg-white rounded-3xl p-10 shadow-medium border">
+                <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+                  Available Providers for {subcategories?.find(sc => sc.id === selectedSubcategory)?.name}
+                </h3>
+                <div className="grid-responsive">
+                  {servicesLoading ? (
+                    <div className="col-span-full text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                      <p className="mt-2 text-gray-500">Loading providers...</p>
+                    </div>
+                  ) : categoryServices && categoryServices.length > 0 ? (
+                    categoryServices.map((service: any, index: number) => (
+                      <Card key={service.id} className="card-floating group animate-slide-up hover:shadow-floating">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center space-x-3 flex-1">
+                              <div className="w-12 h-12 bg-gradient-primary text-white rounded-2xl flex items-center justify-center shadow-medium">
+                                <span className="text-lg font-bold">{service.service_providers?.business_name?.charAt(0) || 'P'}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-lg font-semibold text-gray-900 mb-1">{service.service_providers?.business_name || 'Professional Provider'}</h4>
+                                <div className="flex items-center space-x-2 text-gray-600 text-sm">
+                                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                  <span>{service.service_providers?.rating || 4.5}</span>
+                                  <span>({service.service_providers?.total_reviews || 0} reviews)</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <Button className="btn-primary w-full" size="sm">
-                            View Services
-                          </Button>
+
+                          <div className="space-y-3 mb-6">
+                            <div className="p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <h5 className="font-medium text-gray-900">{service.service_name}</h5>
+                                <span className="text-xl font-bold text-primary">${service.price}</span>
+                              </div>
+                              <p className="text-sm text-gray-600">{service.description || 'Professional service'}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => {
+                                // Set provider for details modal
+                                const mockProvider: Provider = {
+                                  id: parseInt(service.service_providers?.id || service.id) || 1,
+                                  name: service.service_providers?.business_name || 'Professional Provider',
+                                  rating: service.service_providers?.rating || 4.5,
+                                  reviews: service.service_providers?.total_reviews || 0,
+                                  location: service.service_providers?.address || 'Location',
+                                  distance: '2.1 km',
+                                  responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
+                                  verified: service.service_providers?.status === 'approved',
+                                  completedJobs: 50,
+                                  description: service.description || 'Professional service',
+                                  phone: '+1234567890',
+                                  email: 'provider@example.com',
+                                  services: [service.service_name],
+                                  price: service.price,
+                                  originalPrice: null
+                                };
+                                setSelectedProvider(mockProvider);
+                                setShowProviderModal(true);
+                              }}
+                            >
+                              View Details
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => {
+                                // Create mock provider for booking
+                                const mockProvider: Provider = {
+                                  id: parseInt(service.service_providers?.id || service.id) || 1,
+                                  name: service.service_providers?.business_name || 'Professional Provider',
+                                  rating: service.service_providers?.rating || 4.5,
+                                  reviews: service.service_providers?.total_reviews || 0,
+                                  location: service.service_providers?.address || 'Location',
+                                  distance: '2.1 km',
+                                  responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
+                                  verified: service.service_providers?.status === 'approved',
+                                  completedJobs: 50,
+                                  description: service.description || 'Professional service',
+                                  phone: '+1234567890',
+                                  email: 'provider@example.com',
+                                  services: [service.service_name],
+                                  price: service.price,
+                                  originalPrice: null
+                                };
+                                setSelectedProvider(mockProvider);
+                                setShowSlotModal(true);
+                              }}
+                            >
+                              Book Now
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-8">
+                      <p className="text-gray-500">No providers available for this service yet.</p>
+                    </div>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
           )}
         </div>
       </section>
 
-      {/* Popular Services */}
+      {/* Popular Services Section */}
       <section className="section-padding bg-gradient-to-br from-gray-50/50 to-white">
         <div className="container mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 lg:mb-12 gap-4">
@@ -525,23 +725,23 @@ export default function Index() {
       <ProviderDetailsModal
         isOpen={showProviderModal}
         onClose={() => setShowProviderModal(false)}
-        provider={selectedProvider}
+        provider={selectedProvider as any}
         onBookNow={() => {
           setShowProviderModal(false);
           if (selectedProvider) {
             handleBookService(selectedProvider);
           }
         }}
-        onToggleFavorite={toggleFavorite}
+        onToggleFavorite={(id) => toggleFavorite(parseInt(id.toString()))}
         isFavorite={selectedProvider ? favorites.has(selectedProvider.id) : false}
       />
 
       <SlotBookingModal
         isOpen={showSlotModal}
         onClose={() => setShowSlotModal(false)}
-        provider={selectedProvider}
-        timeSlots={mockTimeSlots}
-        selectedSlot={selectedSlot}
+        provider={selectedProvider as any}
+        timeSlots={mockTimeSlots as any}
+        selectedSlot={selectedSlot as any}
         onSlotSelect={handleSlotSelect}
         slotTimer={slotTimer}
         formatTime={formatTime}

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_permissions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          id: string
+          is_enabled: boolean
+          section: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          id?: string
+          is_enabled?: boolean
+          section: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_enabled?: boolean
+          section?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string
@@ -176,6 +209,48 @@ export type Database = {
           },
         ]
       }
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          price: number
+          provider_id: string | null
+          provider_name: string | null
+          quantity: number
+          service_details: Json | null
+          service_id: string
+          service_name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          price: number
+          provider_id?: string | null
+          provider_name?: string | null
+          quantity?: number
+          service_details?: Json | null
+          service_id: string
+          service_name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          price?: number
+          provider_id?: string | null
+          provider_name?: string | null
+          quantity?: number
+          service_details?: Json | null
+          service_id?: string
+          service_name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string | null
@@ -273,6 +348,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      guest_cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          price: number
+          provider_id: string | null
+          provider_name: string | null
+          quantity: number
+          service_details: Json | null
+          service_id: string
+          service_name: string
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          price: number
+          provider_id?: string | null
+          provider_name?: string | null
+          quantity?: number
+          service_details?: Json | null
+          service_id: string
+          service_name: string
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          price?: number
+          provider_id?: string | null
+          provider_name?: string | null
+          quantity?: number
+          service_details?: Json | null
+          service_id?: string
+          service_name?: string
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       locations: {
         Row: {
@@ -725,6 +842,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_provider: {
+        Args: { provider_user_id: string }
+        Returns: Json
+      }
       check_duplicate_credentials: {
         Args: {
           check_email: string
@@ -752,6 +873,10 @@ export type Database = {
       }
       promote_user_role: {
         Args: { new_role: string; user_uuid: string }
+        Returns: Json
+      }
+      reject_provider: {
+        Args: { provider_user_id: string }
         Returns: Json
       }
     }

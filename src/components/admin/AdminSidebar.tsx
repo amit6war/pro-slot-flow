@@ -20,6 +20,7 @@ import {
   Bell
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminPermissions } from '@/hooks/useAdminPermissions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { SecureStorage } from '@/utils/secureStorage';
@@ -35,24 +36,33 @@ const navigationSections = [
     ]
   },
   {
-    name: 'Management',
+    name: 'User Management',
     items: [
       { name: 'User Management', href: '/dashboard/admin?section=users', icon: Users },
       { name: 'Provider Management', href: '/dashboard/admin?section=providers', icon: UserCheck },
-      { name: 'Booking Management', href: '/dashboard/admin?section=bookings', icon: Calendar },
+      { name: 'Admin Management', href: '/dashboard/admin?section=admins', icon: Crown },
     ]
   },
   {
-    name: 'Analytics & Operations',
+    name: 'Service Management',
     items: [
+      { name: 'Service Management', href: '/dashboard/admin?section=services', icon: Wrench },
+      { name: 'Category Management', href: '/dashboard/admin?section=categories', icon: FolderTree },
+      { name: 'Location Management', href: '/dashboard/admin?section=locations', icon: MapPin },
+    ]
+  },
+  {
+    name: 'Operations',
+    items: [
+      { name: 'Booking Management', href: '/dashboard/admin?section=bookings', icon: Calendar },
       { name: 'Reports & Analytics', href: '/dashboard/admin?section=reports', icon: BarChart3 },
       { name: 'Payment Management', href: '/dashboard/admin?section=payments', icon: CreditCard },
-      { name: 'Notification Center', href: '/dashboard/admin?section=notifications', icon: Bell },
     ]
   },
   {
     name: 'System',
     items: [
+      { name: 'Notification Center', href: '/dashboard/admin?section=notifications', icon: Bell },
       { name: 'System Settings', href: '/dashboard/admin?section=settings', icon: Settings },
       { name: 'Admin Permissions', href: '/dashboard/admin?section=permissions', icon: Shield },
     ]
@@ -64,7 +74,48 @@ export const AdminSidebar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, profile, isRole, secureSignOut, signOut } = useAuth();
+  const { permissions, getEnabledSections } = useAdminPermissions();
   const isSuperAdmin = isRole('super_admin');
+  
+  // Create a mapping from section names to navigation items
+  const sectionMapping: Record<string, any> = {
+    'users': { name: 'User Management', href: '/dashboard/admin?section=users', icon: Users },
+    'providers': { name: 'Provider Management', href: '/dashboard/admin?section=providers', icon: UserCheck },
+    'admins': { name: 'Admin Management', href: '/dashboard/admin?section=admins', icon: Crown },
+    'services': { name: 'Service Management', href: '/dashboard/admin?section=services', icon: Wrench },
+    'categories': { name: 'Category Management', href: '/dashboard/admin?section=categories', icon: FolderTree },
+    'locations': { name: 'Location Management', href: '/dashboard/admin?section=locations', icon: MapPin },
+    'bookings': { name: 'Booking Management', href: '/dashboard/admin?section=bookings', icon: Calendar },
+    'reports': { name: 'Reports & Analytics', href: '/dashboard/admin?section=reports', icon: BarChart3 },
+    'payments': { name: 'Payment Management', href: '/dashboard/admin?section=payments', icon: CreditCard },
+    'notifications': { name: 'Notification Center', href: '/dashboard/admin?section=notifications', icon: Bell },
+    'settings': { name: 'System Settings', href: '/dashboard/admin?section=settings', icon: Settings },
+  };
+
+  // Filter navigation sections based on permissions
+  const getFilteredNavigationSections = () => {
+    const enabledSections = getEnabledSections();
+    
+    // For super admin, show all sections
+    if (isSuperAdmin) {
+      return navigationSections;
+    }
+    
+    // For regular admin, only show enabled sections
+    const filteredSections = navigationSections.map(section => ({
+      ...section,
+      items: section.items.filter(item => {
+        // Always show Overview
+        if (item.href === '/dashboard/admin') return true;
+        
+        // Check if the section is enabled for this item
+        const sectionKey = item.href.split('?section=')[1];
+        return sectionKey && enabledSections.includes(sectionKey);
+      })
+    })).filter(section => section.items.length > 0); // Remove empty sections
+    
+    return filteredSections;
+  };
   
   // Function to check if a link is active based on the section query parameter
   const isLinkActive = (href: string) => {
@@ -159,7 +210,7 @@ export const AdminSidebar = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200 fixed lg:relative inset-y-0 left-0 w-64">
+    <div className="flex flex-col h-screen bg-white border-r border-gray-200 w-64">
       {/* Main sidebar container with fixed height and flex structure */}
       <div className="flex flex-col h-full">
         {/* Header with logo and title - fixed at top */}
@@ -208,7 +259,7 @@ export const AdminSidebar = () => {
         
         {/* Navigation - scrollable section */}
         <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
-          {navigationSections.map((section, index) => (
+          {getFilteredNavigationSections().map((section, index) => (
           <div key={section.name} className="space-y-2">
             <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {section.name}

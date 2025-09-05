@@ -30,13 +30,17 @@ export interface CreateLocationData {
 export const categoriesService = {
   // Get all categories
   async getAll(): Promise<Category[]> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('categories')
       .select('*')
+      .eq('is_active', true)
       .order('name');
     
-    if (error) throw error;
-    return (data as any) || [];
+    if (error) {
+      console.error('Categories fetch error:', error);
+      throw error;
+    }
+    return data || [];
   },
 
   // Get category by ID
@@ -110,6 +114,7 @@ export const subcategoriesService = {
         *,
         category:categories(*)
       `)
+      .eq('is_active', true)
       .order('name');
 
     if (categoryId) {
@@ -118,7 +123,10 @@ export const subcategoriesService = {
 
     const { data, error } = await query;
     
-    if (error) throw error;
+    if (error) {
+      console.error('Subcategories fetch error:', error);
+      throw error;
+    }
     return data || [];
   },
 

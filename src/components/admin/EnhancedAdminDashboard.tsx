@@ -31,20 +31,24 @@ import { ServiceApprovalManager } from './ServiceApprovalManager';
 import { ProviderServiceManager } from './ProviderServiceManager';
 import { LocationManagement } from './LocationManagement';
 import { UserManager } from './UserManager';
+import { ProviderManager } from './ProviderManager';
+import { AdminManager } from './AdminManager';
+import { BookingManager } from './BookingManager';
+import { SettingsManager } from './SettingsManager';
 
 // Section components mapping
 const sectionComponents: Record<string, React.ComponentType> = {
   users: UserManager,
-  providers: () => <ProviderManagementSection />,
+  providers: ProviderManager,
   services: ServiceApprovalManager,
-  bookings: () => <BookingManagementSection />,
+  bookings: BookingManager,
   categories: CategoryManager,
   locations: LocationManagement,
   reports: () => <ReportsSection />,
   payments: () => <PaymentManagementSection />,
   notifications: () => <NotificationCenterSection />,
-  settings: () => <SystemSettingsSection />,
-  permissions: () => <AdminPermissionsSection />,
+  settings: SettingsManager,
+  admins: AdminManager,
 };
 
 // Section icons
@@ -59,7 +63,7 @@ const sectionIcons: Record<string, React.ReactNode> = {
   payments: <CreditCard className="h-4 w-4" />,
   notifications: <Bell className="h-4 w-4" />,
   settings: <Settings className="h-4 w-4" />,
-  permissions: <Shield className="h-4 w-4" />,
+  admins: <Crown className="h-4 w-4" />,
 };
 
 export const EnhancedAdminDashboard: React.FC = () => {
@@ -112,10 +116,10 @@ export const EnhancedAdminDashboard: React.FC = () => {
       )}
 
       {/* Main layout with sidebar and content */}
-      <div className="flex min-h-screen">
-        {/* Sidebar - Fixed on mobile, static on desktop */}
+      <div className="flex h-screen w-full">
+        {/* Sidebar - Fixed position */}
         <div className={`
-          fixed lg:static inset-y-0 left-0 z-50 w-64 
+          fixed lg:static inset-y-0 left-0 z-50 w-64 flex-shrink-0
           bg-white shadow-xl lg:shadow-none
           transform transition-transform duration-300 ease-in-out lg:transform-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -123,103 +127,92 @@ export const EnhancedAdminDashboard: React.FC = () => {
           <AdminSidebar />
         </div>
 
-        {/* Main content area */}
-        <div className="flex-1 lg:pl-0">
-          <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center">
-            {isSuperAdmin ? (
-              <Crown className="h-8 w-8 mr-3 text-yellow-500" />
-            ) : (
-              <Shield className="h-8 w-8 mr-3 text-blue-500" />
-            )}
-            {isSuperAdmin ? 'Super Admin' : 'Admin'} Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Welcome back, {profile?.full_name || 'Administrator'}
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant={isSuperAdmin ? "default" : "secondary"}>
-            {isSuperAdmin ? 'Super Admin' : 'Admin'}
-          </Badge>
-          <Badge variant="outline">
-            {enabledSections.length} Sections Available
-          </Badge>
-        </div>
-      </div>
-
-      {/* Super Admin message - Permissions moved to dedicated section */}
-      {isSuperAdmin && sectionFromUrl !== 'permissions' && (
-        <div className="mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2 text-blue-600">
-                <Shield className="h-5 w-5" />
-                <p>Admin permissions can now be managed in the <Link to="/dashboard/admin?section=permissions" className="font-medium underline">Admin Permissions</Link> section.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Admin Dashboard Content */}
-      {availableSections.length > 0 ? (
-        <div className="space-y-6">
-          {/* Display the current section based on URL parameter */}
-          {(() => {
-            const currentSection = sectionFromUrl || availableSections[0]?.section;
-            const section = availableSections.find(s => s.section === currentSection);
-            
-            if (!section) return null;
-            
-            const SectionComponent = sectionComponents[section.section];
-            
-            return (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    {sectionIcons[section.section]}
-                    <span className="ml-2">{section.display_name}</span>
-                    {!section.is_enabled && isAdmin && (
-                      <Badge variant="secondary" className="ml-2">
-                        Disabled
-                      </Badge>
+        {/* Main content area - Fixed positioning with scroll */}
+        <div className="flex-1 flex flex-col h-screen lg:ml-0">
+          <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold flex items-center">
+                    {isSuperAdmin ? (
+                      <Crown className="h-8 w-8 mr-3 text-yellow-500" />
+                    ) : (
+                      <Shield className="h-8 w-8 mr-3 text-blue-500" />
                     )}
-                  </CardTitle>
-                  {section.description && (
-                    <CardDescription>{section.description}</CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {SectionComponent ? (
-                    <SectionComponent />
-                  ) : (
-                    <ComingSoonSection title={section.display_name} />
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })()}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-12">
-              <Shield className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No Sections Available</h3>
-              <p className="text-muted-foreground">
-                {isAdmin 
-                  ? "No admin sections have been enabled for your account. Contact your Super Admin."
-                  : "No admin sections are configured."
-                }
-              </p>
+                    {isSuperAdmin ? 'Super Admin' : 'Admin'} Dashboard
+                  </h1>
+                  <p className="text-muted-foreground mt-1">
+                    Welcome back, {profile?.full_name || 'Administrator'}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant={isSuperAdmin ? "default" : "secondary"}>
+                    {isSuperAdmin ? 'Super Admin' : 'Admin'}
+                  </Badge>
+                  <Badge variant="outline">
+                    {enabledSections.length} Sections Available
+                  </Badge>
+                </div>
+              </div>
+
+
+              {/* Admin Dashboard Content */}
+              {availableSections.length > 0 ? (
+                <div className="space-y-6">
+                  {/* Display the current section based on URL parameter */}
+                  {(() => {
+                    const currentSection = sectionFromUrl || availableSections[0]?.section;
+                    const section = availableSections.find(s => s.section === currentSection);
+                    
+                    if (!section) return null;
+                    
+                    const SectionComponent = sectionComponents[section.section];
+                    
+                    return (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center">
+                            {sectionIcons[section.section]}
+                            <span className="ml-2">{section.display_name}</span>
+                            {!section.is_enabled && isAdmin && (
+                              <Badge variant="secondary" className="ml-2">
+                                Disabled
+                              </Badge>
+                            )}
+                          </CardTitle>
+                          {section.description && (
+                            <CardDescription>{section.description}</CardDescription>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          {SectionComponent ? (
+                            <SectionComponent />
+                          ) : (
+                            <ComingSoonSection title={section.display_name} />
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12">
+                      <Shield className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">No Sections Available</h3>
+                      <p className="text-muted-foreground">
+                        {isAdmin 
+                          ? "No admin sections have been enabled for your account. Contact your Super Admin."
+                          : "No admin sections are configured."
+                        }
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
           </div>
         </div>
       </div>
@@ -236,32 +229,7 @@ const ComingSoonSection: React.FC<{ title: string }> = ({ title }) => (
   </div>
 );
 
-// Add AdminPermissionsSection component
-const AdminPermissionsSection: React.FC = () => (
-  <div className="space-y-4">
-    <h3 className="text-lg font-semibold">Admin Permissions Management</h3>
-    <p className="text-muted-foreground">Control which dashboard sections are accessible to Admin users.</p>
-    <AdminPermissionsPanel />
-  </div>
-);
-
-// UserManagementSection is now replaced by the imported UserManager component
-
-const ProviderManagementSection: React.FC = () => (
-  <div className="space-y-4">
-    <h3 className="text-lg font-semibold">Provider Management</h3>
-    <p className="text-muted-foreground">Manage service providers and their approvals.</p>
-    <ProviderServiceManager />
-  </div>
-);
-
-const BookingManagementSection: React.FC = () => (
-  <div className="space-y-4">
-    <h3 className="text-lg font-semibold">Booking Management</h3>
-    <p className="text-muted-foreground">View and manage all system bookings.</p>
-    <ComingSoonSection title="Booking Management" />
-  </div>
-);
+const ProviderManagementSection: React.FC = () => <ProviderManager />;
 
 const ReportsSection: React.FC = () => (
   <div className="space-y-4">
@@ -284,13 +252,5 @@ const NotificationCenterSection: React.FC = () => (
     <h3 className="text-lg font-semibold">Notification Center</h3>
     <p className="text-muted-foreground">Send and manage system notifications.</p>
     <ComingSoonSection title="Notification Center" />
-  </div>
-);
-
-const SystemSettingsSection: React.FC = () => (
-  <div className="space-y-4">
-    <h3 className="text-lg font-semibold">System Settings</h3>
-    <p className="text-muted-foreground">Configure system-wide settings.</p>
-    <ComingSoonSection title="System Settings" />
   </div>
 );

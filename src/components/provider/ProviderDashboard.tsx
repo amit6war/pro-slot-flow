@@ -7,6 +7,7 @@ import { ProviderBookings } from './ProviderBookings';
 import { ProviderProfile } from './ProviderProfile';
 import { ProviderEarnings } from './ProviderEarnings';
 import { ProviderSchedule } from './ProviderSchedule';
+import { ProviderAccessControl } from './ProviderAccessControl';
 import { DatabaseStatus } from '../dev/DatabaseStatus';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -126,12 +127,14 @@ export const ProviderDashboard = () => {
     );
   }
 
-  // Check if provider profile is pending approval
+  // Check if provider profile is pending approval - now handled by ProviderAccessControl
+  // This legacy code is kept for backward compatibility but main logic moved to ProviderAccessControl
   const isPendingApproval = profile?.registration_status === 'pending';
   const isApproved = profile?.registration_status === 'approved';
 
-  // If provider is pending, show limited dashboard with only profile section
-  if (isPendingApproval) {
+  // Legacy pending approval display - now handled by ProviderAccessControl
+  // Keeping this for any edge cases, but main provider approval logic is in ProviderAccessControl
+  if (isPendingApproval && false) { // Disabled - ProviderAccessControl handles this now
     return (
       <div className="min-h-screen bg-gray-50">
         <DatabaseStatus />
@@ -313,7 +316,7 @@ export const ProviderDashboard = () => {
 
   // Full dashboard for approved providers
   return (
-    <>
+    <ProviderAccessControl>
       <div className="min-h-screen bg-gray-50">
         <DatabaseStatus />
         
@@ -334,8 +337,6 @@ export const ProviderDashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Remove the dialog completely */}
-    </>
+    </ProviderAccessControl>
   );
 };
