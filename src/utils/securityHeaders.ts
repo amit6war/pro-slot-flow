@@ -85,8 +85,14 @@ export const securityHeaders = {
 // Apply security headers to document
 export const applySecurityHeaders = (): void => {
   try {
-    // Add meta tags for security headers
-    Object.entries(securityHeaders).forEach(([name, value]) => {
+    // Only apply headers that can be set via meta tags
+    const metaHeaders = {
+      'Content-Security-Policy': generateCSP(),
+      'Referrer-Policy': 'strict-origin-when-cross-origin'
+    };
+    
+    // Add meta tags for security headers that support it
+    Object.entries(metaHeaders).forEach(([name, value]) => {
       let metaTag = document.querySelector(`meta[http-equiv="${name}"]`) as HTMLMetaElement;
       
       if (!metaTag) {
@@ -97,6 +103,10 @@ export const applySecurityHeaders = (): void => {
       
       metaTag.content = value;
     });
+
+    // Note: Other security headers like X-Frame-Options, X-Content-Type-Options, etc.
+    // can only be set by the server via HTTP headers, not via meta tags.
+    // These should be configured in your production server (Nginx, Apache, etc.)
 
     console.log('🛡️ Security headers applied successfully');
   } catch (error) {

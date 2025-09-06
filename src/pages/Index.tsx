@@ -181,7 +181,8 @@ export default function Index() {
     queryFn: async () => {
       if (!selectedSubcategory) return [];
       
-      const { data, error } = await supabase
+      // Get provider services for the selected subcategory
+      const { data: providerServices, error } = await supabase
         .from('provider_services')
         .select(`
           *,
@@ -191,15 +192,6 @@ export default function Index() {
             description,
             min_price,
             max_price
-          ),
-          service_providers (
-            id,
-            business_name,
-            rating,
-            total_reviews,
-            address,
-            status,
-            response_time_minutes
           )
         `)
         .eq('subcategory_id', selectedSubcategory)
@@ -211,9 +203,193 @@ export default function Index() {
         return [];
       }
 
-      return data || [];
+      if (!providerServices || providerServices.length === 0) {
+        return [];
+      }
+
+      // Get provider details for these services
+      const providerIds = providerServices.map(ps => ps.provider_id).filter(Boolean);
+      
+      // First get user_profiles to get the user_id from provider_id
+      const { data: userProfiles, error: userProfilesError } = await supabase
+        .from('user_profiles')
+        .select('id, user_id, full_name, business_name')
+        .in('id', providerIds);
+
+      if (userProfilesError) {
+        console.error('Error fetching user profiles:', userProfilesError);
+        return providerServices.map(ps => ({ ...ps, service_providers: null, user_profile: null }));
+      }
+
+      // Then get service_providers using the user_id
+      const userIds = userProfiles?.map(up => up.user_id).filter(Boolean) || [];
+      const { data: providers, error: providersError } = await supabase
+        .from('service_providers')
+        .select('*')
+        .in('user_id', userIds)
+        .eq('status', 'approved');
+
+      if (providersError) {
+        console.error('Error fetching providers:', providersError);
+        return providerServices.map(ps => ({ ...ps, service_providers: null, user_profile: null }));
+      }
+
+      // Combine the data
+      return providerServices.map(ps => {
+        const userProfile = userProfiles?.find(up => up.id === ps.provider_id);
+        const provider = providers?.find(p => p.user_id === userProfile?.user_id);
+        return {
+          ...ps,
+          service_providers: provider,
+          user_profile: userProfile
+        };
+      });
     },
     enabled: !!selectedSubcategory,
+  });
+
+  // Query for popular services with their providers
+  const { data: popularServices, isLoading: popularServicesLoading } = useQuery({
+    queryKey: ['popular-services'],
+    queryFn: async () => {
+      // First get services marked as popular
+      const { data: popularServiceData, error: servicesError } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_popular', true)
+        .eq('is_active', true);
+
+      if (servicesError) {
+        console.error('Error fetching popular services:', servicesError);
+        return [];
+      }
+
+      if (!popularServiceData || popularServiceData.length === 0) {
+        return [];
+      }
+
+      // Get subcategories for these services
+      const subcategoryIds = popularServiceData.map(service => service.subcategory_id).filter(Boolean);
+      
+      if (subcategoryIds.length === 0) {
+        return [];
+      }
+
+      // Get provider services for these subcategories
+      const { data: providerServices, error: providerError } = await supabase
+        .from('provider_services')
+        .select(`
+          *,
+          subcategories!inner (
+            id,
+            name,
+            description
+          )
+        `)
+        .in('subcategory_id', subcategoryIds)
+        .eq('status', 'approved')
+        .eq('is_active', true)
+        .limit(6);
+
+      if (providerError) {
+        console.error('Error fetching provider services:', providerError);
+        return [];
+      }
+
+      // Get provider details for these services
+      if (providerServices && providerServices.length > 0) {
+        const providerIds = providerServices.map(ps => ps.provider_id).filter(Boolean);
+        
+        // First get user_profiles to get the user_id from provider_id
+        const { data: userProfiles, error: userProfilesError } = await supabase
+          .from('user_profiles')
+          .select('id, user_id, full_name, business_name')
+          .in('id', providerIds);
+
+        if (userProfilesError) {
+          console.error('Error fetching user profiles:', userProfilesError);
+          return providerServices.map(ps => ({ ...ps, service_providers: null, user_profile: null }));
+        }
+
+        // Then get service_providers using the user_id
+        const userIds = userProfiles?.map(up => up.user_id).filter(Boolean) || [];
+        const { data: providers, error: providersError } = await supabase
+          .from('service_providers')
+          .select('*')
+          .in('user_id', userIds)
+          .eq('status', 'approved');
+
+        if (providersError) {
+          console.error('Error fetching providers:', providersError);
+          return providerServices.map(ps => ({ ...ps, service_providers: null, user_profile: null }));
+        }
+
+        // Combine the data
+        return providerServices.map(ps => {
+          const userProfile = userProfiles?.find(up => up.id === ps.provider_id);
+          const provider = providers?.find(p => p.user_id === userProfile?.user_id);
+          return {
+            ...ps,
+            service_providers: provider,
+            user_profile: userProfile
+          };
+        });
+      }
+
+      return [];
+    }
+  });
+
+  // Query for all available services with providers count
+  const { data: allAvailableServices, isLoading: allServicesLoading } = useQuery({
+    queryKey: ['all-available-services'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('provider_services')
+        .select(`
+          subcategory_id,
+          provider_id,
+          subcategories!inner (
+            id,
+            name,
+            description,
+            category_id,
+            categories!inner (
+              id,
+              name,
+              icon
+            )
+          )
+        `)
+        .eq('status', 'approved')
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Error fetching available services:', error);
+        return [];
+      }
+
+      // Group by subcategory and count unique providers
+      const serviceMap = new Map();
+      data?.forEach(service => {
+        const key = service.subcategory_id;
+        if (!serviceMap.has(key)) {
+          serviceMap.set(key, {
+            ...service.subcategories,
+            providerCount: 0,
+            providerIds: new Set()
+          });
+        }
+        serviceMap.get(key).providerIds.add(service.provider_id);
+      });
+
+      // Convert Set to count
+      return Array.from(serviceMap.values()).map(service => ({
+        ...service,
+        providerCount: service.providerIds.size,
+        providerIds: undefined // Remove the Set
+      }));
+    }
   });
 
   // Event handlers
@@ -366,6 +542,13 @@ export default function Index() {
 
           {/* Categories Grid */}
           <div className="grid-responsive mb-12 lg:mb-16">
+            {/* Debug info */}
+            <div style={{position: 'fixed', top: '10px', right: '10px', background: 'white', padding: '10px', zIndex: 9999, fontSize: '12px', border: '1px solid #ccc'}}>
+              <div>Categories Loading: {categoriesLoading ? 'true' : 'false'}</div>
+              <div>Categories Length: {categories?.length || 0}</div>
+              <div>Categories Exists: {categories ? 'true' : 'false'}</div>
+            </div>
+            
             {categoriesLoading ? (
               <div className="col-span-full text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
@@ -564,6 +747,50 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Available Services Section */}
+      {!selectedSubcategory && allAvailableServices && allAvailableServices.length > 0 && (
+        <section className="section-padding bg-white">
+          <div className="container mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Available Services</h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Explore all services with registered providers ready to serve you
+              </p>
+            </div>
+
+            <div className="grid-responsive">
+              {allAvailableServices.slice(0, 6).map((service: any, index: number) => (
+                <Card key={service.id} className="card-floating group animate-slide-up hover:shadow-floating cursor-pointer" onClick={() => setSelectedSubcategory(service.id)}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-gradient-primary text-white rounded-2xl flex items-center justify-center shadow-medium">
+                        <span className="text-lg font-bold">{service.categories?.icon || '🔧'}</span>
+                      </div>
+                      <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
+                        {service.providerCount} provider{service.providerCount !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.name}</h3>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{service.description || 'Professional service available'}</p>
+                    <Button variant="outline" size="sm" className="w-full">
+                      View Providers
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {allAvailableServices.length > 6 && (
+              <div className="text-center mt-8">
+                <Button variant="outline" size="lg">
+                  View All Services ({allAvailableServices.length})
+                </Button>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Popular Services Section */}
       <section className="section-padding bg-gradient-to-br from-gray-50/50 to-white">
         <div className="container mx-auto">
@@ -579,92 +806,145 @@ export default function Index() {
           </div>
 
           <div className="grid-responsive">
-            {mockProviders.map((provider, index) => (
-              <Card key={provider.id} className={`card-neon group animate-fade-in animate-stagger-${index + 1} hover:shadow-neon`}>
-                <CardContent className="p-4 sm:p-6 lg:p-8">
-                  <div className="flex items-start justify-between mb-4 lg:mb-6">
-                    <div className="flex items-center space-x-3 lg:space-x-4 flex-1">
-                      <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-primary text-white group-hover:scale-110 transition-transform rounded-2xl flex items-center justify-center shadow-medium">
-                        <span className="text-lg lg:text-xl font-bold">{provider.name.charAt(0)}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-base lg:text-lg font-semibold text-gray-900 mb-1 lg:mb-2 truncate">{provider.name}</h4>
-                        <div className="flex items-center space-x-1 lg:space-x-2 text-gray-600 text-sm lg:text-base">
-                          <MapPin className="h-3 w-3 lg:h-4 lg:w-4 flex-shrink-0" />
-                          <span className="truncate">{provider.location}</span>
-                          <span>•</span>
-                          <span className="font-medium">{provider.distance}</span>
+            {popularServicesLoading ? (
+              <div className="col-span-full text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-gray-500">Loading popular services...</p>
+              </div>
+            ) : popularServices && popularServices.length > 0 ? (
+              popularServices.map((service: any, index: number) => (
+                <Card key={service.id} className={`card-neon group animate-fade-in animate-stagger-${index + 1} hover:shadow-neon`}>
+                  <CardContent className="p-4 sm:p-6 lg:p-8">
+                    <div className="flex items-start justify-between mb-4 lg:mb-6">
+                      <div className="flex items-center space-x-3 lg:space-x-4 flex-1">
+                        <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-primary text-white group-hover:scale-110 transition-transform rounded-2xl flex items-center justify-center shadow-medium">
+                          <span className="text-lg lg:text-xl font-bold">{service.service_providers?.business_name?.charAt(0) || 'P'}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-base lg:text-lg font-semibold text-gray-900 mb-1 lg:mb-2 truncate">{service.service_providers?.business_name || 'Professional Provider'}</h4>
+                          <div className="flex items-center space-x-1 lg:space-x-2 text-gray-600 text-sm lg:text-base">
+                            <MapPin className="h-3 w-3 lg:h-4 lg:w-4 flex-shrink-0" />
+                            <span className="truncate">{service.service_providers?.address || 'Location'}</span>
+                          </div>
                         </div>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleFavorite(parseInt(service.service_providers?.id) || service.id)}
+                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all p-2 flex-shrink-0"
+                      >
+                        <Heart className={`h-4 w-4 lg:h-5 lg:w-5 ${favorites.has(parseInt(service.service_providers?.id) || service.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleFavorite(provider.id)}
-                      className="text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all p-2 flex-shrink-0"
-                    >
-                      <Heart className={`h-4 w-4 lg:h-5 lg:w-5 ${favorites.has(provider.id) ? 'fill-red-500 text-red-500' : ''}`} />
-                    </Button>
-                  </div>
 
-                  <div className="flex flex-wrap items-center gap-3 lg:gap-6 mb-4 lg:mb-6">
-                    <div className="flex items-center space-x-1 lg:space-x-2">
-                      <Star className="h-4 w-4 lg:h-5 lg:w-5 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold text-gray-900 text-sm lg:text-base">{provider.rating}</span>
-                      <span className="text-gray-500 text-sm lg:text-base">({provider.reviews})</span>
-                    </div>
-                    <div className="flex items-center space-x-1 lg:space-x-2 text-gray-600">
-                      <Clock className="h-3 w-3 lg:h-4 lg:w-4" />
-                      <span className="text-xs lg:text-sm">Responds in {provider.responseTime}</span>
-                    </div>
-                    {provider.verified && (
-                      <div className="status-success text-xs lg:text-sm">
-                        <Shield className="h-3 w-3 mr-1" />
-                        Verified
+                    <div className="flex flex-wrap items-center gap-3 lg:gap-6 mb-4 lg:mb-6">
+                      <div className="flex items-center space-x-1 lg:space-x-2">
+                        <Star className="h-4 w-4 lg:h-5 lg:w-5 fill-yellow-400 text-yellow-400" />
+                        <span className="font-semibold text-gray-900 text-sm lg:text-base">{service.service_providers?.rating || 4.5}</span>
+                        <span className="text-gray-500 text-sm lg:text-base">({service.service_providers?.total_reviews || 0})</span>
                       </div>
-                    )}
-                  </div>
+                      <div className="flex items-center space-x-1 lg:space-x-2 text-gray-600">
+                        <Clock className="h-3 w-3 lg:h-4 lg:w-4" />
+                        <span className="text-xs lg:text-sm">Responds in {service.service_providers?.response_time_minutes || 15}min</span>
+                      </div>
+                      {service.service_providers?.status === 'approved' && (
+                        <div className="status-success text-xs lg:text-sm">
+                          <Shield className="h-3 w-3 mr-1" />
+                          Verified
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="space-y-4 mb-6">
-                    {provider.services.slice(0, 2).map((service, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div className="space-y-4 mb-6">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <div>
-                          <p className="font-medium text-gray-900">{service}</p>
-                          <p className="text-sm text-gray-600">Professional service</p>
+                          <p className="font-medium text-gray-900">{service.service_name}</p>
+                          <p className="text-sm text-gray-600">{service.description || 'Professional service'}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold text-primary">${provider.price}</p>
-                          {provider.originalPrice && (
-                            <p className="text-sm text-gray-500 line-through">${provider.originalPrice}</p>
-                          )}
+                          <p className="text-xl font-bold text-primary">${service.price}</p>
                         </div>
                       </div>
-                    ))}
-                    {provider.services.length > 2 && (
-                      <p className="text-sm text-gray-500 text-center">+{provider.services.length - 2} more services available</p>
-                    )}
-                  </div>
+                      <div className="text-center">
+                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          Popular Service
+                        </Badge>
+                      </div>
+                    </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleProviderClick(provider)}
-                      className="btn-secondary flex-1 py-2.5"
-                    >
-                      View Details
-                    </Button>
-                    <Button
-                      onClick={() => handleBookService(provider)}
-                      size="sm"
-                      className="btn-primary flex-1 py-2.5"
-                    >
-                      Book Now
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          const mockProvider: Provider = {
+                            id: parseInt(service.service_providers?.id || service.id) || 1,
+                            name: service.service_providers?.business_name || 'Professional Provider',
+                            rating: service.service_providers?.rating || 4.5,
+                            reviews: service.service_providers?.total_reviews || 0,
+                            location: service.service_providers?.address || 'Location',
+                            distance: '2.1 km',
+                            responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
+                            verified: service.service_providers?.status === 'approved',
+                            completedJobs: service.service_providers?.total_completed_jobs || 0,
+                            description: service.description || 'Professional service',
+                            phone: '+1234567890',
+                            email: 'provider@example.com',
+                            services: [service.service_name],
+                            price: service.price,
+                            originalPrice: null
+                          };
+                          setSelectedProvider(mockProvider);
+                          setShowProviderModal(true);
+                        }}
+                      >
+                        View Details
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          const mockProvider: Provider = {
+                            id: parseInt(service.service_providers?.id || service.id) || 1,
+                            name: service.service_providers?.business_name || 'Professional Provider',
+                            rating: service.service_providers?.rating || 4.5,
+                            reviews: service.service_providers?.total_reviews || 0,
+                            location: service.service_providers?.address || 'Location',
+                            distance: '2.1 km',
+                            responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
+                            verified: service.service_providers?.status === 'approved',
+                            completedJobs: service.service_providers?.total_completed_jobs || 0,
+                            description: service.description || 'Professional service',
+                            phone: '+1234567890',
+                            email: 'provider@example.com',
+                            services: [service.service_name],
+                            price: service.price,
+                            originalPrice: null
+                          };
+                          setSelectedProvider(mockProvider);
+                          setShowSlotModal(true);
+                        }}
+                      >
+                        Book Now
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <div className="max-w-md mx-auto">
+                  <TrendingUp className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Popular Services Yet</h3>
+                  <p className="text-gray-500">
+                    Popular services will appear here once admins mark services as popular and providers register for them.
+                  </p>
+                </div>
+              </div>
+              )}
           </div>
         </div>
       </section>
