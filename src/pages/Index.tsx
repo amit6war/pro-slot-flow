@@ -210,10 +210,23 @@ export default function Index() {
       // Get provider details for these services
       const providerIds = providerServices.map(ps => ps.provider_id).filter(Boolean);
       
+      // First get user_profiles to get the user_id
+      const { data: userProfiles, error: userProfilesError } = await supabase
+        .from('user_profiles')
+        .select('id, user_id, full_name, business_name')
+        .in('id', providerIds);
+
+      if (userProfilesError) {
+        console.error('Error fetching user profiles:', userProfilesError);
+        return providerServices.map(ps => ({ ...ps, service_providers: null }));
+      }
+
+      // Then get service_providers using the user_id
+      const userIds = userProfiles?.map(up => up.user_id).filter(Boolean) || [];
       const { data: providers, error: providersError } = await supabase
         .from('service_providers')
         .select('*')
-        .in('user_id', providerIds)
+        .in('user_id', userIds)
         .eq('status', 'approved');
 
       if (providersError) {
@@ -223,10 +236,12 @@ export default function Index() {
 
       // Combine the data
       return providerServices.map(ps => {
-        const provider = providers?.find(p => p.user_id === ps.provider_id);
+        const userProfile = userProfiles?.find(up => up.id === ps.provider_id);
+        const provider = providers?.find(p => p.user_id === userProfile?.user_id);
         return {
           ...ps,
-          service_providers: provider
+          service_providers: provider,
+          user_profile: userProfile
         };
       });
     },
@@ -285,10 +300,23 @@ export default function Index() {
       if (providerServices && providerServices.length > 0) {
         const providerIds = providerServices.map(ps => ps.provider_id).filter(Boolean);
         
+        // First get user_profiles to get the user_id
+        const { data: userProfiles, error: userProfilesError } = await supabase
+          .from('user_profiles')
+          .select('id, user_id, full_name, business_name')
+          .in('id', providerIds);
+
+        if (userProfilesError) {
+          console.error('Error fetching user profiles:', userProfilesError);
+          return providerServices.map(ps => ({ ...ps, service_providers: null }));
+        }
+
+        // Then get service_providers using the user_id
+        const userIds = userProfiles?.map(up => up.user_id).filter(Boolean) || [];
         const { data: providers, error: providersError } = await supabase
           .from('service_providers')
           .select('*')
-          .in('user_id', providerIds)
+          .in('user_id', userIds)
           .eq('status', 'approved');
 
         if (providersError) {
@@ -298,10 +326,12 @@ export default function Index() {
 
         // Combine the data
         return providerServices.map(ps => {
-          const provider = providers?.find(p => p.user_id === ps.provider_id);
+          const userProfile = userProfiles?.find(up => up.id === ps.provider_id);
+          const provider = providers?.find(p => p.user_id === userProfile?.user_id);
           return {
             ...ps,
-            service_providers: provider
+            service_providers: provider,
+            user_profile: userProfile
           };
         });
       }
