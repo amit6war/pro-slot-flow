@@ -181,7 +181,8 @@ export default function Index() {
     queryFn: async () => {
       if (!selectedSubcategory) return [];
       
-      const { data, error } = await supabase
+      // Get provider services for the selected subcategory
+      const { data: providerServices, error } = await supabase
         .from('provider_services')
         .select(`
           *,
@@ -191,28 +192,43 @@ export default function Index() {
             description,
             min_price,
             max_price
-          ),
-          service_providers!inner (
-            id,
-            business_name,
-            rating,
-            total_reviews,
-            address,
-            status,
-            response_time_minutes
           )
         `)
         .eq('subcategory_id', selectedSubcategory)
         .eq('status', 'approved')
-        .eq('is_active', true)
-        .eq('service_providers.status', 'approved');
+        .eq('is_active', true);
 
       if (error) {
         console.error('Error fetching services:', error);
         return [];
       }
 
-      return data || [];
+      if (!providerServices || providerServices.length === 0) {
+        return [];
+      }
+
+      // Get provider details for these services
+      const providerIds = providerServices.map(ps => ps.provider_id).filter(Boolean);
+      
+      const { data: providers, error: providersError } = await supabase
+        .from('service_providers')
+        .select('*')
+        .in('user_id', providerIds)
+        .eq('status', 'approved');
+
+      if (providersError) {
+        console.error('Error fetching providers:', providersError);
+        return providerServices.map(ps => ({ ...ps, service_providers: null }));
+      }
+
+      // Combine the data
+      return providerServices.map(ps => {
+        const provider = providers?.find(p => p.user_id === ps.provider_id);
+        return {
+          ...ps,
+          service_providers: provider
+        };
+      });
     },
     enabled: !!selectedSubcategory,
   });
@@ -221,43 +237,76 @@ export default function Index() {
   const { data: popularServices, isLoading: popularServicesLoading } = useQuery({
     queryKey: ['popular-services'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get services marked as popular
+      const { data: popularServiceData, error: servicesError } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_popular', true)
+        .eq('is_active', true);
+
+      if (servicesError) {
+        console.error('Error fetching popular services:', servicesError);
+        return [];
+      }
+
+      if (!popularServiceData || popularServiceData.length === 0) {
+        return [];
+      }
+
+      // Get subcategories for these services
+      const subcategoryIds = popularServiceData.map(service => service.subcategory_id).filter(Boolean);
+      
+      if (subcategoryIds.length === 0) {
+        return [];
+      }
+
+      // Get provider services for these subcategories
+      const { data: providerServices, error: providerError } = await supabase
         .from('provider_services')
         .select(`
           *,
           subcategories!inner (
             id,
             name,
-            description,
-            services!inner (
-              id,
-              name,
-              is_popular
-            )
-          ),
-          service_providers!inner (
-            id,
-            business_name,
-            rating,
-            total_reviews,
-            address,
-            status,
-            response_time_minutes,
-            total_completed_jobs
+            description
           )
         `)
+        .in('subcategory_id', subcategoryIds)
         .eq('status', 'approved')
         .eq('is_active', true)
-        .eq('service_providers.status', 'approved')
-        .eq('subcategories.services.is_popular', true)
         .limit(6);
 
-      if (error) {
-        console.error('Error fetching popular services:', error);
+      if (providerError) {
+        console.error('Error fetching provider services:', providerError);
         return [];
       }
 
-      return data || [];
+      // Get provider details for these services
+      if (providerServices && providerServices.length > 0) {
+        const providerIds = providerServices.map(ps => ps.provider_id).filter(Boolean);
+        
+        const { data: providers, error: providersError } = await supabase
+          .from('service_providers')
+          .select('*')
+          .in('user_id', providerIds)
+          .eq('status', 'approved');
+
+        if (providersError) {
+          console.error('Error fetching providers:', providersError);
+          return providerServices.map(ps => ({ ...ps, service_providers: null }));
+        }
+
+        // Combine the data
+        return providerServices.map(ps => {
+          const provider = providers?.find(p => p.user_id === ps.provider_id);
+          return {
+            ...ps,
+            service_providers: provider
+          };
+        });
+      }
+
+      return [];
     }
   });
 
@@ -269,6 +318,7 @@ export default function Index() {
         .from('provider_services')
         .select(`
           subcategory_id,
+          provider_id,
           subcategories!inner (
             id,
             name,
@@ -279,34 +329,36 @@ export default function Index() {
               name,
               icon
             )
-          ),
-          service_providers!inner (
-            status
           )
         `)
         .eq('status', 'approved')
-        .eq('is_active', true)
-        .eq('service_providers.status', 'approved');
+        .eq('is_active', true);
 
       if (error) {
         console.error('Error fetching available services:', error);
         return [];
       }
 
-      // Group by subcategory and count providers
+      // Group by subcategory and count unique providers
       const serviceMap = new Map();
       data?.forEach(service => {
         const key = service.subcategory_id;
         if (!serviceMap.has(key)) {
           serviceMap.set(key, {
             ...service.subcategories,
-            providerCount: 0
+            providerCount: 0,
+            providerIds: new Set()
           });
         }
-        serviceMap.get(key).providerCount++;
+        serviceMap.get(key).providerIds.add(service.provider_id);
       });
 
-      return Array.from(serviceMap.values());
+      // Convert Set to count
+      return Array.from(serviceMap.values()).map(service => ({
+        ...service,
+        providerCount: service.providerIds.size,
+        providerIds: undefined // Remove the Set
+      }));
     }
   });
 
