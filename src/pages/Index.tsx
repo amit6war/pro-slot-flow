@@ -59,7 +59,6 @@ interface Provider {
   services: string[];
   price: number;
   originalPrice?: number;
-  isVerified?: boolean;
   address?: string;
   availability?: any;
 }
@@ -618,7 +617,7 @@ export default function Index() {
                       <Clock className="h-3 w-3 lg:h-4 lg:w-4" />
                       <span className="text-xs lg:text-sm">Responds in {provider.responseTime}</span>
                     </div>
-                    {provider.isVerified && (
+                    {provider.verified && (
                       <div className="status-success text-xs lg:text-sm">
                         <Shield className="h-3 w-3 mr-1" />
                         Verified
