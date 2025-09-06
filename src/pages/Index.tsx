@@ -542,6 +542,13 @@ export default function Index() {
 
           {/* Categories Grid */}
           <div className="grid-responsive mb-12 lg:mb-16">
+            {/* Debug info */}
+            <div style={{position: 'fixed', top: '10px', right: '10px', background: 'white', padding: '10px', zIndex: 9999, fontSize: '12px', border: '1px solid #ccc'}}>
+              <div>Categories Loading: {categoriesLoading ? 'true' : 'false'}</div>
+              <div>Categories Length: {categories?.length || 0}</div>
+              <div>Categories Exists: {categories ? 'true' : 'false'}</div>
+            </div>
+            
             {categoriesLoading ? (
               <div className="col-span-full text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
