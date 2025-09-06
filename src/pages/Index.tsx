@@ -541,49 +541,32 @@ export default function Index() {
           </div>
 
           {/* Categories Grid */}
-          <div className="grid-responsive mb-12 lg:mb-16">
-            {/* Debug info */}
-            <div style={{position: 'fixed', top: '10px', right: '10px', background: 'white', padding: '10px', zIndex: 9999, fontSize: '12px', border: '1px solid #ccc'}}>
-              <div>Categories Loading: {categoriesLoading ? 'true' : 'false'}</div>
-              <div>Categories Length: {categories?.length || 0}</div>
-              <div>Categories Exists: {categories ? 'true' : 'false'}</div>
-            </div>
-            
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {categoriesLoading ? (
               <div className="col-span-full text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-2 text-gray-500">Loading categories...</p>
               </div>
             ) : categories && categories.length > 0 ? (
-              categories.map((category: any, index: number) => (
-                <Card 
+              categories.map((category: any) => (
+                <div
                   key={category.id} 
-                  className={`card-premium group border-0 bg-gradient-to-br from-white via-gray-50/30 to-white animate-fade-in animate-stagger-${index + 1} hover:shadow-premium cursor-pointer ${selectedCategory === category.id ? 'ring-2 ring-primary' : ''}`}
+                  className="bg-white border border-gray-200 rounded-lg p-6 cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => {
                     setSelectedCategory(selectedCategory === category.id ? null : category.id);
-                    setSelectedSubcategory(null); // Reset subcategory selection
+                    setSelectedSubcategory(null);
                   }}
                 >
-                  <CardContent className="p-6 lg:p-10 text-center">
-                    <div className="w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-3xl bg-gradient-to-r from-primary to-primary-hover flex items-center justify-center mx-auto mb-6 lg:mb-8 group-hover:scale-110 transition-all duration-300 shadow-medium">
-                      <span className="text-2xl lg:text-4xl">{categoryIconMap[category.icon] || category.icon || '🔧'}</span>
-                    </div>
-                    <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-4">{category.name}</h3>
-                    <p className="text-gray-600 mb-6 lg:mb-8 leading-relaxed text-sm lg:text-base">{category.description || 'Professional services for all your needs'}</p>
-                    <Button 
-                      variant="outline" 
-                      className={`btn-secondary group-hover:btn-primary group-hover:text-white transition-all duration-300 w-full sm:w-auto ${selectedCategory === category.id ? 'btn-primary text-white' : ''}`}
-                    >
-                      {selectedCategory === category.id ? 'Selected' : 'Explore Services'}
-                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </CardContent>
-                </Card>
+                  <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">{categoryIconMap[category.icon] || '🔧'}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{category.name}</h3>
+                  <p className="text-gray-600 text-center text-sm">{category.description}</p>
+                </div>
               ))
             ) : (
               <div className="col-span-full text-center py-12">
                 <p className="text-gray-500 text-lg">No service categories available yet.</p>
-                <p className="text-gray-400 text-sm mt-2">Categories will appear here once they are added by administrators.</p>
               </div>
             )}
           </div>
