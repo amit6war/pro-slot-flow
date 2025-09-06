@@ -210,40 +210,50 @@ export default function Index() {
       // Get provider details for these services
       const providerIds = providerServices.map(ps => ps.provider_id).filter(Boolean);
       
-      // First get user_profiles to get the user_id
-      const { data: userProfiles, error: userProfilesError } = await supabase
-        .from('user_profiles')
-        .select('id, user_id, full_name, business_name')
-        .in('id', providerIds);
+        // Get provider details by joining through user_profiles
+        const { data: providerDetails, error: providerDetailsError } = await supabase
+          .from('user_profiles')
+          .select(`
+            id,
+            user_id,
+            full_name,
+            business_name,
+            service_providers!inner (
+              id,
+              business_name,
+              contact_person,
+              phone,
+              email,
+              address,
+              license_number,
+              rating,
+              total_reviews,
+              response_time_minutes,
+              status
+            )
+          `)
+          .in('id', providerIds)
+          .eq('service_providers.status', 'approved');
 
-      if (userProfilesError) {
-        console.error('Error fetching user profiles:', userProfilesError);
-        return providerServices.map(ps => ({ ...ps, service_providers: null }));
-      }
+        if (providerDetailsError) {
+          console.error('Error fetching provider details:', providerDetailsError);
+          return providerServices.map(ps => ({ ...ps, service_providers: null }));
+        }
 
-      // Then get service_providers using the user_id
-      const userIds = userProfiles?.map(up => up.user_id).filter(Boolean) || [];
-      const { data: providers, error: providersError } = await supabase
-        .from('service_providers')
-        .select('*')
-        .in('user_id', userIds)
-        .eq('status', 'approved');
+        if (providerDetailsError) {
+          console.error('Error fetching provider details:', providerDetailsError);
+          return providerServices.map(ps => ({ ...ps, service_providers: null }));
+        }
 
-      if (providersError) {
-        console.error('Error fetching providers:', providersError);
-        return providerServices.map(ps => ({ ...ps, service_providers: null }));
-      }
-
-      // Combine the data
-      return providerServices.map(ps => {
-        const userProfile = userProfiles?.find(up => up.id === ps.provider_id);
-        const provider = providers?.find(p => p.user_id === userProfile?.user_id);
-        return {
-          ...ps,
-          service_providers: provider,
-          user_profile: userProfile
-        };
-      });
+        // Combine the data
+        return providerServices.map(ps => {
+          const providerDetail = providerDetails?.find(pd => pd.id === ps.provider_id);
+          return {
+            ...ps,
+            service_providers: providerDetail?.service_providers,
+            user_profile: providerDetail
+          };
+        });
     },
     enabled: !!selectedSubcategory,
   });
@@ -300,38 +310,43 @@ export default function Index() {
       if (providerServices && providerServices.length > 0) {
         const providerIds = providerServices.map(ps => ps.provider_id).filter(Boolean);
         
-        // First get user_profiles to get the user_id
-        const { data: userProfiles, error: userProfilesError } = await supabase
+        // Get provider details by joining through user_profiles
+        const { data: providerDetails, error: providerDetailsError } = await supabase
           .from('user_profiles')
-          .select('id, user_id, full_name, business_name')
-          .in('id', providerIds);
+          .select(`
+            id,
+            user_id,
+            full_name,
+            business_name,
+            service_providers!inner (
+              id,
+              business_name,
+              contact_person,
+              phone,
+              email,
+              address,
+              license_number,
+              rating,
+              total_reviews,
+              response_time_minutes,
+              status
+            )
+          `)
+          .in('id', providerIds)
+          .eq('service_providers.status', 'approved');
 
-        if (userProfilesError) {
-          console.error('Error fetching user profiles:', userProfilesError);
-          return providerServices.map(ps => ({ ...ps, service_providers: null }));
-        }
-
-        // Then get service_providers using the user_id
-        const userIds = userProfiles?.map(up => up.user_id).filter(Boolean) || [];
-        const { data: providers, error: providersError } = await supabase
-          .from('service_providers')
-          .select('*')
-          .in('user_id', userIds)
-          .eq('status', 'approved');
-
-        if (providersError) {
-          console.error('Error fetching providers:', providersError);
+        if (providerDetailsError) {
+          console.error('Error fetching provider details:', providerDetailsError);
           return providerServices.map(ps => ({ ...ps, service_providers: null }));
         }
 
         // Combine the data
         return providerServices.map(ps => {
-          const userProfile = userProfiles?.find(up => up.id === ps.provider_id);
-          const provider = providers?.find(p => p.user_id === userProfile?.user_id);
+          const providerDetail = providerDetails?.find(pd => pd.id === ps.provider_id);
           return {
             ...ps,
-            service_providers: provider,
-            user_profile: userProfile
+            service_providers: providerDetail?.service_providers,
+            user_profile: providerDetail
           };
         });
       }
