@@ -3,6 +3,7 @@ import { HeroSection } from '@/components/HeroSection';
 import { CategoryGrid } from '@/components/CategoryGrid';
 import { MostBookedServices } from '@/components/MostBookedServices';
 import { ServiceExperiencesSection } from '@/components/ServiceExperiencesSection';
+import { VideoCarousel } from '@/components/VideoCarousel';
 
 interface Service {
   id: string;
@@ -66,6 +67,7 @@ const ModernIndex: React.FC = () => {
   return (
     <Layout>
       <HeroSection onExploreServices={handleExploreServices} />
+      <VideoCarousel />
       <CategoryGrid 
         onCategorySelect={handleCategorySelect}
         selectedCategory={null}
