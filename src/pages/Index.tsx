@@ -173,7 +173,6 @@ export default function Index() {
   const [slotTimer, setSlotTimer] = useState(0);
   const [favorites, setFavorites] = useState(mockFavorites);
   const [locationLoading, setLocationLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [timerRef, setTimerRef] = useState<NodeJS.Timeout | null>(null);
   const [showCartSidebar, setShowCartSidebar] = useState(false);
 
@@ -206,9 +205,9 @@ export default function Index() {
       id: index + 1,
       ...slot,
       available: Math.random() > 0.2, // Better availability
-      date: format(selectedDate, 'yyyy-MM-dd')
+      date: format(new Date(), 'yyyy-MM-dd') // Use current date for initial slots
     }));
-  }, [selectedProvider, selectedDate]);
+  }, [selectedProvider]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -1121,7 +1120,6 @@ export default function Index() {
         isOpen={showSlotModal}
         onClose={() => {
           setShowSlotModal(false);
-          setSelectedDate(new Date());
           setSelectedSlot(null);
           // Clear timer on modal close
           if (timerRef) {

@@ -2,8 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ModernIndex from "./pages/ModernIndex";
 import Cart from "./pages/Cart";
 import Orders from "./pages/Orders";
 import Favorites from "./pages/Favorites";
@@ -22,10 +22,11 @@ import { AdminLogin } from "./components/auth/AdminLogin";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AuthProvider } from "./hooks/useAuth";
 import { CartProvider } from "./hooks/useCart";
+import { LoadingScreen } from "./components/LoadingScreen";
 import "./utils/errorHandler"; // Initialize production error handling
 import { initializeCSRFProtection, clearCSRFToken } from "./utils/csrfProtection";
 import { applySecurityHeaders, initializeSecurityMonitoring } from "./utils/securityHeaders";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
@@ -60,24 +61,32 @@ const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ children })
   return <>{children}</>;
 };
 
-const App = () => (
-  <ErrorBoundary>
-    <SecurityProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AuthProvider>
-            <CartProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true
-                }}
-              >
-                <Routes>
-                  {/* Public routes */}
-                  <Route path="/" element={<Index />} />
+const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+  };
+
+  return (
+    <ErrorBoundary>
+      <SecurityProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AuthProvider>
+              <CartProvider>
+                <Toaster />
+                <Sonner />
+                {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
+                <BrowserRouter
+                  future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true
+                  }}
+                >
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/" element={<ModernIndex />} />
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/favorites" element={<Favorites />} />
@@ -126,8 +135,8 @@ const App = () => (
                   } />
                   
                   {/* Auth page */}
-                  <Route path="/auth" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/dashboard'} />} />
-                  <Route path="/login" element={<Navigate to="/auth" replace />} />
+                  <Route path="/auth" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/'} />} />
+                  <Route path="/login" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/'} />} />
                   
                   {/* Admin login - dedicated route for admin authentication */}
                   <Route path="/admin-login" element={<AdminLogin />} />
@@ -145,6 +154,7 @@ const App = () => (
       </QueryClientProvider>
     </SecurityProvider>
   </ErrorBoundary>
-);
+  );
+};
 
 export default App;
