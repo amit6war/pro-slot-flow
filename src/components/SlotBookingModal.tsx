@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Timer, CreditCard, Calendar, Clock, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, isSameDay } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/hooks/useCart';
 
 interface TimeSlot {
   id: number;
@@ -46,11 +47,81 @@ export const SlotBookingModal: React.FC<SlotBookingModalProps> = ({
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const { toast } = useToast();
+  const { addToCart } = useCart();
+
+  // Debug logs for rendering issues
+  useEffect(() => {
+    console.log('SlotBookingModal: isOpen changed to:', isOpen);
+    console.log('SlotBookingModal: provider:', provider);
+    console.log('SlotBookingModal: timeSlots:', timeSlots);
+  }, [isOpen, provider, timeSlots]);
+
+  useEffect(() => {
+    console.log('SlotBookingModal: selectedSlot changed to:', selectedSlot);
+    console.log('SlotBookingModal: selectedDate changed to:', selectedDate);
+  }, [selectedSlot, selectedDate]);
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      console.log('SlotBookingModal: Modal opened, resetting state');
+      setPaymentStep(false);
+      setBookingConfirmed(false);
+      setIsProcessingPayment(false);
+      setSelectedDate(new Date());
+    }
+  }, [isOpen]);
   
   // Generate 15 days from today
   const availableDates = Array.from({ length: 15 }, (_, index) => addDays(new Date(), index));
 
-  if (!isOpen || !provider) return null;
+  if (!isOpen || !provider) {
+    console.log('SlotBookingModal: Not rendering because isOpen:', isOpen, 'provider:', provider);
+    return null;
+  }
+
+  // Add service to cart when slot is selected
+  const handleAddToCart = async () => {
+    if (!selectedSlot || !provider) {
+      console.log('SlotBookingModal: Cannot add to cart, missing slot or provider');
+      return;
+    }
+    
+    console.log('SlotBookingModal: Adding to cart:', {
+      serviceId: `slot-${selectedSlot.id}`,
+      serviceName: `${provider.services[0]} - ${selectedSlot.time}`,
+      providerId: provider.id.toString(),
+      providerName: provider.name,
+      price: selectedSlot.price
+    });
+
+    try {
+      await addToCart({
+        serviceId: `slot-${selectedSlot.id}`,
+        serviceName: `${provider.services[0]} - ${selectedSlot.time}`,
+        providerId: provider.id.toString(),
+        providerName: provider.name,
+        price: selectedSlot.price,
+        serviceDetails: {
+          date: format(selectedDate, 'yyyy-MM-dd'),
+          time: selectedSlot.time,
+          duration: '60 mins'
+        }
+      });
+
+      toast({
+        title: "Added to Cart",
+        description: `${provider.services[0]} has been added to your cart`,
+      });
+    } catch (error) {
+      console.error('SlotBookingModal: Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add service to cart",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handlePayment = async () => {
     if (!selectedSlot || !provider) return;
@@ -369,13 +440,21 @@ Thank you for choosing Service NB Link!
                     <span className="text-body font-bold text-primary">${selectedSlot.price}</span>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setPaymentStep(true)}
-                  className="w-full mt-6 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground py-3 rounded-2xl font-semibold flex items-center justify-center space-x-2"
-                >
-                  <CreditCard className="h-5 w-5" />
-                  <span>Proceed to Payment</span>
-                </button>
+                <div className="grid grid-cols-2 gap-3 mt-6">
+                  <button 
+                    onClick={handleAddToCart}
+                    className="bg-primary/10 text-primary border border-primary/20 py-3 rounded-2xl font-semibold hover:bg-primary/20 transition-colors"
+                  >
+                    Add to Cart
+                  </button>
+                  <button 
+                    onClick={() => setPaymentStep(true)}
+                    className="bg-gradient-to-r from-primary to-primary-hover text-primary-foreground py-3 rounded-2xl font-semibold flex items-center justify-center space-x-2"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    <span>Book Now</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -8,6 +8,7 @@ import { LocationModal } from '@/components/LocationModal';
 import { ProviderDetailsModal } from '@/components/ProviderDetailsModal';
 import { SlotBookingModal } from '@/components/SlotBookingModal';
 import { AddToCartButton } from '@/components/AddToCartButton';
+import { CartSidebar } from '@/components/CartSidebar';
 import { 
   Search, 
   MapPin, 
@@ -17,9 +18,11 @@ import {
   Award, 
   TrendingUp, 
   Heart, 
-  Clock 
+  Clock,
+  ShoppingCart 
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/hooks/useCart';
 import { useCategories, useSubcategories } from '@/hooks/useCategories';
 import { supabase } from '@/integrations/supabase/client';
 import { format, addDays } from 'date-fns';
@@ -172,11 +175,20 @@ export default function Index() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [timerRef, setTimerRef] = useState<NodeJS.Timeout | null>(null);
+  const [showCartSidebar, setShowCartSidebar] = useState(false);
 
   // Hooks
   const { isAuthenticated } = useAuth();
   const { categories, loading: categoriesLoading } = useCategories();
   const { subcategories } = useSubcategories(selectedCategory);
+  const { items: cartItems, itemCount, totalAmount } = useCart();
+
+  // Debug logs for cart functionality
+  useEffect(() => {
+    console.log('Index: Cart items updated:', cartItems);
+    console.log('Index: Cart item count:', itemCount);
+    console.log('Index: Cart total amount:', totalAmount);
+  }, [cartItems, itemCount, totalAmount]);
   
   
   // Generate time slots with useMemo for proper state dependency
@@ -551,12 +563,28 @@ export default function Index() {
                   </button>
                 </div>
                 <div className="lg:col-span-2">
-                  <Button className="w-full py-4 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-xl transition-all hover:shadow-lg">
+                <Button className="w-full py-4 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-xl transition-all hover:shadow-lg">
                     Search
                   </Button>
                 </div>
               </div>
             </div>
+
+            {/* Floating Cart Button */}
+            {itemCount > 0 && (
+              <div className="fixed bottom-6 right-6 z-40">
+                <button
+                  onClick={() => setShowCartSidebar(true)}
+                  className="bg-gradient-to-r from-primary to-primary-hover text-primary-foreground px-6 py-3 rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-3 border border-primary/20"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  <span>View Cart • ₹{totalAmount.toLocaleString()}</span>
+                  <div className="bg-white/20 text-primary-foreground text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">
+                    {itemCount}
+                  </div>
+                </button>
+              </div>
+            )}
 
             {/* Professional Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-5xl mx-auto">
@@ -1192,6 +1220,12 @@ export default function Index() {
         onSlotSelect={handleSlotSelect}
         slotTimer={slotTimer}
         formatTime={formatTime}
+      />
+
+      {/* Cart Sidebar */}
+      <CartSidebar
+        isOpen={showCartSidebar}
+        onClose={() => setShowCartSidebar(false)}
       />
     </Layout>
   );
