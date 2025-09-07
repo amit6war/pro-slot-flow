@@ -236,7 +236,17 @@ export const ServiceGrid: React.FC<ServiceGridProps> = ({
                 </div>
 
                 <div className="flex gap-2">
-                  <AddToCartButton service={service} className="flex-1" />
+                  <AddToCartButton 
+                    serviceId={service.id}
+                    serviceName={service.service_name}
+                    price={service.price}
+                    serviceDetails={{
+                      duration_minutes: service.duration_minutes,
+                      description: service.description,
+                      subcategory: service.subcategories?.name
+                    }}
+                    className="flex-1" 
+                  />
                   <Button 
                     onClick={() => onServiceSelect(service)}
                     className="flex-1 bg-primary hover:bg-primary-hover"
