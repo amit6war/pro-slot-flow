@@ -26,7 +26,7 @@ import { useCart } from '@/hooks/useCart';
 import { useCategories, useSubcategories } from '@/hooks/useCategories';
 import { supabase } from '@/integrations/supabase/client';
 import { format, addDays } from 'date-fns';
-import ServiceExperiencesSection from '../components/ServiceExperiencesSection';
+import { ServiceExperiencesSection } from '../components/ServiceExperiencesSection';
 
 // Types (matching existing interfaces)
 interface TimeSlot {
