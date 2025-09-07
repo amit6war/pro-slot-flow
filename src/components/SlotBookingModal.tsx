@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { X, Timer, CreditCard, Calendar, Clock, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, isSameDay } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface TimeSlot {
   id: number;
@@ -42,32 +44,89 @@ export const SlotBookingModal: React.FC<SlotBookingModalProps> = ({
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [paymentStep, setPaymentStep] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const { toast } = useToast();
   
   // Generate 15 days from today
   const availableDates = Array.from({ length: 15 }, (_, index) => addDays(new Date(), index));
 
   if (!isOpen || !provider) return null;
 
-  const handlePayment = () => {
-    // Simulate payment processing
-    setTimeout(() => {
-      setBookingConfirmed(true);
-    }, 2000);
+  const handlePayment = async () => {
+    if (!selectedSlot || !provider) return;
+    
+    setIsProcessingPayment(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          amount: selectedSlot.price,
+          currency: 'usd',
+          serviceName: provider.services[0],
+          providerName: provider.name,
+          bookingTime: selectedSlot.time,
+          bookingDate: format(selectedDate, 'yyyy-MM-dd'),
+        },
+      });
+
+      if (error) throw error;
+
+      // Redirect to Stripe Checkout
+      if (data?.url) {
+        window.open(data.url, '_blank');
+        // Close modal after opening payment
+        onClose();
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Error",
+        description: "Failed to process payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   const handleDownloadInvoice = () => {
-    // Simulate invoice download
+    // Generate invoice data
     const invoiceData = {
       bookingId: 'SNL' + Date.now(),
-      provider: provider.name,
-      service: provider.services[0],
+      provider: provider?.name,
+      service: provider?.services[0],
       time: selectedSlot?.time,
       price: selectedSlot?.price,
-      date: new Date().toLocaleDateString()
+      date: format(selectedDate, 'PPP'),
+      company: 'Service NB Link'
     };
     
-    console.log('Downloading invoice:', invoiceData);
-    alert('Invoice downloaded successfully!');
+    // Create downloadable invoice
+    const invoiceText = `
+Service NB Link - Invoice
+
+Booking ID: ${invoiceData.bookingId}
+Service: ${invoiceData.service}
+Provider: ${invoiceData.provider}
+Date: ${invoiceData.date}
+Time: ${invoiceData.time}
+Amount: $${invoiceData.price}
+
+Thank you for choosing Service NB Link!
+    `;
+    
+    const blob = new Blob([invoiceText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `service-nb-link-invoice-${invoiceData.bookingId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Invoice Downloaded",
+      description: "Your invoice has been downloaded successfully.",
+    });
   };
 
   if (bookingConfirmed) {
@@ -191,10 +250,13 @@ export const SlotBookingModal: React.FC<SlotBookingModalProps> = ({
 
             <button 
               onClick={handlePayment}
-              className="w-full mt-6 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground py-3 rounded-2xl font-semibold flex items-center justify-center space-x-2"
+              disabled={isProcessingPayment}
+              className="w-full mt-6 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground py-3 rounded-2xl font-semibold flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <CreditCard className="h-5 w-5" />
-              <span>Pay ${selectedSlot?.price}</span>
+              <span>
+                {isProcessingPayment ? 'Processing...' : `Pay $${selectedSlot?.price} with Stripe`}
+              </span>
             </button>
           </div>
         </div>

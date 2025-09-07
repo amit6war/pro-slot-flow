@@ -171,6 +171,7 @@ export default function Index() {
   const [favorites, setFavorites] = useState(mockFavorites);
   const [locationLoading, setLocationLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [timerRef, setTimerRef] = useState<NodeJS.Timeout | null>(null);
 
   // Hooks
   const { isAuthenticated } = useAuth();
@@ -198,6 +199,15 @@ export default function Index() {
       date: format(selectedDate, 'yyyy-MM-dd')
     }));
   }, [selectedProvider, selectedDate]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef) {
+        clearInterval(timerRef);
+      }
+    };
+  }, [timerRef]);
 
   // Query for services based on selected subcategory
   const { data: categoryServices, isLoading: servicesLoading } = useQuery({
@@ -429,7 +439,29 @@ export default function Index() {
 
   const handleSlotSelect = (slot: TimeSlot) => {
     setSelectedSlot(slot);
-    setSlotTimer(300); // 5 minutes
+    setSlotTimer(900); // 15 minutes in seconds
+    
+    // Clear any existing timer
+    if (timerRef) {
+      clearInterval(timerRef);
+    }
+    
+    // Set new timer
+    const newTimer = setInterval(() => {
+      setSlotTimer((prev) => {
+        if (prev && prev > 1) {
+          return prev - 1;
+        } else {
+          // Timer expired, clear slot selection
+          setSelectedSlot(null);
+          clearInterval(newTimer);
+          setTimerRef(null);
+          return 0;
+        }
+      });
+    }, 1000);
+    
+    setTimerRef(newTimer);
   };
 
   const toggleFavorite = (providerId: number) => {
@@ -1145,8 +1177,14 @@ export default function Index() {
         isOpen={showSlotModal}
         onClose={() => {
           setShowSlotModal(false);
-          setSelectedDate(new Date()); // Reset to today
+          setSelectedDate(new Date());
           setSelectedSlot(null);
+          // Clear timer on modal close
+          if (timerRef) {
+            clearInterval(timerRef);
+            setTimerRef(null);
+          }
+          setSlotTimer(0);
         }}
         provider={selectedProvider as any}
         timeSlots={currentTimeSlots as any}

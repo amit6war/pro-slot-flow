@@ -61,11 +61,11 @@ export const Header = () => {
             {/* Logo & Brand */}
             <Link to="/" className="flex items-center space-x-4 hover-scale">
               <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-medium">
-                <span className="text-white font-bold text-xl">SP</span>
+                <span className="text-white font-bold text-xl">SNL</span>
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-2xl font-bold text-gray-900">ServicePlatform</h1>
-                <p className="text-sm text-gray-600 font-medium">Book Premium Services</p>
+                <h1 className="text-2xl font-bold text-gray-900">Service NB Link</h1>
+                <p className="text-sm text-gray-600 font-medium">Professional Service Booking</p>
               </div>
             </Link>
 
