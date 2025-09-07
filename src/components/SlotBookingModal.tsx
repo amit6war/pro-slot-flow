@@ -1,6 +1,10 @@
 
-import React, { useState } from 'react';
-import { X, Timer, CreditCard, Calendar, Clock, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Timer, CreditCard, Calendar, Clock, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, addDays, isSameDay } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/hooks/useCart';
 
 interface TimeSlot {
   id: number;
@@ -38,32 +42,162 @@ export const SlotBookingModal: React.FC<SlotBookingModalProps> = ({
   slotTimer,
   formatTime
 }) => {
-  const [selectedDate, setSelectedDate] = useState('today');
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [paymentStep, setPaymentStep] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const { toast } = useToast();
+  const { addToCart } = useCart();
 
-  if (!isOpen || !provider) return null;
+  // Debug logs for rendering issues
+  useEffect(() => {
+    console.log('SlotBookingModal: isOpen changed to:', isOpen);
+    console.log('SlotBookingModal: provider:', provider);
+    console.log('SlotBookingModal: timeSlots:', timeSlots);
+  }, [isOpen, provider, timeSlots]);
 
-  const handlePayment = () => {
-    // Simulate payment processing
-    setTimeout(() => {
-      setBookingConfirmed(true);
-    }, 2000);
+  useEffect(() => {
+    console.log('SlotBookingModal: selectedSlot changed to:', selectedSlot);
+    console.log('SlotBookingModal: selectedDate changed to:', selectedDate);
+  }, [selectedSlot, selectedDate]);
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      console.log('SlotBookingModal: Modal opened, resetting state');
+      setPaymentStep(false);
+      setBookingConfirmed(false);
+      setIsProcessingPayment(false);
+      setSelectedDate(new Date());
+    }
+  }, [isOpen]);
+  
+  // Generate 15 days from today
+  const availableDates = Array.from({ length: 15 }, (_, index) => addDays(new Date(), index));
+
+  if (!isOpen || !provider) {
+    console.log('SlotBookingModal: Not rendering because isOpen:', isOpen, 'provider:', provider);
+    return null;
+  }
+
+  // Add service to cart when slot is selected
+  const handleAddToCart = async () => {
+    if (!selectedSlot || !provider) {
+      console.log('SlotBookingModal: Cannot add to cart, missing slot or provider');
+      return;
+    }
+    
+    console.log('SlotBookingModal: Adding to cart:', {
+      serviceId: `slot-${selectedSlot.id}`,
+      serviceName: `${provider.services[0]} - ${selectedSlot.time}`,
+      providerId: provider.id.toString(),
+      providerName: provider.name,
+      price: selectedSlot.price
+    });
+
+    try {
+      await addToCart({
+        serviceId: `slot-${selectedSlot.id}`,
+        serviceName: `${provider.services[0]} - ${selectedSlot.time}`,
+        providerId: provider.id.toString(),
+        providerName: provider.name,
+        price: selectedSlot.price,
+        serviceDetails: {
+          date: format(selectedDate, 'yyyy-MM-dd'),
+          time: selectedSlot.time,
+          duration: '60 mins'
+        }
+      });
+
+      toast({
+        title: "Added to Cart",
+        description: `${provider.services[0]} has been added to your cart`,
+      });
+    } catch (error) {
+      console.error('SlotBookingModal: Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add service to cart",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!selectedSlot || !provider) return;
+    
+    setIsProcessingPayment(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          amount: selectedSlot.price,
+          currency: 'usd',
+          serviceName: provider.services[0],
+          providerName: provider.name,
+          bookingTime: selectedSlot.time,
+          bookingDate: format(selectedDate, 'yyyy-MM-dd'),
+        },
+      });
+
+      if (error) throw error;
+
+      // Redirect to Stripe Checkout
+      if (data?.url) {
+        window.open(data.url, '_blank');
+        // Close modal after opening payment
+        onClose();
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Error",
+        description: "Failed to process payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   const handleDownloadInvoice = () => {
-    // Simulate invoice download
+    // Generate invoice data
     const invoiceData = {
       bookingId: 'SNL' + Date.now(),
-      provider: provider.name,
-      service: provider.services[0],
+      provider: provider?.name,
+      service: provider?.services[0],
       time: selectedSlot?.time,
       price: selectedSlot?.price,
-      date: new Date().toLocaleDateString()
+      date: format(selectedDate, 'PPP'),
+      company: 'Service NB Link'
     };
     
-    console.log('Downloading invoice:', invoiceData);
-    alert('Invoice downloaded successfully!');
+    // Create downloadable invoice
+    const invoiceText = `
+Service NB Link - Invoice
+
+Booking ID: ${invoiceData.bookingId}
+Service: ${invoiceData.service}
+Provider: ${invoiceData.provider}
+Date: ${invoiceData.date}
+Time: ${invoiceData.time}
+Amount: $${invoiceData.price}
+
+Thank you for choosing Service NB Link!
+    `;
+    
+    const blob = new Blob([invoiceText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `service-nb-link-invoice-${invoiceData.bookingId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Invoice Downloaded",
+      description: "Your invoice has been downloaded successfully.",
+    });
   };
 
   if (bookingConfirmed) {
@@ -187,10 +321,13 @@ export const SlotBookingModal: React.FC<SlotBookingModalProps> = ({
 
             <button 
               onClick={handlePayment}
-              className="w-full mt-6 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground py-3 rounded-2xl font-semibold flex items-center justify-center space-x-2"
+              disabled={isProcessingPayment}
+              className="w-full mt-6 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground py-3 rounded-2xl font-semibold flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <CreditCard className="h-5 w-5" />
-              <span>Pay ${selectedSlot?.price}</span>
+              <span>
+                {isProcessingPayment ? 'Processing...' : `Pay $${selectedSlot?.price} with Stripe`}
+              </span>
             </button>
           </div>
         </div>
@@ -216,23 +353,33 @@ export const SlotBookingModal: React.FC<SlotBookingModalProps> = ({
             </button>
           </div>
 
-          {/* Date Selection */}
+          {/* Date Selection - 15 Day Calendar */}
           <div className="mb-6">
             <h4 className="text-h4 text-text-primary mb-4">Select Date</h4>
-            <div className="flex space-x-3 overflow-x-auto pb-2">
-              {['Today', 'Tomorrow', 'Day After'].map((date, index) => (
-                <button
-                  key={date}
-                  onClick={() => setSelectedDate(date.toLowerCase())}
-                  className={`flex-shrink-0 px-4 py-2 rounded-xl border transition-colors ${
-                    selectedDate === date.toLowerCase()
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border text-text-primary hover:border-primary/50'
-                  }`}
-                >
-                  {date}
-                </button>
-              ))}
+            <div className="bg-surface rounded-2xl border border-border p-4">
+              <div className="grid grid-cols-7 gap-2 mb-4">
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                  <div key={day} className="text-center text-small font-medium text-text-muted p-2">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-2">
+                {availableDates.map((date) => (
+                  <button
+                    key={date.toISOString()}
+                    onClick={() => setSelectedDate(date)}
+                    className={`p-3 rounded-xl border transition-all duration-200 text-center ${
+                      isSameDay(selectedDate, date)
+                        ? 'border-primary bg-primary/10 text-primary shadow-lg'
+                        : 'border-border hover:border-primary/50 hover:bg-surface/50 text-text-primary'
+                    }`}
+                  >
+                    <div className="text-small font-semibold">{format(date, 'd')}</div>
+                    <div className="text-xsmall text-text-muted">{format(date, 'MMM')}</div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -293,13 +440,21 @@ export const SlotBookingModal: React.FC<SlotBookingModalProps> = ({
                     <span className="text-body font-bold text-primary">${selectedSlot.price}</span>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setPaymentStep(true)}
-                  className="w-full mt-6 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground py-3 rounded-2xl font-semibold flex items-center justify-center space-x-2"
-                >
-                  <CreditCard className="h-5 w-5" />
-                  <span>Proceed to Payment</span>
-                </button>
+                <div className="grid grid-cols-2 gap-3 mt-6">
+                  <button 
+                    onClick={handleAddToCart}
+                    className="bg-primary/10 text-primary border border-primary/20 py-3 rounded-2xl font-semibold hover:bg-primary/20 transition-colors"
+                  >
+                    Add to Cart
+                  </button>
+                  <button 
+                    onClick={() => setPaymentStep(true)}
+                    className="bg-gradient-to-r from-primary to-primary-hover text-primary-foreground py-3 rounded-2xl font-semibold flex items-center justify-center space-x-2"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    <span>Book Now</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>

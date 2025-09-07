@@ -41,8 +41,8 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                 <span className="text-white font-bold">SNL</span>
               </div>
               <div>
-                <div className="font-bold text-text-primary">Service NB LINK</div>
-                <div className="text-xsmall text-text-muted">Premium Services</div>
+                <div className="font-bold text-text-primary">Service NB Link</div>
+                <div className="text-xsmall text-text-muted">Professional Services</div>
               </div>
             </div>
             <button 
@@ -70,7 +70,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           {/* Footer */}
           <div className="mt-8 pt-8 border-t border-border">
             <div className="text-xsmall text-text-muted text-center">
-              Service NB LINK v1.0.0
+              Service NB Link v1.0.0
             </div>
           </div>
         </div>

@@ -469,6 +469,42 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_availability: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean
+          provider_id: string
+          slot_duration: number
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean
+          provider_id: string
+          slot_duration?: number
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          provider_id?: string
+          slot_duration?: number
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       provider_services: {
         Row: {
           created_at: string | null
