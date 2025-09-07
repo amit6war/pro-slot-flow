@@ -253,28 +253,34 @@ export type Database = {
       }
       categories: {
         Row: {
+          banner_url: string | null
           created_at: string | null
           description: string | null
           icon: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           name: string
           updated_at: string | null
         }
         Insert: {
+          banner_url?: string | null
           created_at?: string | null
           description?: string | null
           icon?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           name: string
           updated_at?: string | null
         }
         Update: {
+          banner_url?: string | null
           created_at?: string | null
           description?: string | null
           icon?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           name?: string
           updated_at?: string | null
@@ -469,6 +475,84 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          booking_date: string
+          booking_status: string | null
+          booking_time: string
+          created_at: string | null
+          customer_address: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          id: string
+          payment_status: string | null
+          provider_id: string | null
+          provider_name: string
+          service_id: string | null
+          service_name: string
+          special_instructions: string | null
+          stripe_payment_intent_id: string | null
+          total_amount: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          booking_date: string
+          booking_status?: string | null
+          booking_time: string
+          created_at?: string | null
+          customer_address?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          payment_status?: string | null
+          provider_id?: string | null
+          provider_name: string
+          service_id?: string | null
+          service_name: string
+          special_instructions?: string | null
+          stripe_payment_intent_id?: string | null
+          total_amount: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          booking_date?: string
+          booking_status?: string | null
+          booking_time?: string
+          created_at?: string | null
+          customer_address?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          payment_status?: string | null
+          provider_id?: string | null
+          provider_name?: string
+          service_id?: string | null
+          service_name?: string
+          special_instructions?: string | null
+          stripe_payment_intent_id?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "provider_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       provider_availability: {
         Row: {
           created_at: string | null
@@ -509,44 +593,62 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
+          duration_minutes: number | null
+          gallery_images: Json | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           license_document_url: string | null
           license_number: string | null
           price: number
           provider_id: string
+          rating: number | null
           service_name: string
           status: string | null
           subcategory_id: string
+          total_bookings: number | null
           updated_at: string | null
+          video_url: string | null
         }
         Insert: {
           created_at?: string | null
           description?: string | null
+          duration_minutes?: number | null
+          gallery_images?: Json | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           license_document_url?: string | null
           license_number?: string | null
           price: number
           provider_id: string
+          rating?: number | null
           service_name: string
           status?: string | null
           subcategory_id: string
+          total_bookings?: number | null
           updated_at?: string | null
+          video_url?: string | null
         }
         Update: {
           created_at?: string | null
           description?: string | null
+          duration_minutes?: number | null
+          gallery_images?: Json | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           license_document_url?: string | null
           license_number?: string | null
           price?: number
           provider_id?: string
+          rating?: number | null
           service_name?: string
           status?: string | null
           subcategory_id?: string
+          total_bookings?: number | null
           updated_at?: string | null
+          video_url?: string | null
         }
         Relationships: [
           {
@@ -641,6 +743,7 @@ export type Database = {
         Row: {
           address: string
           business_name: string
+          certifications: Json | null
           contact_person: string
           created_at: string
           email: string
@@ -651,17 +754,21 @@ export type Database = {
           license_document_url: string | null
           license_number: string | null
           phone: string
+          profile_image_url: string | null
           rating: number | null
           response_time_minutes: number | null
+          specializations: Json | null
           status: string | null
           total_completed_jobs: number | null
           total_reviews: number | null
           updated_at: string
           user_id: string | null
+          years_of_experience: number | null
         }
         Insert: {
           address: string
           business_name: string
+          certifications?: Json | null
           contact_person: string
           created_at?: string
           email: string
@@ -672,17 +779,21 @@ export type Database = {
           license_document_url?: string | null
           license_number?: string | null
           phone: string
+          profile_image_url?: string | null
           rating?: number | null
           response_time_minutes?: number | null
+          specializations?: Json | null
           status?: string | null
           total_completed_jobs?: number | null
           total_reviews?: number | null
           updated_at?: string
           user_id?: string | null
+          years_of_experience?: number | null
         }
         Update: {
           address?: string
           business_name?: string
+          certifications?: Json | null
           contact_person?: string
           created_at?: string
           email?: string
@@ -693,13 +804,16 @@ export type Database = {
           license_document_url?: string | null
           license_number?: string | null
           phone?: string
+          profile_image_url?: string | null
           rating?: number | null
           response_time_minutes?: number | null
+          specializations?: Json | null
           status?: string | null
           total_completed_jobs?: number | null
           total_reviews?: number | null
           updated_at?: string
           user_id?: string | null
+          years_of_experience?: number | null
         }
         Relationships: []
       }
@@ -751,6 +865,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           max_price: number
           min_price: number
@@ -762,6 +877,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           max_price?: number
           min_price?: number
@@ -773,6 +889,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           max_price?: number
           min_price?: number
