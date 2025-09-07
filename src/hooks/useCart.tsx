@@ -48,29 +48,38 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Load cart items on mount and auth state changes
   useEffect(() => {
-    loadCartItems();
-  }, [isAuthenticated, user]);
+    if (isAuthenticated !== undefined) { // Only load when auth state is determined
+      loadCartItems();
+    }
+  }, [isAuthenticated, user?.id]); // Use user.id instead of user object to prevent unnecessary re-renders
 
   // Transfer guest cart to authenticated user on login
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user?.id) {
       transferGuestCartToUser();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user?.id]);
 
   const loadCartItems = async () => {
+    if (isLoading) return; // Prevent concurrent loads
+    
     setIsLoading(true);
     try {
-      if (isAuthenticated && user) {
+      console.log('Loading cart items. Authenticated:', isAuthenticated, 'User ID:', user?.id);
+      
+      if (isAuthenticated && user?.id) {
         // Load from authenticated user cart
         const { data, error } = await supabase
           .from('cart_items')
           .select('*')
           .eq('user_id', user.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database error loading cart:', error);
+          throw error;
+        }
 
-        const cartItems: CartItem[] = data.map(item => ({
+        const cartItems: CartItem[] = (data || []).map(item => ({
           id: item.id,
           serviceId: item.service_id,
           serviceName: item.service_name,
@@ -81,10 +90,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           serviceDetails: item.service_details
         }));
 
+        console.log('Loaded authenticated cart items:', cartItems.length);
         setItems(cartItems);
       } else {
-        // Load from guest cart using session storage as backup
+        // Load from guest cart
         const guestSessionId = getGuestSessionId();
+        console.log('Loading guest cart with session ID:', guestSessionId);
         
         try {
           const { data, error } = await supabase
@@ -92,9 +103,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             .select('*')
             .eq('session_id', guestSessionId);
 
-          if (error) throw error;
+          if (error) {
+            console.error('Database error loading guest cart:', error);
+            throw error;
+          }
 
-          const cartItems: CartItem[] = data.map(item => ({
+          const cartItems: CartItem[] = (data || []).map(item => ({
             id: item.id,
             serviceId: item.service_id,
             serviceName: item.service_name,
@@ -105,17 +119,29 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             serviceDetails: item.service_details
           }));
 
+          console.log('Loaded guest cart items:', cartItems.length);
           setItems(cartItems);
         } catch (error) {
+          console.log('Fallback to localStorage for guest cart');
           // Fallback to localStorage if database fails
           const localCart = localStorage.getItem('guest_cart');
           if (localCart) {
-            setItems(JSON.parse(localCart));
+            try {
+              const parsedCart = JSON.parse(localCart);
+              setItems(parsedCart);
+              console.log('Loaded cart from localStorage:', parsedCart.length);
+            } catch (parseError) {
+              console.error('Error parsing localStorage cart:', parseError);
+              setItems([]);
+            }
+          } else {
+            setItems([]);
           }
         }
       }
     } catch (error) {
       console.error('Error loading cart:', error);
+      setItems([]); // Set empty array on error
       toast({
         title: 'Error',
         description: 'Failed to load cart items',

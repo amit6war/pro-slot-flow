@@ -183,12 +183,10 @@ export default function Index() {
   const { subcategories } = useSubcategories(selectedCategory);
   const { items: cartItems, itemCount, totalAmount } = useCart();
 
-  // Debug logs for cart functionality
+  // Debug logs for cart functionality (only when count changes)
   useEffect(() => {
-    console.log('Index: Cart items updated:', cartItems);
-    console.log('Index: Cart item count:', itemCount);
-    console.log('Index: Cart total amount:', totalAmount);
-  }, [cartItems, itemCount, totalAmount]);
+    console.log('Index: Cart updated - Count:', itemCount, 'Total:', totalAmount);
+  }, [itemCount]);
   
   
   // Generate time slots with useMemo for proper state dependency

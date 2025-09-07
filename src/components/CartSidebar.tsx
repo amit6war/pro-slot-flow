@@ -13,7 +13,10 @@ interface CartSidebarProps {
 export const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const { items, itemCount, totalAmount, updateQuantity, removeFromCart, isLoading } = useCart();
 
-  console.log('CartSidebar: Rendering with items:', items);
+  // Debug only when items change to reduce console spam
+  React.useEffect(() => {
+    console.log('CartSidebar: Items updated:', items.length, items);
+  }, [items.length]);
 
   if (!isOpen) return null;
 
