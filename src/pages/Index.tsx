@@ -22,6 +22,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useCategories, useSubcategories } from '@/hooks/useCategories';
 import { supabase } from '@/integrations/supabase/client';
+import { format, addDays } from 'date-fns';
 
 // Types (matching existing interfaces)
 interface TimeSlot {
@@ -169,11 +170,35 @@ export default function Index() {
   const [slotTimer, setSlotTimer] = useState(0);
   const [favorites, setFavorites] = useState(mockFavorites);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Hooks
   const { isAuthenticated } = useAuth();
   const { categories, loading: categoriesLoading } = useCategories();
   const { subcategories } = useSubcategories(selectedCategory);
+  
+  // Generate dynamic time slots based on selected date and provider availability
+  const generateTimeSlots = (date: Date, providerId?: number) => {
+    const baseSlots = [
+      { time: '09:00', price: 120 },
+      { time: '10:30', price: 120 },
+      { time: '12:00', price: 120 },
+      { time: '14:00', price: 120 },
+      { time: '16:30', price: 150 },
+      { time: '18:00', price: 150 },
+    ];
+    
+    return baseSlots.map((slot, index) => ({
+      id: index + 1,
+      ...slot,
+      available: Math.random() > 0.2, // Better availability
+      date: format(date, 'yyyy-MM-dd')
+    }));
+  };
+  
+  const currentTimeSlots = selectedProvider 
+    ? generateTimeSlots(selectedDate, selectedProvider.id)
+    : mockTimeSlots;
 
   // Query for services based on selected subcategory
   const { data: categoryServices, isLoading: servicesLoading } = useQuery({
@@ -1119,9 +1144,13 @@ export default function Index() {
 
       <SlotBookingModal
         isOpen={showSlotModal}
-        onClose={() => setShowSlotModal(false)}
+        onClose={() => {
+          setShowSlotModal(false);
+          setSelectedDate(new Date()); // Reset to today
+          setSelectedSlot(null);
+        }}
         provider={selectedProvider as any}
-        timeSlots={mockTimeSlots as any}
+        timeSlots={currentTimeSlots as any}
         selectedSlot={selectedSlot as any}
         onSlotSelect={handleSlotSelect}
         slotTimer={slotTimer}

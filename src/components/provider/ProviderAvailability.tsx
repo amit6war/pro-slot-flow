@@ -1,20 +1,74 @@
 
-import React, { useState } from 'react';
-import { Calendar, Clock, ToggleLeft, ToggleRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, ToggleLeft, ToggleRight, Save, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useTimeSlots } from '@/hooks/useTimeSlots';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export const ProviderAvailability = () => {
   const [emergencyOffline, setEmergencyOffline] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { availability, updateProviderAvailability, refetch } = useTimeSlots();
   
-  const weekDays = [
-    { day: 'Monday', enabled: true, start: '09:00', end: '17:00' },
-    { day: 'Tuesday', enabled: true, start: '09:00', end: '17:00' },
-    { day: 'Wednesday', enabled: true, start: '09:00', end: '17:00' },
-    { day: 'Thursday', enabled: true, start: '09:00', end: '17:00' },
-    { day: 'Friday', enabled: true, start: '09:00', end: '17:00' },
-    { day: 'Saturday', enabled: false, start: '10:00', end: '15:00' },
-    { day: 'Sunday', enabled: false, start: '10:00', end: '15:00' },
-  ];
+  const [weekDays, setWeekDays] = useState([
+    { id: 0, day: 'Sunday', enabled: false, start: '10:00', end: '15:00' },
+    { id: 1, day: 'Monday', enabled: true, start: '09:00', end: '17:00' },
+    { id: 2, day: 'Tuesday', enabled: true, start: '09:00', end: '17:00' },
+    { id: 3, day: 'Wednesday', enabled: true, start: '09:00', end: '17:00' },
+    { id: 4, day: 'Thursday', enabled: true, start: '09:00', end: '17:00' },
+    { id: 5, day: 'Friday', enabled: true, start: '09:00', end: '17:00' },
+    { id: 6, day: 'Saturday', enabled: false, start: '10:00', end: '15:00' },
+  ]);
+
+  // Load existing availability data
+  useEffect(() => {
+    if (availability && availability.length > 0) {
+      setWeekDays(prev => prev.map(day => {
+        const existing = availability.find(a => a.day_of_week === day.id);
+        if (existing) {
+          return {
+            ...day,
+            enabled: existing.is_available,
+            start: existing.start_time,
+            end: existing.end_time
+          };
+        }
+        return day;
+      }));
+    }
+  }, [availability]);
+
+  const updateScheduleDay = (dayId: number, field: string, value: any) => {
+    setWeekDays(prev => prev.map(day => 
+      day.id === dayId ? { ...day, [field]: value } : day
+    ));
+  };
+
+  const saveAvailability = async () => {
+    try {
+      for (const day of weekDays) {
+        await updateProviderAvailability(
+          day.id, 
+          day.start, 
+          day.end, 
+          day.enabled,
+          30 // Default 30-minute slots
+        );
+      }
+      toast({
+        title: 'Success',
+        description: 'Availability schedule updated successfully',
+      });
+      refetch();
+    } catch (error) {
+      console.error('Error saving availability:', error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -62,14 +116,15 @@ export const ProviderAvailability = () => {
         <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
             <h3 className="text-h3 font-bold text-text-primary">Weekly Schedule</h3>
-            <Button variant="outline" size="sm">
+            <Button onClick={saveAvailability} variant="default" size="sm">
+              <Save className="h-4 w-4 mr-2" />
               Save Changes
             </Button>
           </div>
         </div>
         <div className="p-6 space-y-4">
-          {weekDays.map((schedule, index) => (
-            <div key={schedule.day} className="flex items-center justify-between p-4 bg-background rounded-xl">
+          {weekDays.map((schedule) => (
+            <div key={schedule.id} className="flex items-center justify-between p-4 bg-background rounded-xl">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
                   <Calendar className="h-6 w-6 text-primary" />
@@ -87,30 +142,31 @@ export const ProviderAvailability = () => {
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center space-x-2">
                       <Clock className="h-4 w-4 text-text-muted" />
-                      <input
+                      <Input
                         type="time"
                         value={schedule.start}
-                        className="px-2 py-1 rounded-lg bg-surface border border-border text-text-primary text-small"
+                        onChange={(e) => updateScheduleDay(schedule.id, 'start', e.target.value)}
+                        className="w-24 text-small"
                       />
                     </div>
                     <span className="text-text-muted">to</span>
-                    <input
+                    <Input
                       type="time"
                       value={schedule.end}
-                      className="px-2 py-1 rounded-lg bg-surface border border-border text-text-primary text-small"
+                      onChange={(e) => updateScheduleDay(schedule.id, 'end', e.target.value)}
+                      className="w-24 text-small"
                     />
                   </div>
                 )}
                 
-                <button
-                  className={`px-3 py-1 rounded-full text-xsmall font-medium border transition-all ${
-                    schedule.enabled
-                      ? 'bg-success/10 text-success border-success/20'
-                      : 'bg-error/10 text-error border-error/20'
-                  }`}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateScheduleDay(schedule.id, 'enabled', !schedule.enabled)}
+                  className={schedule.enabled ? 'border-success text-success' : 'border-error text-error'}
                 >
                   {schedule.enabled ? 'Available' : 'Closed'}
-                </button>
+                </Button>
               </div>
             </div>
           ))}

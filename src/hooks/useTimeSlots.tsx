@@ -32,17 +32,49 @@ export const useTimeSlots = (providerId?: string) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProviderAvailability = async (targetProviderId: string) => {
+  const fetchProviderAvailability = async (targetProviderId?: string) => {
     try {
+      let actualProviderId = targetProviderId;
+      
+      // If no providerId provided, get current user's provider ID
+      if (!actualProviderId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            setAvailability([]);
+            return;
+          }
+          
+          if (profile) {
+            actualProviderId = profile.id;
+          }
+        }
+      }
+
+      if (!actualProviderId) {
+        setAvailability([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('provider_availability')
         .select('*')
-        .eq('provider_id', targetProviderId);
+        .eq('provider_id', actualProviderId);
 
       if (error) throw error;
       setAvailability(data || []);
     } catch (error) {
       console.error('Error fetching availability:', error);
+      setAvailability([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -156,12 +188,32 @@ export const useTimeSlots = (providerId?: string) => {
     slotDuration: number = 30
   ) => {
     try {
-      if (!providerId) throw new Error('Provider ID required');
+      let actualProviderId = providerId;
+      
+      // If no providerId provided, get current user's provider ID
+      if (!actualProviderId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (profileError || !profile) {
+            throw new Error('Provider profile not found');
+          }
+          
+          actualProviderId = profile.id;
+        }
+      }
+
+      if (!actualProviderId) throw new Error('Provider ID required');
 
       const { data, error } = await supabase
         .from('provider_availability')
         .upsert({
-          provider_id: providerId,
+          provider_id: actualProviderId,
           day_of_week: dayOfWeek,
           start_time: startTime,
           end_time: endTime,
@@ -180,7 +232,7 @@ export const useTimeSlots = (providerId?: string) => {
       });
       
       // Refresh availability
-      if (providerId) fetchProviderAvailability(providerId);
+      fetchProviderAvailability(actualProviderId);
     } catch (error: any) {
       console.error('Error updating availability:', error);
       toast({
@@ -192,9 +244,7 @@ export const useTimeSlots = (providerId?: string) => {
   };
 
   useEffect(() => {
-    if (providerId) {
-      fetchProviderAvailability(providerId);
-    }
+    fetchProviderAvailability();
   }, [providerId]);
 
   return {
@@ -205,6 +255,6 @@ export const useTimeSlots = (providerId?: string) => {
     generateTimeSlots,
     blockTimeSlot,
     updateProviderAvailability,
-    refetch: () => providerId && fetchProviderAvailability(providerId)
+    refetch: () => fetchProviderAvailability()
   };
 };
