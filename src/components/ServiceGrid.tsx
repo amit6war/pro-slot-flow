@@ -1,3 +1,4 @@
+// ServiceGrid Component - Updated to fix AddToCartButton props
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Star, Clock, Heart, Play, X } from 'lucide-react';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { supabase } from '@/integrations/supabase/client';
+
+// Debug log to force recompilation
+console.log('ServiceGrid component loaded - AddToCartButton props should be correct');
 
 interface Service {
   id: string;
