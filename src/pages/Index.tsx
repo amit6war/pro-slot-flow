@@ -456,14 +456,13 @@ export default function Index() {
       clearInterval(timerRef);
     }
     
-    // Set new timer
+    // Set new timer - only for visual countdown, don't clear slot
     const newTimer = setInterval(() => {
       setSlotTimer((prev) => {
         if (prev && prev > 1) {
           return prev - 1;
         } else {
-          // Timer expired, clear slot selection
-          setSelectedSlot(null);
+          // Timer expired, just clear the timer but keep slot
           clearInterval(newTimer);
           setTimerRef(null);
           return 0;
@@ -491,15 +490,7 @@ export default function Index() {
     setShowLocationModal(false);
   };
 
-  // Timer effect for slot booking
-  useEffect(() => {
-    if (slotTimer > 0) {
-      const timer = setInterval(() => {
-        setSlotTimer(prev => prev - 1);
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [slotTimer]);
+  // Remove duplicate timer effect - timer is handled in handleSlotSelect
 
   // Loading state
   if (categoriesLoading) {
