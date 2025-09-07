@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -177,8 +177,11 @@ export default function Index() {
   const { categories, loading: categoriesLoading } = useCategories();
   const { subcategories } = useSubcategories(selectedCategory);
   
-  // Generate dynamic time slots based on selected date and provider availability
-  const generateTimeSlots = (date: Date, providerId?: number) => {
+  
+  // Generate time slots with useMemo for proper state dependency
+  const currentTimeSlots = useMemo(() => {
+    if (!selectedProvider) return mockTimeSlots;
+    
     const baseSlots = [
       { time: '09:00', price: 120 },
       { time: '10:30', price: 120 },
@@ -192,13 +195,9 @@ export default function Index() {
       id: index + 1,
       ...slot,
       available: Math.random() > 0.2, // Better availability
-      date: format(date, 'yyyy-MM-dd')
+      date: format(selectedDate, 'yyyy-MM-dd')
     }));
-  };
-  
-  const currentTimeSlots = selectedProvider 
-    ? generateTimeSlots(selectedDate, selectedProvider.id)
-    : mockTimeSlots;
+  }, [selectedProvider, selectedDate]);
 
   // Query for services based on selected subcategory
   const { data: categoryServices, isLoading: servicesLoading } = useQuery({
