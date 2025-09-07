@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { X, Timer, CreditCard, Calendar, Clock, CheckCircle } from 'lucide-react';
+import { X, Timer, CreditCard, Calendar, Clock, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, addDays, isSameDay } from 'date-fns';
 
 interface TimeSlot {
   id: number;
@@ -38,9 +39,12 @@ export const SlotBookingModal: React.FC<SlotBookingModalProps> = ({
   slotTimer,
   formatTime
 }) => {
-  const [selectedDate, setSelectedDate] = useState('today');
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [paymentStep, setPaymentStep] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  
+  // Generate 15 days from today
+  const availableDates = Array.from({ length: 15 }, (_, index) => addDays(new Date(), index));
 
   if (!isOpen || !provider) return null;
 
@@ -216,23 +220,33 @@ export const SlotBookingModal: React.FC<SlotBookingModalProps> = ({
             </button>
           </div>
 
-          {/* Date Selection */}
+          {/* Date Selection - 15 Day Calendar */}
           <div className="mb-6">
             <h4 className="text-h4 text-text-primary mb-4">Select Date</h4>
-            <div className="flex space-x-3 overflow-x-auto pb-2">
-              {['Today', 'Tomorrow', 'Day After'].map((date, index) => (
-                <button
-                  key={date}
-                  onClick={() => setSelectedDate(date.toLowerCase())}
-                  className={`flex-shrink-0 px-4 py-2 rounded-xl border transition-colors ${
-                    selectedDate === date.toLowerCase()
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border text-text-primary hover:border-primary/50'
-                  }`}
-                >
-                  {date}
-                </button>
-              ))}
+            <div className="bg-surface rounded-2xl border border-border p-4">
+              <div className="grid grid-cols-7 gap-2 mb-4">
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                  <div key={day} className="text-center text-small font-medium text-text-muted p-2">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-2">
+                {availableDates.map((date) => (
+                  <button
+                    key={date.toISOString()}
+                    onClick={() => setSelectedDate(date)}
+                    className={`p-3 rounded-xl border transition-all duration-200 text-center ${
+                      isSameDay(selectedDate, date)
+                        ? 'border-primary bg-primary/10 text-primary shadow-lg'
+                        : 'border-border hover:border-primary/50 hover:bg-surface/50 text-text-primary'
+                    }`}
+                  >
+                    <div className="text-small font-semibold">{format(date, 'd')}</div>
+                    <div className="text-xsmall text-text-muted">{format(date, 'MMM')}</div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
