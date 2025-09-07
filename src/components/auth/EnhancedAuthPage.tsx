@@ -197,8 +197,19 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
         description: "You have been logged in successfully",
       });
 
-      // Redirect to dashboard after successful login
-      window.location.href = '/dashboard';
+      // Get the stored redirect URL or default to home
+      const storedRedirectUrl = localStorage.getItem('redirectAfterLogin');
+      const redirectPath = storedRedirectUrl || '/';
+      
+      // Clear the stored URL
+      if (storedRedirectUrl) {
+        localStorage.removeItem('redirectAfterLogin');
+      }
+      
+      console.log('🎯 Redirecting after login to:', redirectPath);
+      
+      // Redirect to the stored location or home page
+      window.location.href = redirectPath;
     } catch (error: any) {
       console.error('Login error:', error);
       toast({

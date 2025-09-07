@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
 /**
- * Component that redirects users to their appropriate dashboard based on role
+ * Component that redirects users back to their original page after authentication
  */
 export const DashboardRedirect: React.FC = () => {
   const { user, profile, loading } = useAuth();
@@ -45,29 +45,24 @@ export const DashboardRedirect: React.FC = () => {
         setHasTriedRedirect(true);
         setIsRedirecting(true);
         
-        // Determine role - prefer profile role, fallback to customer
-        let targetRole = 'customer'; // Default fallback
+        // Get the stored redirect URL from localStorage
+        const storedRedirectUrl = localStorage.getItem('redirectAfterLogin');
         
-        if (profile) {
-          targetRole = profile.auth_role || profile.role || 'customer';
-          console.log('✅ Profile found, role:', targetRole);
+        let redirectPath = '/';
+        
+        if (storedRedirectUrl) {
+          redirectPath = storedRedirectUrl;
+          // Clear the stored URL after using it
+          localStorage.removeItem('redirectAfterLogin');
+          console.log('✅ Found stored redirect URL:', redirectPath);
         } else {
-          console.log('⚠️ No profile found, using default role: customer');
+          console.log('ℹ️ No stored redirect URL, redirecting to home page');
         }
         
-        // Force redirect using window.location for more reliable navigation
-        // Handle super_admin role by redirecting to admin dashboard
-        let dashboardPath;
-        if (targetRole === 'super_admin') {
-          dashboardPath = '/dashboard/admin';
-          console.log('🎯 Super admin detected, redirecting to admin dashboard');
-        } else {
-          dashboardPath = `/dashboard/${targetRole}`;
-        }
-        console.log('🎯 Force redirecting to:', dashboardPath);
+        console.log('🎯 Redirecting to:', redirectPath);
         
         // Use window.location.href for immediate redirect
-        window.location.href = dashboardPath;
+        window.location.href = redirectPath;
       }
     };
 
@@ -83,8 +78,8 @@ export const DashboardRedirect: React.FC = () => {
     // Emergency timeout - force redirect after 3 seconds regardless
     const emergencyTimeout = setTimeout(() => {
       if (user && !hasTriedRedirect) {
-        console.log('🚨 EMERGENCY REDIRECT: Forcing customer dashboard');
-        window.location.href = '/dashboard/customer';
+        console.log('🚨 EMERGENCY REDIRECT: Forcing home page');
+        window.location.href = '/';
       }
     }, 3000);
 
@@ -97,19 +92,19 @@ export const DashboardRedirect: React.FC = () => {
   const getLoadingMessage = () => {
     if (loading) return "Loading your account...";
     if (!profile && redirectAttempts > 0) return "Setting up your profile...";
-    if (isRedirecting) return "Redirecting to your dashboard...";
-    return "Loading dashboard...";
+    if (isRedirecting) return "Redirecting you back...";
+    return "Loading...";
   };
 
   // Manual redirect functions
-  const goToCustomerDashboard = () => {
-    console.log('🔧 Manual redirect to customer dashboard');
-    navigate('/dashboard/customer', { replace: true });
+  const goToHomePage = () => {
+    console.log('🔧 Manual redirect to home page');
+    navigate('/', { replace: true });
   };
 
-  const goToProviderDashboard = () => {
-    console.log('🔧 Manual redirect to provider dashboard');
-    navigate('/dashboard/provider', { replace: true });
+  const goToServices = () => {
+    console.log('🔧 Manual redirect to services');
+    navigate('/services', { replace: true });
   };
 
   return (
@@ -129,23 +124,23 @@ export const DashboardRedirect: React.FC = () => {
         {/* Manual redirect buttons after 3 seconds */}
         {redirectAttempts > 0 && (
           <div className="mt-6 space-y-3">
-            <p className="text-sm text-gray-600">Taking too long? Choose your dashboard:</p>
+            <p className="text-sm text-gray-600">Taking too long? Choose where to go:</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
-                onClick={goToCustomerDashboard}
+                onClick={goToHomePage}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Customer Dashboard
+                Home Page
               </button>
               <button
-                onClick={goToProviderDashboard}
+                onClick={goToServices}
                 className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
-                Provider Dashboard
+                Browse Services
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Don't worry, you can switch between dashboards later
+              You'll be redirected to where you were before login
             </p>
           </div>
         )}

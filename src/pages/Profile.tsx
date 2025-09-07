@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,38 +18,42 @@ import {
   Settings,
   Bell,
   CreditCard,
-  Shield
+  Shield,
+  LogOut
 } from 'lucide-react';
 
 export default function Profile() {
-  const { user, profile, isAuthenticated } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: profile?.full_name || '',
+    full_name: profile?.full_name || '',
     phone: profile?.phone || '',
     address: profile?.address || '',
-    email: user?.email || ''
+    city: profile?.city || ''
   });
 
-  if (!isAuthenticated) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center">
-          <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to view your profile</h2>
-          <p className="text-gray-600 mb-6">Manage your account settings and preferences</p>
-          <Button onClick={() => window.location.href = '/auth'}>
-            Sign In
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSave = () => {
     // TODO: Implement profile update
     console.log('Saving profile:', formData);
     setIsEditing(false);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   const menuItems = [
@@ -58,6 +63,7 @@ export default function Profile() {
     { icon: Bell, label: 'Notifications' },
     { icon: Shield, label: 'Privacy & Security' },
     { icon: Settings, label: 'Account Settings' },
+    { icon: LogOut, label: 'Sign Out', onClick: handleSignOut, isSignOut: true }
   ];
 
   return (
@@ -76,9 +82,12 @@ export default function Profile() {
                 {menuItems.map((item, index) => (
                   <button
                     key={index}
+                    onClick={item.onClick}
                     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                       item.active
                         ? 'bg-primary/10 text-primary'
+                        : item.isSignOut
+                        ? 'text-red-600 hover:bg-red-50 hover:text-red-700'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
@@ -135,11 +144,12 @@ export default function Profile() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="full_name">Full Name</Label>
                   <Input
-                    id="fullName"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                    id="full_name"
+                    name="full_name"
+                    value={formData.full_name}
+                    onChange={handleInputChange}
                     disabled={!isEditing}
                   />
                 </div>
@@ -148,7 +158,7 @@ export default function Profile() {
                   <Input
                     id="email"
                     type="email"
-                    value={formData.email}
+                    value={user?.email || ''}
                     disabled={true}
                     className="bg-gray-50"
                   />
