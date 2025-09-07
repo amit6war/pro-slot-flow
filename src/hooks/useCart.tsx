@@ -12,6 +12,10 @@ export interface CartItem {
   price: number;
   quantity: number;
   serviceDetails?: any;
+  // Add scheduling properties
+  date?: string;
+  time?: string;
+  displayDate?: string;
 }
 
 interface CartContextType {

@@ -1,17 +1,30 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, User, Settings, Bell, CreditCard, MapPin, Phone, Mail, Edit2, Shield, Award, Clock } from 'lucide-react';
+import { ChevronLeft, User, Settings, Bell, CreditCard, MapPin, Phone, Mail, Edit2, Shield, Award, Clock, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfilePageProps {
   onBack: () => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
+  const { signOut, user } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   const userProfile = {
-    name: "John Smith",
-    email: "john.smith@email.com",
+    name: user?.user_metadata?.full_name || "John Smith",
+    email: user?.email || "john.smith@email.com",
     phone: "(506) 555-0199",
     address: "123 Main Street, Moncton, NB E1C 1A1",
     memberSince: "January 2024",
@@ -206,7 +219,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
 
           {/* Sign Out */}
           <div className="pt-8">
-            <button className="w-full bg-error/10 text-error border border-error/20 p-4 rounded-2xl font-semibold hover:bg-error/20 transition-colors">
+            <button 
+              onClick={handleSignOut}
+              className="w-full bg-error/10 text-error border border-error/20 p-4 rounded-2xl font-semibold hover:bg-error/20 transition-colors flex items-center justify-center gap-2"
+            >
+              <LogOut className="h-5 w-5" />
               Sign Out
             </button>
           </div>

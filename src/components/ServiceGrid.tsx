@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Star, Clock, Heart, Play, X } from 'lucide-react';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 // Debug log to force recompilation
 console.log('ServiceGrid component loaded - AddToCartButton props should be correct');
@@ -266,3 +267,19 @@ export const ServiceGrid: React.FC<ServiceGridProps> = ({
     </div>
   );
 };
+
+// Remove this duplicate declaration - it's causing the merge declaration error
+// const ServiceGrid: React.FC = () => {
+//   const navigate = useNavigate();
+//   const handleServiceClick = (serviceId: string) => {
+//     navigate(`/provider-selection/${serviceId}`);
+//   };
+
+//   const handleAddToCart = (serviceId: string) => {
+//     navigate(`/provider-selection/${serviceId}`);
+//   };
+
+//   const handleBookNow = (serviceId: string) => {
+//     navigate(`/provider-selection/${serviceId}`);
+//   };
+// };
