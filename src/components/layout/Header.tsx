@@ -18,7 +18,7 @@ import {
   Shield
 } from 'lucide-react';
 
-export const Header = () => {
+export const Header = ({ onCartClick }: { onCartClick?: () => void }) => {
   const { user, isAuthenticated, signOut, isAdmin, isCustomer, isProvider } = useAuth();
   const { itemCount } = useCart();
   const navigate = useNavigate();
@@ -94,7 +94,7 @@ export const Header = () => {
                 variant="ghost" 
                 size="sm" 
                 className="relative hover:bg-gray-100 p-3"
-                onClick={() => navigate('/cart')}
+                onClick={onCartClick || (() => navigate('/cart'))}
               >
                 <ShoppingCart className="h-6 w-6" />
                 {itemCount > 0 && (

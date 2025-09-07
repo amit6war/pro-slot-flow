@@ -7,7 +7,7 @@ import { Layout } from '@/components/layout/Layout';
 import { LocationModal } from '@/components/LocationModal';
 import { ProviderDetailsModal } from '@/components/ProviderDetailsModal';
 import { SlotBookingModal } from '@/components/SlotBookingModal';
-import { AddToCartButton } from '@/components/AddToCartButton';
+import { ProfessionalServiceCard } from '@/components/ProfessionalServiceCard';
 import { CartSidebar } from '@/components/CartSidebar';
 import { 
   Search, 
@@ -515,7 +515,7 @@ export default function Index() {
   }
 
   return (
-    <Layout>
+    <Layout onCartClick={() => setShowCartSidebar(true)}>
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-background via-surface to-background py-16 sm:py-20 lg:py-28 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
@@ -788,104 +788,31 @@ export default function Index() {
                   </div>
                 ) : categoryServices && categoryServices.length > 0 ? (
                   categoryServices.map((service: any) => (
-                    <Card key={service.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-success/30">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-6">
-                          <div className="flex items-center space-x-4 flex-1">
-                            <div className="w-14 h-14 bg-gradient-to-br from-success to-success/80 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg">
-                              {service.service_providers?.business_name?.charAt(0) || 'P'}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-lg font-bold text-foreground mb-2 line-clamp-1">
-                                {service.service_providers?.business_name || 'Professional Provider'}
-                              </h4>
-                              <div className="flex items-center space-x-3 text-muted-foreground text-sm">
-                                <div className="flex items-center space-x-1">
-                                  <Star className="h-4 w-4 fill-warning text-warning" />
-                                  <span className="font-medium">{service.service_providers?.rating || 4.5}</span>
-                                  <span>({service.service_providers?.total_reviews || 0} reviews)</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <Badge variant="outline" className="border-success text-success bg-success/10 shrink-0">
-                            Verified
-                          </Badge>
-                        </div>
-
-                        <div className="bg-gradient-to-r from-muted/30 to-muted/10 rounded-xl p-4 mb-6">
-                          <div className="flex items-center justify-between mb-3">
-                            <h5 className="font-semibold text-foreground text-lg">{service.service_name}</h5>
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-success">${service.price}</div>
-                              <div className="text-xs text-muted-foreground">Starting price</div>
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {service.description || 'Professional service delivered with expertise and care'}
-                          </p>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 group-hover:border-success group-hover:text-success"
-                            onClick={() => {
-                              const mockProvider: Provider = {
-                                id: parseInt(service.service_providers?.id || service.id) || 1,
-                                name: service.service_providers?.business_name || 'Professional Provider',
-                                rating: service.service_providers?.rating || 4.5,
-                                reviews: service.service_providers?.total_reviews || 0,
-                                location: service.service_providers?.address || 'Location',
-                                distance: '2.1 km',
-                                responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
-                                verified: service.service_providers?.status === 'approved',
-                                completedJobs: 50,
-                                description: service.description || 'Professional service',
-                                phone: '+1234567890',
-                                email: 'provider@example.com',
-                                services: [service.service_name],
-                                price: service.price,
-                                originalPrice: null
-                              };
-                              setSelectedProvider(mockProvider);
-                              setShowProviderModal(true);
-                            }}
-                          >
-                            View Details
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="flex-1 bg-success hover:bg-success/90 text-white"
-                            onClick={() => {
-                              const mockProvider: Provider = {
-                                id: parseInt(service.service_providers?.id || service.id) || 1,
-                                name: service.service_providers?.business_name || 'Professional Provider',
-                                rating: service.service_providers?.rating || 4.5,
-                                reviews: service.service_providers?.total_reviews || 0,
-                                location: service.service_providers?.address || 'Location',
-                                distance: '2.1 km',
-                                responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
-                                verified: service.service_providers?.status === 'approved',
-                                completedJobs: 50,
-                                description: service.description || 'Professional service',
-                                phone: '+1234567890',
-                                email: 'provider@example.com',
-                                services: [service.service_name],
-                                price: service.price,
-                                originalPrice: null
-                              };
-                              setSelectedProvider(mockProvider);
-                              setShowSlotModal(true);
-                            }}
-                          >
-                            <Award className="h-4 w-4 mr-2" />
-                            Book Now
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <ProfessionalServiceCard
+                      key={service.id}
+                      service={service}
+                      onBook={(selectedService) => {
+                        // Convert service to provider format for existing modal
+                        const provider = {
+                          id: parseInt(service.id) || 1,
+                          name: service.service_providers?.business_name || service.user_profile?.business_name || 'Professional Service',
+                          rating: service.service_providers?.rating || 4.5,
+                          reviews: service.service_providers?.total_reviews || 0,
+                          location: 'Professional Location',
+                          distance: '1.5 km',
+                          responseTime: '15min',
+                          verified: true,
+                          completedJobs: 50,
+                          description: service.description || 'Professional service provider',
+                          phone: '+1234567890',
+                          email: 'provider@servicenblink.com',
+                          services: [service.service_name],
+                          price: service.price
+                        };
+                        console.log('Index: Booking service with provider:', provider);
+                        handleBookService(provider);
+                      }}
+                    />
                   ))
                 ) : (
                   <div className="col-span-full text-center py-12">
