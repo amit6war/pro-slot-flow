@@ -573,157 +573,155 @@ export default function Index() {
 
           {/* Subcategories Section */}
           {selectedCategory && (
-            <div className="mt-12 animate-fade-in">
-              <div className="bg-gradient-secondary rounded-3xl p-10 shadow-medium">
-                <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                  {categories?.find(c => c.id === selectedCategory)?.name} Services
-                </h3>
-                <div className="grid-responsive">
-                  {subcategories?.map((subcategory: any, index: number) => (
-                    <Card 
-                      key={subcategory.id} 
-                      className={`card-floating group animate-slide-up animate-stagger-${index + 1} hover:shadow-floating cursor-pointer ${selectedSubcategory === subcategory.id ? 'ring-2 ring-primary' : ''}`}
-                      onClick={() => setSelectedSubcategory(selectedSubcategory === subcategory.id ? null : subcategory.id)}
-                    >
-                      <CardContent className="p-8 text-center">
-                        <div className="text-5xl mb-6">⚡</div>
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4">{subcategory.name}</h4>
-                        <p className="text-sm text-gray-600 mb-4">{subcategory.description}</p>
-                        <div className="text-sm text-gray-500 mb-6">
-                          Price range: ${subcategory.min_price} - ${subcategory.max_price}
-                        </div>
-                        
-                        <Button 
-                          variant={selectedSubcategory === subcategory.id ? "default" : "outline"}
-                          className="w-full"
-                        >
-                          {selectedSubcategory === subcategory.id ? 'View Providers' : 'Select Category'}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                
-                {(!subcategories || subcategories.length === 0) && (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">No services available in this category yet.</p>
+            <div className="mt-12 bg-blue-50 rounded-xl p-8 border-2 border-blue-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+                {categories?.find(c => c.id === selectedCategory)?.name} Services
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {subcategories?.map((subcategory: any) => (
+                  <div
+                    key={subcategory.id} 
+                    className={`bg-white rounded-lg p-6 cursor-pointer border-2 transition-all ${
+                      selectedSubcategory === subcategory.id 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
+                    }`}
+                    onClick={() => setSelectedSubcategory(selectedSubcategory === subcategory.id ? null : subcategory.id)}
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl mb-4">⚡</div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">{subcategory.name}</h4>
+                      <p className="text-sm text-gray-600 mb-3">{subcategory.description}</p>
+                      <div className="text-sm text-gray-500 mb-4">
+                        ${subcategory.min_price} - ${subcategory.max_price}
+                      </div>
+                      <Button 
+                        variant={selectedSubcategory === subcategory.id ? "default" : "outline"}
+                        size="sm"
+                        className="w-full"
+                      >
+                        {selectedSubcategory === subcategory.id ? 'Selected ✓' : 'Select Service'}
+                      </Button>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
+              
+              {(!subcategories || subcategories.length === 0) && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No services available in this category yet.</p>
+                </div>
+              )}
             </div>
           )}
 
           {/* Providers Section */}
           {selectedSubcategory && (
-            <div className="mt-12 animate-fade-in">
-              <div className="bg-white rounded-3xl p-10 shadow-medium border">
-                <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                  Available Providers for {subcategories?.find(sc => sc.id === selectedSubcategory)?.name}
-                </h3>
-                <div className="grid-responsive">
-                  {servicesLoading ? (
-                    <div className="col-span-full text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                      <p className="mt-2 text-gray-500">Loading providers...</p>
-                    </div>
-                  ) : categoryServices && categoryServices.length > 0 ? (
-                    categoryServices.map((service: any, index: number) => (
-                      <Card key={service.id} className="card-floating group animate-slide-up hover:shadow-floating">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center space-x-3 flex-1">
-                              <div className="w-12 h-12 bg-gradient-primary text-white rounded-2xl flex items-center justify-center shadow-medium">
-                                <span className="text-lg font-bold">{service.service_providers?.business_name?.charAt(0) || 'P'}</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-lg font-semibold text-gray-900 mb-1">{service.service_providers?.business_name || 'Professional Provider'}</h4>
-                                <div className="flex items-center space-x-2 text-gray-600 text-sm">
-                                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                  <span>{service.service_providers?.rating || 4.5}</span>
-                                  <span>({service.service_providers?.total_reviews || 0} reviews)</span>
-                                </div>
-                              </div>
+            <div className="mt-12 bg-green-50 rounded-xl p-8 border-2 border-green-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+                Available Providers for {subcategories?.find(sc => sc.id === selectedSubcategory)?.name}
+              </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {servicesLoading ? (
+                  <div className="col-span-full text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-2 text-gray-500">Loading providers...</p>
+                  </div>
+                ) : categoryServices && categoryServices.length > 0 ? (
+                  categoryServices.map((service: any) => (
+                    <div key={service.id} className="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-lg transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3 flex-1">
+                          <div className="w-12 h-12 bg-blue-500 text-white rounded-lg flex items-center justify-center">
+                            <span className="text-lg font-bold">{service.service_providers?.business_name?.charAt(0) || 'P'}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-1">{service.service_providers?.business_name || 'Professional Provider'}</h4>
+                            <div className="flex items-center space-x-2 text-gray-600 text-sm">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span>{service.service_providers?.rating || 4.5}</span>
+                              <span>({service.service_providers?.total_reviews || 0} reviews)</span>
                             </div>
                           </div>
+                        </div>
+                      </div>
 
-                          <div className="space-y-3 mb-6">
-                            <div className="p-3 bg-gray-50 rounded-lg">
-                              <div className="flex items-center justify-between mb-2">
-                                <h5 className="font-medium text-gray-900">{service.service_name}</h5>
-                                <span className="text-xl font-bold text-primary">${service.price}</span>
-                              </div>
-                              <p className="text-sm text-gray-600">{service.description || 'Professional service'}</p>
-                            </div>
+                      <div className="space-y-3 mb-6">
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium text-gray-900">{service.service_name}</h5>
+                            <span className="text-xl font-bold text-green-600">${service.price}</span>
                           </div>
+                          <p className="text-sm text-gray-600">{service.description || 'Professional service'}</p>
+                        </div>
+                      </div>
 
-                          <div className="flex flex-col sm:flex-row gap-3">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1"
-                              onClick={() => {
-                                // Set provider for details modal
-                                const mockProvider: Provider = {
-                                  id: parseInt(service.service_providers?.id || service.id) || 1,
-                                  name: service.service_providers?.business_name || 'Professional Provider',
-                                  rating: service.service_providers?.rating || 4.5,
-                                  reviews: service.service_providers?.total_reviews || 0,
-                                  location: service.service_providers?.address || 'Location',
-                                  distance: '2.1 km',
-                                  responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
-                                  verified: service.service_providers?.status === 'approved',
-                                  completedJobs: 50,
-                                  description: service.description || 'Professional service',
-                                  phone: '+1234567890',
-                                  email: 'provider@example.com',
-                                  services: [service.service_name],
-                                  price: service.price,
-                                  originalPrice: null
-                                };
-                                setSelectedProvider(mockProvider);
-                                setShowProviderModal(true);
-                              }}
-                            >
-                              View Details
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="flex-1"
-                              onClick={() => {
-                                // Create mock provider for booking
-                                const mockProvider: Provider = {
-                                  id: parseInt(service.service_providers?.id || service.id) || 1,
-                                  name: service.service_providers?.business_name || 'Professional Provider',
-                                  rating: service.service_providers?.rating || 4.5,
-                                  reviews: service.service_providers?.total_reviews || 0,
-                                  location: service.service_providers?.address || 'Location',
-                                  distance: '2.1 km',
-                                  responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
-                                  verified: service.service_providers?.status === 'approved',
-                                  completedJobs: 50,
-                                  description: service.description || 'Professional service',
-                                  phone: '+1234567890',
-                                  email: 'provider@example.com',
-                                  services: [service.service_name],
-                                  price: service.price,
-                                  originalPrice: null
-                                };
-                                setSelectedProvider(mockProvider);
-                                setShowSlotModal(true);
-                              }}
-                            >
-                              Book Now
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center py-8">
-                      <p className="text-gray-500">No providers available for this service yet.</p>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            // Set provider for details modal
+                            const mockProvider: Provider = {
+                              id: parseInt(service.service_providers?.id || service.id) || 1,
+                              name: service.service_providers?.business_name || 'Professional Provider',
+                              rating: service.service_providers?.rating || 4.5,
+                              reviews: service.service_providers?.total_reviews || 0,
+                              location: service.service_providers?.address || 'Location',
+                              distance: '2.1 km',
+                              responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
+                              verified: service.service_providers?.status === 'approved',
+                              completedJobs: 50,
+                              description: service.description || 'Professional service',
+                              phone: '+1234567890',
+                              email: 'provider@example.com',
+                              services: [service.service_name],
+                              price: service.price,
+                              originalPrice: null
+                            };
+                            setSelectedProvider(mockProvider);
+                            setShowProviderModal(true);
+                          }}
+                        >
+                          View Details
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          onClick={() => {
+                            // Create mock provider for booking
+                            const mockProvider: Provider = {
+                              id: parseInt(service.service_providers?.id || service.id) || 1,
+                              name: service.service_providers?.business_name || 'Professional Provider',
+                              rating: service.service_providers?.rating || 4.5,
+                              reviews: service.service_providers?.total_reviews || 0,
+                              location: service.service_providers?.address || 'Location',
+                              distance: '2.1 km',
+                              responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
+                              verified: service.service_providers?.status === 'approved',
+                              completedJobs: 50,
+                              description: service.description || 'Professional service',
+                              phone: '+1234567890',
+                              email: 'provider@example.com',
+                              services: [service.service_name],
+                              price: service.price,
+                              originalPrice: null
+                            };
+                            setSelectedProvider(mockProvider);
+                            setShowSlotModal(true);
+                          }}
+                        >
+                          📅 Book Now
+                        </Button>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-8">
+                    <p className="text-gray-500">No providers available for this service yet.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
