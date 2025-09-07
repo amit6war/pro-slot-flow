@@ -449,79 +449,88 @@ export default function Index() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="bg-gradient-hero py-12 sm:py-16 lg:py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto text-center">
+      <section className="relative bg-gradient-to-br from-background via-surface to-background py-16 sm:py-20 lg:py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
+        <div className="container relative z-10">
+          <div className="max-w-6xl mx-auto text-center">
+            {/* Brand Header */}
             <div className="mb-8 lg:mb-12">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 mb-4 lg:mb-6 leading-tight">
-                Book Premium 
-                <span className="gradient-text block sm:inline"> Services</span>
-                <br className="hidden sm:block" />Near You
+              <div className="inline-flex items-center px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
+                <Award className="h-4 w-4 mr-2" />
+                Service NB LINK - Digital Business Solutions
+              </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground mb-6 leading-tight">
+                Professional
+                <span className="block text-primary"> Digital Services</span>
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-normal text-muted-foreground block mt-2">
+                  Near You
+                </span>
               </h1>
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 lg:mb-8 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
-                Connect with verified professionals for all your service needs. Quality guaranteed, convenience delivered.
+              <p className="text-lg sm:text-xl lg:text-2xl text-muted-foreground mb-8 max-w-4xl mx-auto leading-relaxed">
+                Connect with verified digital transformation experts and professional service providers. 
+                Quality guaranteed, innovation delivered.
               </p>
             </div>
 
             {/* Enhanced Search Bar */}
-            <div className="card-elevated p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto mb-12">
-              <div className="flex flex-col lg:grid lg:grid-cols-12 gap-3 lg:gap-4">
+            <div className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-6 lg:p-8 max-w-5xl mx-auto mb-12 shadow-lg">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 <div className="lg:col-span-6 relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <input
                     type="text"
                     placeholder="What service do you need?"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input-primary w-full pl-12 pr-4 py-3 lg:py-4 text-base lg:text-lg"
+                    className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   />
                 </div>
                 <div className="lg:col-span-4 relative">
-                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <button
                     onClick={() => setShowLocationModal(true)}
-                    className="input-primary w-full pl-12 pr-4 py-3 lg:py-4 text-left hover:bg-gray-50 transition-colors text-gray-700 text-base lg:text-lg"
+                    className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-xl text-left hover:bg-surface transition-colors text-foreground"
                   >
                     {selectedLocation}
                   </button>
                 </div>
                 <div className="lg:col-span-2">
-                  <Button className="btn-primary w-full py-3 lg:py-4 text-base lg:text-lg font-semibold">
+                  <Button className="w-full py-4 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-xl transition-all hover:shadow-lg">
                     Search
                   </Button>
                 </div>
               </div>
             </div>
 
-            {/* Enhanced Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-4xl mx-auto">
+            {/* Professional Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-5xl mx-auto">
               <div className="text-center group">
-                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-r from-blue-500 to-blue-600 text-white mx-auto mb-3 lg:mb-4 group-hover:scale-110 transition-transform rounded-2xl flex items-center justify-center shadow-medium">
-                  <Shield className="h-6 w-6 lg:h-8 lg:w-8" />
+                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-primary/10 border border-primary/20 text-primary mx-auto mb-4 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 rounded-2xl flex items-center justify-center">
+                  <Shield className="h-8 w-8 lg:h-10 lg:w-10" />
                 </div>
-                <div className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 lg:mb-2">500+</div>
-                <div className="text-sm lg:text-base text-gray-600 font-medium">Verified Providers</div>
+                <div className="text-3xl lg:text-4xl font-bold text-foreground mb-2">500+</div>
+                <div className="text-sm lg:text-base text-muted-foreground font-medium">Verified Professionals</div>
               </div>
               <div className="text-center group">
-                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white mx-auto mb-3 lg:mb-4 group-hover:scale-110 transition-transform rounded-2xl flex items-center justify-center shadow-medium">
-                  <Award className="h-6 w-6 lg:h-8 lg:w-8" />
+                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-success/10 border border-success/20 text-success mx-auto mb-4 group-hover:scale-110 group-hover:bg-success group-hover:text-white transition-all duration-300 rounded-2xl flex items-center justify-center">
+                  <Award className="h-8 w-8 lg:h-10 lg:w-10" />
                 </div>
-                <div className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 lg:mb-2">50+</div>
-                <div className="text-sm lg:text-base text-gray-600 font-medium">Service Categories</div>
+                <div className="text-3xl lg:text-4xl font-bold text-foreground mb-2">50+</div>
+                <div className="text-sm lg:text-base text-muted-foreground font-medium">Service Categories</div>
               </div>
               <div className="text-center group">
-                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-r from-purple-500 to-purple-600 text-white mx-auto mb-3 lg:mb-4 group-hover:scale-110 transition-transform rounded-2xl flex items-center justify-center shadow-medium">
-                  <TrendingUp className="h-6 w-6 lg:h-8 lg:w-8" />
+                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-info/10 border border-info/20 text-info mx-auto mb-4 group-hover:scale-110 group-hover:bg-info group-hover:text-white transition-all duration-300 rounded-2xl flex items-center justify-center">
+                  <TrendingUp className="h-8 w-8 lg:h-10 lg:w-10" />
                 </div>
-                <div className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 lg:mb-2">10k+</div>
-                <div className="text-sm lg:text-base text-gray-600 font-medium">Happy Customers</div>
+                <div className="text-3xl lg:text-4xl font-bold text-foreground mb-2">10k+</div>
+                <div className="text-sm lg:text-base text-muted-foreground font-medium">Happy Customers</div>
               </div>
               <div className="text-center group">
-                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-r from-amber-500 to-amber-600 text-white mx-auto mb-3 lg:mb-4 group-hover:scale-110 transition-transform rounded-2xl flex items-center justify-center shadow-medium">
-                  <Star className="h-6 w-6 lg:h-8 lg:w-8" />
+                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-warning/10 border border-warning/20 text-warning mx-auto mb-4 group-hover:scale-110 group-hover:bg-warning group-hover:text-white transition-all duration-300 rounded-2xl flex items-center justify-center">
+                  <Star className="h-8 w-8 lg:h-10 lg:w-10" />
                 </div>
-                <div className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 lg:mb-2">4.8★</div>
-                <div className="text-sm lg:text-base text-gray-600 font-medium">Average Rating</div>
+                <div className="text-3xl lg:text-4xl font-bold text-foreground mb-2">4.8★</div>
+                <div className="text-sm lg:text-base text-muted-foreground font-medium">Average Rating</div>
               </div>
             </div>
           </div>
@@ -529,87 +538,143 @@ export default function Index() {
       </section>
 
       {/* Service Categories Section */}
-      <section className="section-padding bg-white">
-        <div className="container mx-auto">
+      <section className="py-16 lg:py-24 bg-background">
+        <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Explore Our Services
+            <div className="inline-flex items-center px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Digital Business Solutions
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+              Explore Professional Services
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Professional services tailored to your needs, delivered by trusted experts who care about quality
+            <p className="text-lg lg:text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
+              Transform your business with our comprehensive digital solutions and professional services, 
+              delivered by certified experts who understand your industry needs.
             </p>
           </div>
 
           {/* Categories Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
             {categoriesLoading ? (
-              <div className="col-span-full text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-2 text-gray-500">Loading categories...</p>
+              <div className="col-span-full text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading categories...</p>
               </div>
             ) : categories && categories.length > 0 ? (
               categories.map((category: any) => (
-                <div
+                <Card
                   key={category.id} 
-                  className="bg-white border border-gray-200 rounded-lg p-6 cursor-pointer hover:shadow-lg transition-shadow"
+                  className={`group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-2 ${
+                    selectedCategory === category.id 
+                      ? 'border-primary bg-primary/5 shadow-lg' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
                   onClick={() => {
                     setSelectedCategory(selectedCategory === category.id ? null : category.id);
                     setSelectedSubcategory(null);
                   }}
                 >
-                  <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">{categoryIconMap[category.icon] || '🔧'}</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{category.name}</h3>
-                  <p className="text-gray-600 text-center text-sm">{category.description}</p>
-                </div>
+                  <CardContent className="p-6 text-center">
+                    <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                      selectedCategory === category.id 
+                        ? 'bg-primary text-primary-foreground scale-110' 
+                        : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110'
+                    }`}>
+                      <span className="text-2xl">{categoryIconMap[category.icon] || '🔧'}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-3">{category.name}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">{category.description}</p>
+                    <div className={`text-xs font-medium px-3 py-1 rounded-full inline-block ${
+                      selectedCategory === category.id 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {selectedCategory === category.id ? 'Selected' : 'Click to explore'}
+                    </div>
+                  </CardContent>
+                </Card>
               ))
             ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-gray-500 text-lg">No service categories available yet.</p>
+              <div className="col-span-full text-center py-16">
+                <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">No Categories Available</h3>
+                <p className="text-muted-foreground">Service categories will appear here once they're added by administrators.</p>
               </div>
             )}
           </div>
 
           {/* Subcategories Section */}
           {selectedCategory && (
-            <div className="mt-12 bg-blue-50 rounded-xl p-8 border-2 border-blue-200">
-              <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-                {categories?.find(c => c.id === selectedCategory)?.name} Services
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="mt-12 bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-2xl p-8 lg:p-12">
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium mb-4">
+                  <Award className="h-4 w-4 mr-2" />
+                  {categories?.find(c => c.id === selectedCategory)?.name}
+                </div>
+                <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">
+                  Available Services
+                </h3>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Choose from our specialized services designed to meet your business needs
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {subcategories?.map((subcategory: any) => (
-                  <div
+                  <Card
                     key={subcategory.id} 
-                    className={`bg-white rounded-lg p-6 cursor-pointer border-2 transition-all ${
+                    className={`group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
                       selectedSubcategory === subcategory.id 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
+                        ? 'border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20' 
+                        : 'border-border hover:border-primary/50'
                     }`}
                     onClick={() => setSelectedSubcategory(selectedSubcategory === subcategory.id ? null : subcategory.id)}
                   >
-                    <div className="text-center">
-                      <div className="text-4xl mb-4">⚡</div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-3">{subcategory.name}</h4>
-                      <p className="text-sm text-gray-600 mb-3">{subcategory.description}</p>
-                      <div className="text-sm text-gray-500 mb-4">
-                        ${subcategory.min_price} - ${subcategory.max_price}
+                    <CardContent className="p-6 text-center">
+                      <div className={`w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                        selectedSubcategory === subcategory.id 
+                          ? 'bg-primary text-primary-foreground scale-110' 
+                          : 'bg-warning/10 text-warning group-hover:bg-warning group-hover:text-white group-hover:scale-110'
+                      }`}>
+                        <span className="text-2xl">⚡</span>
+                      </div>
+                      <h4 className="text-lg font-semibold text-foreground mb-3">{subcategory.name}</h4>
+                      <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{subcategory.description}</p>
+                      <div className="bg-muted/50 rounded-lg p-3 mb-4">
+                        <div className="text-sm text-muted-foreground mb-1">Price Range</div>
+                        <div className="text-lg font-bold text-foreground">
+                          ${subcategory.min_price} - ${subcategory.max_price}
+                        </div>
                       </div>
                       <Button 
                         variant={selectedSubcategory === subcategory.id ? "default" : "outline"}
                         size="sm"
                         className="w-full"
                       >
-                        {selectedSubcategory === subcategory.id ? 'Selected ✓' : 'Select Service'}
+                        {selectedSubcategory === subcategory.id ? (
+                          <>
+                            <Award className="h-4 w-4 mr-2" />
+                            Selected
+                          </>
+                        ) : (
+                          'Select Service'
+                        )}
                       </Button>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
               
               {(!subcategories || subcategories.length === 0) && (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No services available in this category yet.</p>
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h4 className="text-lg font-medium text-foreground mb-2">No Services Available</h4>
+                  <p className="text-muted-foreground">Services will appear here once they're added for this category.</p>
                 </div>
               )}
             </div>
@@ -617,109 +682,134 @@ export default function Index() {
 
           {/* Providers Section */}
           {selectedSubcategory && (
-            <div className="mt-12 bg-green-50 rounded-xl p-8 border-2 border-green-200">
-              <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-                Available Providers for {subcategories?.find(sc => sc.id === selectedSubcategory)?.name}
-              </h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="mt-12 bg-gradient-to-br from-success/5 to-success/10 border border-success/20 rounded-2xl p-8 lg:p-12">
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center px-4 py-2 bg-success text-white rounded-full text-sm font-medium mb-4">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Verified Providers
+                </div>
+                <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">
+                  Available Providers for {subcategories?.find(sc => sc.id === selectedSubcategory)?.name}
+                </h3>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  All providers are verified professionals with proven track records in their expertise
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                 {servicesLoading ? (
-                  <div className="col-span-full text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-2 text-gray-500">Loading providers...</p>
+                  <div className="col-span-full text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-success border-t-transparent mx-auto"></div>
+                    <p className="mt-4 text-muted-foreground">Loading providers...</p>
                   </div>
                 ) : categoryServices && categoryServices.length > 0 ? (
                   categoryServices.map((service: any) => (
-                    <div key={service.id} className="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center space-x-3 flex-1">
-                          <div className="w-12 h-12 bg-blue-500 text-white rounded-lg flex items-center justify-center">
-                            <span className="text-lg font-bold">{service.service_providers?.business_name?.charAt(0) || 'P'}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-lg font-semibold text-gray-900 mb-1">{service.service_providers?.business_name || 'Professional Provider'}</h4>
-                            <div className="flex items-center space-x-2 text-gray-600 text-sm">
-                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                              <span>{service.service_providers?.rating || 4.5}</span>
-                              <span>({service.service_providers?.total_reviews || 0} reviews)</span>
+                    <Card key={service.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-success/30">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-6">
+                          <div className="flex items-center space-x-4 flex-1">
+                            <div className="w-14 h-14 bg-gradient-to-br from-success to-success/80 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg">
+                              {service.service_providers?.business_name?.charAt(0) || 'P'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-lg font-bold text-foreground mb-2 line-clamp-1">
+                                {service.service_providers?.business_name || 'Professional Provider'}
+                              </h4>
+                              <div className="flex items-center space-x-3 text-muted-foreground text-sm">
+                                <div className="flex items-center space-x-1">
+                                  <Star className="h-4 w-4 fill-warning text-warning" />
+                                  <span className="font-medium">{service.service_providers?.rating || 4.5}</span>
+                                  <span>({service.service_providers?.total_reviews || 0} reviews)</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
+                          <Badge variant="outline" className="border-success text-success bg-success/10 shrink-0">
+                            Verified
+                          </Badge>
                         </div>
-                      </div>
 
-                      <div className="space-y-3 mb-6">
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-medium text-gray-900">{service.service_name}</h5>
-                            <span className="text-xl font-bold text-green-600">${service.price}</span>
+                        <div className="bg-gradient-to-r from-muted/30 to-muted/10 rounded-xl p-4 mb-6">
+                          <div className="flex items-center justify-between mb-3">
+                            <h5 className="font-semibold text-foreground text-lg">{service.service_name}</h5>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-success">${service.price}</div>
+                              <div className="text-xs text-muted-foreground">Starting price</div>
+                            </div>
                           </div>
-                          <p className="text-sm text-gray-600">{service.description || 'Professional service'}</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {service.description || 'Professional service delivered with expertise and care'}
+                          </p>
                         </div>
-                      </div>
 
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => {
-                            // Set provider for details modal
-                            const mockProvider: Provider = {
-                              id: parseInt(service.service_providers?.id || service.id) || 1,
-                              name: service.service_providers?.business_name || 'Professional Provider',
-                              rating: service.service_providers?.rating || 4.5,
-                              reviews: service.service_providers?.total_reviews || 0,
-                              location: service.service_providers?.address || 'Location',
-                              distance: '2.1 km',
-                              responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
-                              verified: service.service_providers?.status === 'approved',
-                              completedJobs: 50,
-                              description: service.description || 'Professional service',
-                              phone: '+1234567890',
-                              email: 'provider@example.com',
-                              services: [service.service_name],
-                              price: service.price,
-                              originalPrice: null
-                            };
-                            setSelectedProvider(mockProvider);
-                            setShowProviderModal(true);
-                          }}
-                        >
-                          View Details
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="flex-1 bg-green-600 hover:bg-green-700"
-                          onClick={() => {
-                            // Create mock provider for booking
-                            const mockProvider: Provider = {
-                              id: parseInt(service.service_providers?.id || service.id) || 1,
-                              name: service.service_providers?.business_name || 'Professional Provider',
-                              rating: service.service_providers?.rating || 4.5,
-                              reviews: service.service_providers?.total_reviews || 0,
-                              location: service.service_providers?.address || 'Location',
-                              distance: '2.1 km',
-                              responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
-                              verified: service.service_providers?.status === 'approved',
-                              completedJobs: 50,
-                              description: service.description || 'Professional service',
-                              phone: '+1234567890',
-                              email: 'provider@example.com',
-                              services: [service.service_name],
-                              price: service.price,
-                              originalPrice: null
-                            };
-                            setSelectedProvider(mockProvider);
-                            setShowSlotModal(true);
-                          }}
-                        >
-                          📅 Book Now
-                        </Button>
-                      </div>
-                    </div>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 group-hover:border-success group-hover:text-success"
+                            onClick={() => {
+                              const mockProvider: Provider = {
+                                id: parseInt(service.service_providers?.id || service.id) || 1,
+                                name: service.service_providers?.business_name || 'Professional Provider',
+                                rating: service.service_providers?.rating || 4.5,
+                                reviews: service.service_providers?.total_reviews || 0,
+                                location: service.service_providers?.address || 'Location',
+                                distance: '2.1 km',
+                                responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
+                                verified: service.service_providers?.status === 'approved',
+                                completedJobs: 50,
+                                description: service.description || 'Professional service',
+                                phone: '+1234567890',
+                                email: 'provider@example.com',
+                                services: [service.service_name],
+                                price: service.price,
+                                originalPrice: null
+                              };
+                              setSelectedProvider(mockProvider);
+                              setShowProviderModal(true);
+                            }}
+                          >
+                            View Details
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-success hover:bg-success/90 text-white"
+                            onClick={() => {
+                              const mockProvider: Provider = {
+                                id: parseInt(service.service_providers?.id || service.id) || 1,
+                                name: service.service_providers?.business_name || 'Professional Provider',
+                                rating: service.service_providers?.rating || 4.5,
+                                reviews: service.service_providers?.total_reviews || 0,
+                                location: service.service_providers?.address || 'Location',
+                                distance: '2.1 km',
+                                responseTime: service.service_providers?.response_time_minutes ? `${service.service_providers.response_time_minutes}min` : '15min',
+                                verified: service.service_providers?.status === 'approved',
+                                completedJobs: 50,
+                                description: service.description || 'Professional service',
+                                phone: '+1234567890',
+                                email: 'provider@example.com',
+                                services: [service.service_name],
+                                price: service.price,
+                                originalPrice: null
+                              };
+                              setSelectedProvider(mockProvider);
+                              setShowSlotModal(true);
+                            }}
+                          >
+                            <Award className="h-4 w-4 mr-2" />
+                            Book Now
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))
                 ) : (
-                  <div className="col-span-full text-center py-8">
-                    <p className="text-gray-500">No providers available for this service yet.</p>
+                  <div className="col-span-full text-center py-12">
+                    <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Shield className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h4 className="text-lg font-medium text-foreground mb-2">No Providers Available</h4>
+                    <p className="text-muted-foreground">Providers will appear here once they register for this service.</p>
                   </div>
                 )}
               </div>
@@ -730,30 +820,44 @@ export default function Index() {
 
       {/* Available Services Section */}
       {!selectedSubcategory && allAvailableServices && allAvailableServices.length > 0 && (
-        <section className="section-padding bg-white">
-          <div className="container mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Available Services</h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Explore all services with registered providers ready to serve you
+        <section className="py-16 lg:py-24 bg-gradient-to-br from-surface to-background">
+          <div className="container">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-4 py-2 bg-info/10 text-info rounded-full text-sm font-medium mb-6">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Ready to Serve
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-6">Available Services</h2>
+              <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Explore all professional services with registered providers ready to transform your business
               </p>
             </div>
 
-            <div className="grid-responsive">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {allAvailableServices.slice(0, 6).map((service: any, index: number) => (
-                <Card key={service.id} className="card-floating group animate-slide-up hover:shadow-floating cursor-pointer" onClick={() => setSelectedSubcategory(service.id)}>
+                <Card 
+                  key={service.id} 
+                  className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 hover:border-info/30"
+                  onClick={() => setSelectedSubcategory(service.id)}
+                >
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-gradient-primary text-white rounded-2xl flex items-center justify-center shadow-medium">
-                        <span className="text-lg font-bold">{service.categories?.icon || '🔧'}</span>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="w-14 h-14 bg-gradient-to-br from-info to-info/80 text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <span className="text-xl font-bold">{service.categories?.icon || '🔧'}</span>
                       </div>
-                      <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
+                      <Badge className="bg-success/10 text-success border-success/20">
+                        <Shield className="h-3 w-3 mr-1" />
                         {service.providerCount} provider{service.providerCount !== 1 ? 's' : ''}
                       </Badge>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.name}</h3>
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{service.description || 'Professional service available'}</p>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <h3 className="text-lg font-bold text-foreground mb-3 group-hover:text-info transition-colors">
+                      {service.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-6 leading-relaxed line-clamp-3">
+                      {service.description || 'Professional service designed to meet your business needs with expert precision and care.'}
+                    </p>
+                    <Button variant="outline" size="sm" className="w-full group-hover:border-info group-hover:text-info">
+                      <ArrowRight className="h-4 w-4 mr-2" />
                       View Providers
                     </Button>
                   </CardContent>
@@ -762,9 +866,10 @@ export default function Index() {
             </div>
 
             {allAvailableServices.length > 6 && (
-              <div className="text-center mt-8">
-                <Button variant="outline" size="lg">
+              <div className="text-center mt-12">
+                <Button variant="outline" size="lg" className="px-8">
                   View All Services ({allAvailableServices.length})
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
             )}
@@ -773,39 +878,51 @@ export default function Index() {
       )}
 
       {/* Popular Services Section */}
-      <section className="section-padding bg-gradient-to-br from-gray-50/50 to-white">
-        <div className="container mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 lg:mb-12 gap-4">
+      <section className="py-16 lg:py-24 bg-background">
+        <div className="container">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 gap-4">
             <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 lg:mb-3">Popular Services</h2>
-              <p className="text-lg lg:text-xl text-gray-600">Most booked services this week</p>
+              <div className="inline-flex items-center px-4 py-2 bg-warning/10 text-warning rounded-full text-sm font-medium mb-4">
+                <Star className="h-4 w-4 mr-2" />
+                Most Requested
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-3">Popular Services</h2>
+              <p className="text-lg lg:text-xl text-muted-foreground">Most booked services this week</p>
             </div>
-            <Button className="btn-secondary hover-lift self-start sm:self-auto">
+            <Button className="bg-primary hover:bg-primary-hover text-primary-foreground self-start sm:self-auto">
               View All
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
 
-          <div className="grid-responsive">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
             {popularServicesLoading ? (
-              <div className="col-span-full text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-2 text-gray-500">Loading popular services...</p>
+              <div className="col-span-full text-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading popular services...</p>
               </div>
             ) : popularServices && popularServices.length > 0 ? (
               popularServices.map((service: any, index: number) => (
-                <Card key={service.id} className={`card-neon group animate-fade-in animate-stagger-${index + 1} hover:shadow-neon`}>
-                  <CardContent className="p-4 sm:p-6 lg:p-8">
-                    <div className="flex items-start justify-between mb-4 lg:mb-6">
-                      <div className="flex items-center space-x-3 lg:space-x-4 flex-1">
-                        <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-primary text-white group-hover:scale-110 transition-transform rounded-2xl flex items-center justify-center shadow-medium">
-                          <span className="text-lg lg:text-xl font-bold">{service.service_providers?.business_name?.charAt(0) || 'P'}</span>
+                <Card key={service.id} className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-warning/30 relative overflow-hidden">
+                  <div className="absolute top-4 right-4 z-10">
+                    <Badge className="bg-warning text-white shadow-lg">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      Popular
+                    </Badge>
+                  </div>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex items-center space-x-4 flex-1">
+                        <div className="w-16 h-16 bg-gradient-to-br from-warning to-warning/80 text-white group-hover:scale-110 transition-transform rounded-2xl flex items-center justify-center shadow-lg">
+                          <span className="text-xl font-bold">{service.service_providers?.business_name?.charAt(0) || 'P'}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-base lg:text-lg font-semibold text-gray-900 mb-1 lg:mb-2 truncate">{service.service_providers?.business_name || 'Professional Provider'}</h4>
-                          <div className="flex items-center space-x-1 lg:space-x-2 text-gray-600 text-sm lg:text-base">
-                            <MapPin className="h-3 w-3 lg:h-4 lg:w-4 flex-shrink-0" />
-                            <span className="truncate">{service.service_providers?.address || 'Location'}</span>
+                          <h4 className="text-lg font-bold text-foreground mb-2 line-clamp-1">
+                            {service.service_providers?.business_name || 'Professional Provider'}
+                          </h4>
+                          <div className="flex items-center space-x-2 text-muted-foreground text-sm">
+                            <MapPin className="h-4 w-4 flex-shrink-0" />
+                            <span className="line-clamp-1">{service.service_providers?.address || 'Location'}</span>
                           </div>
                         </div>
                       </div>
@@ -813,53 +930,48 @@ export default function Index() {
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleFavorite(parseInt(service.service_providers?.id) || service.id)}
-                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all p-2 flex-shrink-0"
+                        className="text-muted-foreground hover:text-error hover:bg-error/10 transition-all p-2 flex-shrink-0"
                       >
-                        <Heart className={`h-4 w-4 lg:h-5 lg:w-5 ${favorites.has(parseInt(service.service_providers?.id) || service.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                        <Heart className={`h-5 w-5 ${favorites.has(parseInt(service.service_providers?.id) || service.id) ? 'fill-error text-error' : ''}`} />
                       </Button>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 lg:gap-6 mb-4 lg:mb-6">
-                      <div className="flex items-center space-x-1 lg:space-x-2">
-                        <Star className="h-4 w-4 lg:h-5 lg:w-5 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold text-gray-900 text-sm lg:text-base">{service.service_providers?.rating || 4.5}</span>
-                        <span className="text-gray-500 text-sm lg:text-base">({service.service_providers?.total_reviews || 0})</span>
+                    <div className="flex flex-wrap items-center gap-4 mb-6">
+                      <div className="flex items-center space-x-2">
+                        <Star className="h-5 w-5 fill-warning text-warning" />
+                        <span className="font-semibold text-foreground">{service.service_providers?.rating || 4.5}</span>
+                        <span className="text-muted-foreground">({service.service_providers?.total_reviews || 0})</span>
                       </div>
-                      <div className="flex items-center space-x-1 lg:space-x-2 text-gray-600">
-                        <Clock className="h-3 w-3 lg:h-4 lg:w-4" />
-                        <span className="text-xs lg:text-sm">Responds in {service.service_providers?.response_time_minutes || 15}min</span>
+                      <div className="flex items-center space-x-2 text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        <span className="text-sm">Responds in {service.service_providers?.response_time_minutes || 15}min</span>
                       </div>
                       {service.service_providers?.status === 'approved' && (
-                        <div className="status-success text-xs lg:text-sm">
-                          <Shield className="h-3 w-3 mr-1" />
+                        <div className="flex items-center text-success text-sm">
+                          <Shield className="h-4 w-4 mr-1" />
                           Verified
                         </div>
                       )}
                     </div>
 
-                    <div className="space-y-4 mb-6">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <p className="font-medium text-gray-900">{service.service_name}</p>
-                          <p className="text-sm text-gray-600">{service.description || 'Professional service'}</p>
-                        </div>
+                    <div className="bg-gradient-to-r from-muted/30 to-muted/10 rounded-xl p-4 mb-6">
+                      <div className="flex justify-between items-center mb-2">
+                        <h5 className="font-semibold text-foreground">{service.service_name}</h5>
                         <div className="text-right">
-                          <p className="text-xl font-bold text-primary">${service.price}</p>
+                          <div className="text-2xl font-bold text-primary">${service.price}</div>
+                          <div className="text-xs text-muted-foreground">Starting price</div>
                         </div>
                       </div>
-                      <div className="text-center">
-                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          Popular Service
-                        </Badge>
-                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {service.description || 'Professional service delivered with expertise'}
+                      </p>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 group-hover:border-warning group-hover:text-warning"
                         onClick={() => {
                           const mockProvider: Provider = {
                             id: parseInt(service.service_providers?.id || service.id) || 1,
@@ -886,7 +998,7 @@ export default function Index() {
                       </Button>
                       <Button
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 bg-warning hover:bg-warning/90 text-white"
                         onClick={() => {
                           const mockProvider: Provider = {
                             id: parseInt(service.service_providers?.id || service.id) || 1,
@@ -909,6 +1021,7 @@ export default function Index() {
                           setShowSlotModal(true);
                         }}
                       >
+                        <Award className="h-4 w-4 mr-2" />
                         Book Now
                       </Button>
                     </div>
@@ -916,57 +1029,65 @@ export default function Index() {
                 </Card>
               ))
             ) : (
-              <div className="col-span-full text-center py-12">
-                <div className="max-w-md mx-auto">
-                  <TrendingUp className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Popular Services Yet</h3>
-                  <p className="text-gray-500">
-                    Popular services will appear here once admins mark services as popular and providers register for them.
-                  </p>
+              <div className="col-span-full text-center py-16">
+                <div className="w-20 h-20 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <TrendingUp className="h-10 w-10 text-muted-foreground" />
                 </div>
+                <h3 className="text-xl font-semibold text-foreground mb-3">No Popular Services Yet</h3>
+                <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  Popular services will appear here once administrators mark services as trending and providers register for them.
+                </p>
               </div>
-              )}
+            )}
           </div>
         </div>
       </section>
 
       {/* Trust Indicators */}
-      <section className="section-padding bg-gradient-primary text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary-hover/90"></div>
-        <div className="container mx-auto relative z-10">
+      <section className="py-16 lg:py-24 bg-gradient-to-br from-primary to-primary-hover text-primary-foreground relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/95 to-primary-hover/95"></div>
+        <div className="container relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Why Choose ServicePlatform?</h2>
-            <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-              We're committed to providing you with the best service experience through trust, quality, and value
+            <div className="inline-flex items-center px-4 py-2 bg-white/20 text-white rounded-full text-sm font-medium mb-6">
+              <Shield className="h-4 w-4 mr-2" />
+              Service NB LINK Guarantee
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">Why Choose Service NB LINK?</h2>
+            <p className="text-xl text-white/90 max-w-4xl mx-auto leading-relaxed">
+              We're committed to providing you with the best digital transformation experience through trust, 
+              innovation, and exceptional service delivery that drives real business results.
             </p>
           </div>
 
-          <div className="grid-responsive">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             <div className="text-center group">
-              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/20 backdrop-blur-sm rounded-2xl lg:rounded-3xl flex items-center justify-center mx-auto mb-6 lg:mb-8 group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300 shadow-lg">
-                <Shield className="h-8 w-8 lg:h-10 lg:w-10" />
+              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-white/20 backdrop-blur-sm border border-white/30 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300">
+                <Shield className="h-10 w-10 lg:h-12 lg:w-12" />
               </div>
-              <h3 className="text-xl lg:text-2xl font-semibold mb-3 lg:mb-4">Verified Professionals</h3>
+              <h3 className="text-xl lg:text-2xl font-bold mb-4">Certified Professionals</h3>
               <p className="text-white/90 leading-relaxed text-base lg:text-lg">
-                All service providers are background checked and verified for your safety and peace of mind
+                All service providers are thoroughly vetted, certified, and continuously monitored 
+                for quality assurance and professional standards.
               </p>
             </div>
             <div className="text-center group">
-              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/20 backdrop-blur-sm rounded-2xl lg:rounded-3xl flex items-center justify-center mx-auto mb-6 lg:mb-8 group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300 shadow-lg">
-                <Award className="h-8 w-8 lg:h-10 lg:w-10" />
+              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-white/20 backdrop-blur-sm border border-white/30 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300">
+                <Award className="h-10 w-10 lg:h-12 lg:w-12" />
               </div>
-              <h3 className="text-xl lg:text-2xl font-semibold mb-3 lg:mb-4">Quality Guaranteed</h3>
+              <h3 className="text-xl lg:text-2xl font-bold mb-4">Quality Guaranteed</h3>
               <p className="text-white/90 leading-relaxed text-base lg:text-lg">
-                100% satisfaction guaranteed or your money back, no questions asked. Your happiness is our priority
+                100% satisfaction guaranteed with comprehensive project management, 
+                milestone tracking, and full ownership of all deliverables.
               </p>
             </div>
             <div className="text-center group">
-              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/20 backdrop-blur-sm rounded-2xl lg:rounded-3xl flex items-center justify-center mx-auto mb-6 lg:mb-8 group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300 shadow-lg">
-                <TrendingUp className="h-8 w-8 lg:h-10 lg:w-10" />
+              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-white/20 backdrop-blur-sm border border-white/30 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300">
+                <TrendingUp className="h-10 w-10 lg:h-12 lg:w-12" />
               </div>
-              <h3 className="text-xl lg:text-2xl font-semibold mb-3 lg:mb-4">Best Prices</h3>
+              <h3 className="text-xl lg:text-2xl font-bold mb-4">Innovation First</h3>
               <p className="text-white/90 leading-relaxed text-base lg:text-lg">
-                Competitive pricing with transparent costs and no hidden fees. Get the best value for your money
+                Cutting-edge solutions using the latest technologies, AI automation, 
+                and industry best practices to future-proof your business.
               </p>
             </div>
           </div>
