@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -42,37 +42,31 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { toast } = useToast();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingLock, setLoadingLock] = useState(false);
 
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  // Memoize computed values to prevent re-renders
+  const itemCount = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
+  const totalAmount = useMemo(() => items.reduce((sum, item) => sum + (item.price * item.quantity), 0), [items]);
 
-  // Load cart items on mount and auth state changes
-  useEffect(() => {
-    if (isAuthenticated !== undefined) { // Only load when auth state is determined
-      loadCartItems();
-    }
-  }, [isAuthenticated, user?.id]); // Use user.id instead of user object to prevent unnecessary re-renders
+  // Stable user ID and auth state references
+  const userId = useMemo(() => user?.id, [user?.id]);
+  const isAuthStable = useMemo(() => Boolean(isAuthenticated), [isAuthenticated]);
 
-  // Transfer guest cart to authenticated user on login
-  useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      transferGuestCartToUser();
-    }
-  }, [isAuthenticated, user?.id]);
-
-  const loadCartItems = async () => {
-    if (isLoading) return; // Prevent concurrent loads
+  const loadCartItems = useCallback(async () => {
+    if (loadingLock || isLoading) return; // Prevent concurrent loads
     
+    setLoadingLock(true);
     setIsLoading(true);
+    
     try {
-      console.log('Loading cart items. Authenticated:', isAuthenticated, 'User ID:', user?.id);
+      console.log('Loading cart items. Authenticated:', isAuthStable, 'User ID:', userId);
       
-      if (isAuthenticated && user?.id) {
+      if (isAuthStable && userId) {
         // Load from authenticated user cart
         const { data, error } = await supabase
           .from('cart_items')
           .select('*')
-          .eq('user_id', user.id);
+          .eq('user_id', userId);
 
         if (error) {
           console.error('Database error loading cart:', error);
@@ -128,7 +122,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (localCart) {
             try {
               const parsedCart = JSON.parse(localCart);
-              setItems(parsedCart);
+              setItems(Array.isArray(parsedCart) ? parsedCart : []);
               console.log('Loaded cart from localStorage:', parsedCart.length);
             } catch (parseError) {
               console.error('Error parsing localStorage cart:', parseError);
@@ -149,11 +143,29 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     } finally {
       setIsLoading(false);
+      setLoadingLock(false);
     }
-  };
+  }, [isAuthStable, userId, toast]);
 
-  const transferGuestCartToUser = async () => {
-    if (!user) return;
+  // Load cart items on mount and auth state changes (with stable dependencies)
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadCart = async () => {
+      if (isMounted && (isAuthStable !== undefined)) { // Only load when auth state is determined
+        await loadCartItems();
+      }
+    };
+    
+    loadCart();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthStable, userId, loadCartItems]);
+
+  const transferGuestCartToUser = useCallback(async () => {
+    if (!userId) return;
 
     const guestSessionId = sessionStorage.getItem('guest_session_id');
     if (!guestSessionId) return;
@@ -171,7 +183,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           await supabase
             .from('cart_items')
             .insert({
-              user_id: user.id,
+              user_id: userId,
               service_id: item.service_id,
               service_name: item.service_name,
               provider_id: item.provider_id,
@@ -203,9 +215,18 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       console.error('Error transferring guest cart:', error);
     }
-  };
+  }, [userId, toast, loadCartItems]);
 
-  const addToCart = async (newItem: Omit<CartItem, 'id' | 'quantity'>) => {
+  // Transfer guest cart to authenticated user on login (with stable dependencies)
+  useEffect(() => {
+    if (isAuthStable && userId) {
+      transferGuestCartToUser();
+    }
+  }, [isAuthStable, userId, transferGuestCartToUser]);
+
+  const addToCart = useCallback(async (newItem: Omit<CartItem, 'id' | 'quantity'>) => {
+    if (isLoading) return; // Prevent concurrent operations
+    
     setIsLoading(true);
     try {
       // Check if item already exists
@@ -215,15 +236,32 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       );
 
       if (existingItem) {
-        // Update quantity
-        await updateQuantity(existingItem.id, existingItem.quantity + 1);
+        // Update quantity - we'll implement this separately to avoid recursion
+        const newQuantity = existingItem.quantity + 1;
+        
+        if (isAuthStable && userId) {
+          await supabase
+            .from('cart_items')
+            .update({ quantity: newQuantity })
+            .eq('id', existingItem.id);
+        } else {
+          const guestSessionId = getGuestSessionId();
+          await supabase
+            .from('guest_cart_items')
+            .update({ quantity: newQuantity })
+            .eq('id', existingItem.id);
+        }
+        
+        setItems(prev => prev.map(item => 
+          item.id === existingItem.id ? { ...item, quantity: newQuantity } : item
+        ));
       } else {
         // Add new item
-        if (isAuthenticated && user) {
+        if (isAuthStable && userId) {
           const { data, error } = await supabase
             .from('cart_items')
             .insert({
-              user_id: user.id,
+              user_id: userId,
               service_id: newItem.serviceId,
               service_name: newItem.serviceName,
               provider_id: newItem.providerId,
@@ -301,12 +339,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             localStorage.setItem('guest_cart', JSON.stringify(updatedItems));
           }
         }
-
-        toast({
-          title: 'Added to cart',
-          description: `${newItem.serviceName} has been added to your cart`
-        });
       }
+
+      toast({
+        title: 'Added to cart',
+        description: `${newItem.serviceName} has been added to your cart`
+      });
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast({
@@ -317,12 +355,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [items, isAuthStable, userId, isLoading, toast]);
 
-  const removeFromCart = async (itemId: string) => {
+  const removeFromCart = useCallback(async (itemId: string) => {
     setIsLoading(true);
     try {
-      if (isAuthenticated && user) {
+      if (isAuthStable && userId) {
         const { error } = await supabase
           .from('cart_items')
           .delete()
@@ -360,9 +398,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthStable, userId, items, toast]);
 
-  const updateQuantity = async (itemId: string, quantity: number) => {
+  const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
       await removeFromCart(itemId);
       return;
@@ -370,7 +408,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setIsLoading(true);
     try {
-      if (isAuthenticated && user) {
+      if (isAuthStable && userId) {
         const { error } = await supabase
           .from('cart_items')
           .update({ quantity })
@@ -408,16 +446,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthStable, userId, items, toast, removeFromCart]);
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     setIsLoading(true);
     try {
-      if (isAuthenticated && user) {
+      if (isAuthStable && userId) {
         const { error } = await supabase
           .from('cart_items')
           .delete()
-          .eq('user_id', user.id);
+          .eq('user_id', userId);
 
         if (error) throw error;
       } else {
@@ -450,19 +488,22 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthStable, userId, toast]);
+
+  // Memoize context value to prevent re-renders
+  const contextValue = useMemo(() => ({
+    items,
+    itemCount,
+    totalAmount,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    isLoading
+  }), [items, itemCount, totalAmount, addToCart, removeFromCart, updateQuantity, clearCart, isLoading]);
 
   return (
-    <CartContext.Provider value={{
-      items,
-      itemCount,
-      totalAmount,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      isLoading
-    }}>
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

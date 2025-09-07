@@ -10,13 +10,15 @@ interface CartSidebarProps {
   onClose: () => void;
 }
 
-export const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
+export const CartSidebar: React.FC<CartSidebarProps> = React.memo(({ isOpen, onClose }) => {
   const { items, itemCount, totalAmount, updateQuantity, removeFromCart, isLoading } = useCart();
 
   // Debug only when items change to reduce console spam
   React.useEffect(() => {
-    console.log('CartSidebar: Items updated:', items.length, items);
-  }, [items.length]);
+    if (isOpen) {
+      console.log('CartSidebar: Items updated:', items.length, items);
+    }
+  }, [items.length, isOpen]);
 
   if (!isOpen) return null;
 
@@ -211,4 +213,4 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => 
       </div>
     </div>
   );
-};
+});
