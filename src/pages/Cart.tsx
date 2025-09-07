@@ -23,11 +23,8 @@ export default function Cart() {
       });
       navigate('/auth');
     } else {
-      // TODO: Navigate to checkout page
-      toast({
-        title: 'Checkout',
-        description: 'Checkout functionality coming soon!',
-      });
+      // Navigate to payment page
+      navigate('/payment');
     }
   };
 
