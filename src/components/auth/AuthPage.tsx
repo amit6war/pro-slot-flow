@@ -29,8 +29,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
 
   return (
     <AuthLayout
-      title={isLogin ? 'Welcome Back' : 'Join Our Platform'}
-      subtitle={isLogin ? 'Sign in to your account' : 'Create your account to get started'}
+      title={isLogin ? 'Your home services, simplified' : 'Your home services, simplified'}
+      subtitle={isLogin ? 'Book trusted professionals for cleaning, repairs, beauty and more' : 'Book trusted professionals for cleaning, repairs, beauty and more'}
     >
       {isLogin ? (
         <LoginForm

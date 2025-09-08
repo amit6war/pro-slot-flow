@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "lib": ["deno.window"],
-    "strict": true
+    "lib": ["deno.window", "deno.ns", "dom"],
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "types": [
+      "https://deno.land/x/types/deno.d.ts"
+    ]
   },
   "imports": {
     "https://deno.land/std@0.168.0/http/server.ts": "https://deno.land/std@0.168.0/http/server.ts",

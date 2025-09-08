@@ -517,18 +517,18 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-1000">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-orange-50 to-purple-100 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-1000">
       <Card className="w-full max-w-md sm:max-w-lg shadow-2xl border-0 bg-white/95 backdrop-blur-sm animate-in slide-in-from-bottom-4 duration-700">
         <CardHeader className="text-center space-y-4 pb-6">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg animate-pulse hover:scale-110 transition-transform duration-300">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-600 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg animate-pulse hover:scale-110 transition-transform duration-300">
             <Shield className="h-8 w-8 text-white animate-bounce" />
           </div>
           <div>
-            <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Pro Slot Flow
+            <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+              Your home services, simplified
             </CardTitle>
-            <CardDescription className="text-base sm:text-lg mt-2">
-              {activeTab === 'login' ? 'Welcome back!' : 'Join our community'}
+            <CardDescription className="text-gray-600 text-base sm:text-lg mt-2">
+              Book trusted professionals for cleaning, repairs, beauty and more
             </CardDescription>
           </div>
         </CardHeader>
@@ -536,8 +536,8 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
         <CardContent className="space-y-6">
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'signup')}>
             <TabsList className="grid w-full grid-cols-2 h-12 bg-gray-100 rounded-xl p-1">
-              <TabsTrigger value="login" className="rounded-lg font-medium">Login</TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-lg font-medium">Sign Up</TabsTrigger>
+              <TabsTrigger value="login" className="rounded-lg font-medium">Sign In</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-lg font-medium">Create Account</TabsTrigger>
             </TabsList>
 
             {/* Login Tab */}
@@ -546,14 +546,14 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                 <div className="space-y-2">
                   <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">Email Address</Label>
                   <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={loginData.email}
-                    onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
-                    className="h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
+                      id="login-email"
+                      type="email"
+                      placeholder="Email address"
+                      value={loginData.email}
+                      onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                      required
+                    />
                 </div>
                 
                 <div className="space-y-2">
@@ -562,10 +562,10 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                     <Input
                       id="login-password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder="Password"
                       value={loginData.password}
                       onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
-                      className="h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 pr-12"
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 pr-12"
                       required
                     />
                     <Button
@@ -582,18 +582,31 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
 
                 <Button 
                   type="submit" 
-                  className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:scale-105 font-medium text-base shadow-lg transition-all duration-300 transform" 
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 hover:scale-105 font-medium text-base shadow-lg transition-all duration-300 transform" 
                   disabled={loading}
                 >
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Signing In...
+                      Signing in...
                     </>
                   ) : (
                     'Sign In'
                   )}
                 </Button>
+                
+                <div className="text-center mt-4">
+                  <p className="text-sm text-gray-600">
+                    New to our platform?{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setActiveTab('signup')}
+                      className="text-purple-600 font-medium hover:text-purple-700 transition-colors"
+                    >
+                      Get Started
+                    </button>
+                  </p>
+                </div>
               </form>
 
               {/* Removed admin access notice as requested */}
@@ -608,7 +621,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                   <Select value={signupData.role} onValueChange={(value: 'customer' | 'provider') => 
                     setSignupData(prev => ({ ...prev, role: value }))
                   }>
-                    <SelectTrigger className="h-14 rounded-xl border-gray-200 focus:border-blue-500">
+                    <SelectTrigger className="h-14 rounded-xl border-gray-200 focus:border-purple-500">
                       <SelectValue placeholder="Select account type" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -625,8 +638,8 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                       </SelectItem>
                       <SelectItem value="provider" className="h-12 rounded-lg">
                         <div className="flex items-center space-x-3 py-2">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <UserCheck className="h-5 w-5 text-blue-600" />
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <UserCheck className="h-5 w-5 text-purple-600" />
                           </div>
                           <div className="text-left">
                             <div className="font-medium">Service Provider</div>
@@ -644,10 +657,10 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                     <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">Full Name *</Label>
                     <Input
                       id="fullName"
-                      placeholder="Enter your full name"
+                      placeholder="Full name"
                       value={signupData.fullName}
                       onChange={(e) => setSignupData(prev => ({ ...prev, fullName: e.target.value }))}
-                      className="h-12 rounded-xl border-gray-200 focus:border-blue-500"
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500"
                       required
                     />
                   </div>
@@ -657,10 +670,10 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="Enter phone number"
+                      placeholder="Phone number"
                       value={signupData.phone}
                       onChange={(e) => setSignupData(prev => ({ ...prev, phone: e.target.value }))}
-                      className="h-12 rounded-xl border-gray-200 focus:border-blue-500"
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500"
                     />
                   </div>
                 </div>
@@ -670,7 +683,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Email address"
                     value={signupData.email}
                     onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
                     className="h-12 rounded-xl border-gray-200 focus:border-blue-500"
@@ -686,12 +699,12 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                         Business Name <span className="text-gray-400">(Optional)</span>
                       </Label>
                       <Input
-                        id="businessName"
-                        placeholder="Enter your business name"
-                        value={signupData.businessName}
-                        onChange={(e) => setSignupData(prev => ({ ...prev, businessName: e.target.value }))}
-                        className="h-12 rounded-xl border-gray-200 focus:border-blue-500"
-                      />
+                          id="businessName"
+                          placeholder="Business name"
+                          value={signupData.businessName}
+                          onChange={(e) => setSignupData(prev => ({ ...prev, businessName: e.target.value }))}
+                          className="h-12 rounded-xl border-gray-200 focus:border-blue-500"
+                        />
                     </div>
 
                     <div className="space-y-3">
@@ -706,7 +719,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                         />
                         <div 
                           onClick={() => fileInputRef.current?.click()}
-                          className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 hover:scale-105 transition-all duration-300 transform"
+                          className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 hover:scale-105 transition-all duration-300 transform"
                         >
                           {signupData.idProofFile ? (
                             <div className="space-y-2 animate-in zoom-in-50 duration-500">
@@ -725,8 +738,8 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                             </div>
                           ) : (
                             <div className="space-y-2">
-                              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto hover:bg-blue-100 transition-colors duration-200">
-                                <Upload className="h-6 w-6 text-gray-400 hover:text-blue-500 transition-colors duration-200" />
+                              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto hover:bg-purple-100 transition-colors duration-200">
+                                <Upload className="h-6 w-6 text-gray-400 hover:text-purple-500 transition-colors duration-200" />
                               </div>
                               <div className="text-sm font-medium text-gray-700">Click to upload ID proof</div>
                               <div className="text-xs text-gray-500">JPEG, PNG, GIF, PDF, Word documents</div>
@@ -745,10 +758,10 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Create a secure password"
+                      placeholder="Password"
                       value={signupData.password}
                       onChange={(e) => handlePasswordChange(e.target.value)}
-                      className="h-12 rounded-xl border-gray-200 focus:border-blue-500 pr-12"
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 pr-12"
                       required
                     />
                     <Button
@@ -764,7 +777,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                   
                   {/* Password Requirements with Smooth Animations */}
                   {signupData.password && (
-                    <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-4 space-y-3 animate-in slide-in-from-top-2 duration-300">
+                    <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-4 space-y-3 animate-in slide-in-from-top-2 duration-300">
                       <div className="text-xs font-semibold text-gray-700 mb-2 flex items-center">
                         <Shield className="h-3 w-3 mr-1" />
                         Password Strength:
@@ -849,10 +862,10 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm your password"
+                      placeholder="Confirm password"
                       value={signupData.confirmPassword}
                       onChange={(e) => handleConfirmPasswordChange(e.target.value)}
-                      className={`h-12 rounded-xl border-gray-200 focus:border-blue-500 pr-12 ${
+                      className={`h-12 rounded-xl border-gray-200 focus:border-purple-500 pr-12 ${
                         signupData.confirmPassword && !passwordValidation.match ? 'border-red-300 focus:border-red-500' : ''
                       }`}
                       required
@@ -902,13 +915,13 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                     className="mt-0.5"
                   />
                   <Label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed">
-                    I agree to the <span className="text-blue-600 font-medium">Terms and Conditions</span> and <span className="text-blue-600 font-medium">Privacy Policy</span> *
+                    By signing up, you agree to our <span className="text-purple-600 font-medium">Terms & Privacy Policy</span>
                   </Label>
                 </div>
 
                 <Button 
                   type="submit" 
-                  className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:scale-105 font-medium text-base shadow-lg transition-all duration-300 transform" 
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 hover:scale-105 font-medium text-base shadow-lg transition-all duration-300 transform" 
                   disabled={loading || uploadingId}
                 >
                   {loading || uploadingId ? (
@@ -920,19 +933,32 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                     'Create Account'
                   )}
                 </Button>
+                
+                <div className="text-center mt-4">
+                  <p className="text-sm text-gray-600">
+                    Already have an account?{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setActiveTab('login')}
+                      className="text-purple-600 font-medium hover:text-purple-700 transition-colors"
+                    >
+                      Sign In
+                    </button>
+                  </p>
+                </div>
               </form>
 
               {/* Provider Notice - Updated messaging */}
               {signupData.role === 'provider' && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4 animate-pulse">
+                <div className="bg-gradient-to-r from-purple-50 to-orange-50 border border-purple-200 rounded-xl p-4 animate-pulse">
                   <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <UserCheck className="h-4 w-4 text-white" />
                     </div>
                     <div className="text-sm">
                       <div className="font-semibold text-gray-800 mb-2">🎯 Service Provider Journey</div>
                       <div className="space-y-1 text-gray-700">
-                        <p>• Your account will be created with <span className="font-medium text-blue-600">Pending</span> status</p>
+                        <p>• Your account will be created with <span className="font-medium text-purple-600">Pending</span> status</p>
                         <p>• Admin approval required to access provider features</p>
                         <p>• Register services with valid licenses after approval</p>
                         <p>• Full dashboard access once confirmed by administrators</p>
