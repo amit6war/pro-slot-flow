@@ -35,6 +35,7 @@ import ServiceCategory from './pages/ServiceCategory';
 import ProviderSelectionNew from './pages/ProviderSelectionNew';
 import DateSelection from './pages/DateSelection';
 import TimeSelection from './pages/TimeSelection';
+import Payment from './pages/Payment';
 
 const queryClient = new QueryClient();
 
@@ -131,12 +132,12 @@ const App = () => {
                     {/* Payment routes - require authentication */}
                     <Route path="/payment" element={
                       <PaymentProtectedRoute>
-                        <Cart />
+                        <Payment />
                       </PaymentProtectedRoute>
                     } />
                     <Route path="/checkout" element={
                       <PaymentProtectedRoute>
-                        <Cart />
+                        <Payment />
                       </PaymentProtectedRoute>
                     } />
                     

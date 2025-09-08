@@ -29,8 +29,17 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     })
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role key for database operations
     const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: { persistSession: false },
+      }
+    )
+
+    // Get the user from the request using anon key client
+    const anonClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
@@ -40,10 +49,9 @@ serve(async (req) => {
       }
     )
 
-    // Get the user from the request
     const {
       data: { user },
-    } = await supabaseClient.auth.getUser()
+    } = await anonClient.auth.getUser()
 
     if (!user) {
       return new Response(
@@ -138,7 +146,7 @@ serve(async (req) => {
       receipt_email: email,
     })
 
-    // Store payment intent in database for tracking
+    // Store payment intent in database for tracking using service role client
     const { error: dbError } = await supabaseClient
       .from('payment_intents')
       .insert({
