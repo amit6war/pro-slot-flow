@@ -67,7 +67,6 @@ const ModernIndex: React.FC = () => {
   return (
     <Layout>
       <HeroSection onExploreServices={handleExploreServices} />
-      <VideoCarousel />
       <CategoryGrid 
         onCategorySelect={handleCategorySelect}
         selectedCategory={null}

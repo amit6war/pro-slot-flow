@@ -70,14 +70,13 @@ export const VideoCarousel: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <p className="text-sm text-muted-foreground uppercase tracking-wider mb-2">
-            of our finest experiences
+            Watch real transformations
           </p>
           <h2 className="text-4xl font-bold text-foreground mb-4">
-            Premium Service Categories
+            Service Experience Videos
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Discover our curated collection of professional services, each delivered with 
-            exceptional quality and attention to detail.
+            See our professional services in action and the quality transformations we deliver.
           </p>
         </div>
 
