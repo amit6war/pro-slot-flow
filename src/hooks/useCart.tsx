@@ -161,12 +161,33 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     };
     
+    // Only load if we haven't loaded before or auth state changed
     loadCart();
     
     return () => {
       isMounted = false;
     };
   }, [isAuthStable, userId, loadCartItems]);
+
+  // Preserve cart on logout - don't clear
+  useEffect(() => {
+    if (isAuthStable === false && userId === undefined) {
+      // User logged out - transfer cart items to guest storage
+      const transferToGuest = async () => {
+        if (items.length > 0) {
+          try {
+            const guestSessionId = getGuestSessionId();
+            // Store current cart items in guest storage as backup
+            localStorage.setItem('guest_cart_backup', JSON.stringify(items));
+            console.log('Cart backed up to guest storage on logout');
+          } catch (error) {
+            console.error('Failed to backup cart on logout:', error);
+          }
+        }
+      };
+      transferToGuest();
+    }
+  }, [isAuthStable, userId, items]);
 
   const transferGuestCartToUser = useCallback(async () => {
     if (!userId) return;

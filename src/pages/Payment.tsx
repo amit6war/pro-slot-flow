@@ -11,7 +11,7 @@ import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import StripePaymentForm from '@/components/payment/StripePaymentForm';
-import { paymentService, PaymentIntent } from '@/services/paymentService';
+import { paymentService } from '@/services/paymentService';
 import { STRIPE_CONFIG } from '@/config/stripe';
 import { 
   ArrowLeft, 
@@ -39,7 +39,13 @@ export default function Payment() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   
-  const [paymentIntent, setPaymentIntent] = useState<PaymentIntent | null>(null);
+  const [paymentIntent, setPaymentIntent] = useState<{
+    id: string;
+    client_secret: string;
+    amount: number;
+    currency: string;
+    status: string;
+  } | null>(null);
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string>('');
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -87,7 +93,7 @@ export default function Payment() {
     
     try {
       const result = await paymentService.createPaymentIntent({
-        amount: totalAmount,
+        amount: totalAmount * 100, // Convert to cents for Stripe
         currency: STRIPE_CONFIG.currency,
         cartItems: items,
         customerEmail: user?.email,
@@ -99,7 +105,13 @@ export default function Payment() {
       });
 
       if (result.success && result.paymentIntent) {
-        setPaymentIntent(result.paymentIntent);
+        setPaymentIntent({
+          id: result.paymentIntent.id,
+          client_secret: result.paymentIntent.client_secret,
+          amount: result.paymentIntent.amount,
+          currency: result.paymentIntent.currency,
+          status: result.paymentIntent.status
+        });
       } else {
         setPaymentError(result.error || 'Failed to initialize payment');
         toast({

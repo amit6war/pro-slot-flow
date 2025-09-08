@@ -31,6 +31,11 @@ import { redirectToLogin } from '@/utils/loginRedirect';
 import { Loader2 } from 'lucide-react';
 import ProviderSelection from './pages/ProviderSelection';
 import Scheduling from './pages/Scheduling';
+import ServiceCategory from './pages/ServiceCategory';
+import ProviderSelectionNew from './pages/ProviderSelectionNew';
+import DateSelection from './pages/DateSelection';
+import TimeSelection from './pages/TimeSelection';
+import Payment from './pages/Payment';
 
 const queryClient = new QueryClient();
 
@@ -127,12 +132,12 @@ const App = () => {
                     {/* Payment routes - require authentication */}
                     <Route path="/payment" element={
                       <PaymentProtectedRoute>
-                        <Cart />
+                        <Payment />
                       </PaymentProtectedRoute>
                     } />
                     <Route path="/checkout" element={
                       <PaymentProtectedRoute>
-                        <Cart />
+                        <Payment />
                       </PaymentProtectedRoute>
                     } />
                     
@@ -191,7 +196,13 @@ const App = () => {
                     {/* 404 */}
                     <Route path="*" element={<NotFound />} />
                     
-                    // In your routes section, add these new routes:
+                    {/* Service booking flow routes */}
+                    <Route path="/services/:category" element={<ServiceCategory />} />
+                    <Route path="/provider-selection" element={<ProviderSelectionNew />} />
+                    <Route path="/date-selection" element={<DateSelection />} />
+                    <Route path="/time-selection" element={<TimeSelection />} />
+                    
+                    {/* Legacy routes */}
                     <Route path="/provider-selection/:serviceId" element={<ProviderSelection />} />
                     <Route path="/scheduling/:serviceId/:providerId" element={<Scheduling />} />
                   </Routes>

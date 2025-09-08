@@ -25,8 +25,17 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     })
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role key for database operations
     const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: { persistSession: false },
+      }
+    )
+
+    // Get the user from the request using anon key client
+    const anonClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
@@ -36,10 +45,9 @@ serve(async (req) => {
       }
     )
 
-    // Get the user from the request
     const {
       data: { user },
-    } = await supabaseClient.auth.getUser()
+    } = await anonClient.auth.getUser()
 
     if (!user) {
       return new Response(
@@ -99,14 +107,15 @@ serve(async (req) => {
       .insert({
         user_id: userId,
         payment_intent_id: paymentIntentId,
-        total_amount: totalAmount,
+        total_amount: Math.round(totalAmount * 100), // Convert to cents
         currency: paymentIntent.currency,
         status: 'confirmed',
-        payment_status: 'paid',
-        payment_method: 'stripe',
-        items: cartItems,
+        cart_items: cartItems,
+        customer_info: {
+          email: user.email,
+          name: user.user_metadata?.full_name || user.email,
+        },
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       })
       .select()
       .single()
@@ -122,35 +131,11 @@ serve(async (req) => {
       )
     }
 
-    // Create individual order items
-    const orderItems = cartItems.map((item) => ({
-      order_id: order.id,
-      service_id: item.serviceId,
-      service_name: item.serviceName,
-      provider_id: item.providerId,
-      provider_name: item.providerName,
-      quantity: item.quantity,
-      unit_price: item.price,
-      total_price: item.price * item.quantity,
-      service_details: item.serviceDetails || {},
-      created_at: new Date().toISOString(),
-    }))
-
-    const { error: itemsError } = await supabaseClient
-      .from('order_items')
-      .insert(orderItems)
-
-    if (itemsError) {
-      console.error('Error creating order items:', itemsError)
-      // Don't fail the request, just log the error
-    }
-
     // Update payment intent status in database
     const { error: updateError } = await supabaseClient
       .from('payment_intents')
       .update({
         status: 'succeeded',
-        order_id: order.id,
         updated_at: new Date().toISOString(),
       })
       .eq('id', paymentIntentId)
@@ -159,20 +144,6 @@ serve(async (req) => {
       console.error('Error updating payment intent:', updateError)
       // Don't fail the request, just log the error
     }
-
-    // Clear user's cart items
-    const { error: clearCartError } = await supabaseClient
-      .from('cart_items')
-      .delete()
-      .eq('user_id', userId)
-
-    if (clearCartError) {
-      console.error('Error clearing cart:', clearCartError)
-      // Don't fail the request, just log the error
-    }
-
-    // Send confirmation email (optional - implement if needed)
-    // await sendOrderConfirmationEmail(user.email, order)
 
     return new Response(
       JSON.stringify({

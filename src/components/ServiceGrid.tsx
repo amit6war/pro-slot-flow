@@ -244,6 +244,8 @@ export const ServiceGrid: React.FC<ServiceGridProps> = ({
                   <AddToCartButton 
                     serviceId={service.id}
                     serviceName={service.service_name}
+                    providerId={service.provider?.id || ''}
+                    providerName={service.provider?.business_name || 'Provider'}
                     price={service.price}
                     serviceDetails={{
                       duration_minutes: service.duration_minutes,

@@ -3,10 +3,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PaymentButton } from '@/components/payment/PaymentButton';
 import { ShoppingCart, Plus, Minus, Trash2, Calendar, Clock, X } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 
 interface EnhancedCartSidebarProps {
   isOpen: boolean;
@@ -20,16 +19,6 @@ export const EnhancedCartSidebar: React.FC<EnhancedCartSidebarProps> = ({
   onProceedToPayment
 }) => {
   const { items, updateQuantity, removeFromCart, totalAmount, itemCount } = useCart();
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  const handleProceedToPayment = () => {
-    if (!isAuthenticated) {
-      navigate('/auth');
-      return;
-    }
-    onProceedToPayment();
-  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -172,22 +161,10 @@ export const EnhancedCartSidebar: React.FC<EnhancedCartSidebarProps> = ({
             </div>
 
             {/* Actions */}
-            <div className="space-y-2">
-              {!isAuthenticated && (
-                <div className="text-center py-2">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Please sign in to proceed with booking
-                  </p>
-                </div>
-              )}
-              
-              <Button
-                onClick={handleProceedToPayment}
-                className="w-full"
-                size="lg"
-              >
-                {isAuthenticated ? 'Proceed to Payment' : 'Sign In to Book'}
-              </Button>
+            <div className="space-y-2">              
+              <PaymentButton 
+                className="bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary"
+              />
               
               <Button
                 variant="outline"
