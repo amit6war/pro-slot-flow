@@ -1,0 +1,241 @@
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Shield, RefreshCw, Award, Clock, CheckCircle, DollarSign, Users, Star } from 'lucide-react';
+
+interface Guarantee {
+  id: number;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  details: string[];
+  color: string;
+  bgColor: string;
+}
+
+const ServiceGuarantee: React.FC = () => {
+  const guarantees: Guarantee[] = [
+    {
+      id: 1,
+      icon: <DollarSign className="h-8 w-8" />,
+      title: "Money-Back Guarantee",
+      description: "100% satisfaction or your money back",
+      details: [
+        "Full refund if not satisfied",
+        "No questions asked policy",
+        "Quick refund processing"
+      ],
+      color: "text-green-600",
+      bgColor: "bg-green-50"
+    },
+    {
+      id: 2,
+      icon: <RefreshCw className="h-8 w-8" />,
+      title: "Redo Guarantee",
+      description: "Free service redo if you're not happy",
+      details: [
+        "Free repeat service",
+        "Different professional assigned",
+        "Priority scheduling"
+      ],
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    {
+      id: 3,
+      icon: <Shield className="h-8 w-8" />,
+      title: "Damage Protection",
+      description: "Comprehensive insurance coverage",
+      details: [
+        "Up to $10,000 coverage",
+        "Property damage protection",
+        "Instant claim processing"
+      ],
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
+    },
+    {
+      id: 4,
+      icon: <Clock className="h-8 w-8" />,
+      title: "On-Time Guarantee",
+      description: "Professionals arrive on scheduled time",
+      details: [
+        "Punctuality guaranteed",
+        "Real-time tracking",
+        "Compensation for delays"
+      ],
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
+    }
+  ];
+
+  return (
+    <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+      <div className="container mx-auto px-6">
+        {/* Section Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium mb-4">
+            <Shield className="h-4 w-4 mr-2" />
+            Our Promise
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Service Guarantee
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            We stand behind every service with comprehensive guarantees for your peace of mind
+          </p>
+        </div>
+
+        {/* Guarantees Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {guarantees.map((guarantee) => (
+            <Card key={guarantee.id} className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="p-6 text-center">
+                {/* Icon */}
+                <div className={`w-16 h-16 ${guarantee.bgColor} rounded-full flex items-center justify-center mx-auto mb-4 ${guarantee.color}`}>
+                  {guarantee.icon}
+                </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {guarantee.title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-gray-600 mb-4 text-sm">
+                  {guarantee.description}
+                </p>
+
+                {/* Details */}
+                <ul className="text-xs text-gray-500 space-y-2">
+                  {guarantee.details.map((detail, index) => (
+                    <li key={index} className="flex items-center justify-center">
+                      <CheckCircle className="h-3 w-3 text-green-500 mr-2 flex-shrink-0" />
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Main Guarantee Banner */}
+        <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl p-8 text-white mb-12 relative overflow-hidden">
+          <div className="absolute inset-0 bg-black opacity-10"></div>
+          <div className="relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              <div>
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
+                    <Award className="h-6 w-6" />
+                  </div>
+                  <Badge className="bg-white text-green-600 hover:bg-white">
+                    100% Guaranteed
+                  </Badge>
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-bold mb-4">
+                  Your Satisfaction is Our Priority
+                </h3>
+                <p className="text-lg opacity-90 mb-6">
+                  We're so confident in our service quality that we offer multiple guarantees to ensure your complete satisfaction.
+                </p>
+                <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100">
+                  Learn More About Our Guarantees
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white bg-opacity-10 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold mb-1">30 Days</div>
+                  <p className="text-sm opacity-90">Guarantee Period</p>
+                </div>
+                <div className="bg-white bg-opacity-10 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold mb-1">$10K</div>
+                  <p className="text-sm opacity-90">Insurance Coverage</p>
+                </div>
+                <div className="bg-white bg-opacity-10 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold mb-1">24/7</div>
+                  <p className="text-sm opacity-90">Support Available</p>
+                </div>
+                <div className="bg-white bg-opacity-10 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold mb-1">99.8%</div>
+                  <p className="text-sm opacity-90">Success Rate</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Trust Indicators */}
+        <div className="bg-white rounded-2xl p-8 shadow-lg">
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              Why Our Guarantees Matter
+            </h3>
+            <p className="text-gray-600">
+              Real results from our commitment to service excellence
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-green-600" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">50,000+</div>
+              <p className="text-gray-600 mb-2">Satisfied Customers</p>
+              <p className="text-sm text-gray-500">Who trust our guarantees</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-blue-600" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">4.9/5</div>
+              <p className="text-gray-600 mb-2">Average Rating</p>
+              <p className="text-sm text-gray-500">From verified reviews</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <RefreshCw className="h-8 w-8 text-purple-600" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">&lt; 1%</div>
+              <p className="text-gray-600 mb-2">Redo Rate</p>
+              <p className="text-sm text-gray-500">Exceptional first-time success</p>
+            </div>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="mt-12">
+          <h3 className="text-xl font-bold text-gray-900 text-center mb-8">
+            Frequently Asked Questions
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h4 className="font-semibold text-gray-900 mb-2">
+                How do I claim the money-back guarantee?
+              </h4>
+              <p className="text-gray-600 text-sm">
+                Simply contact our support team within 24 hours of service completion. We'll process your refund immediately after a quick review.
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h4 className="font-semibold text-gray-900 mb-2">
+                What's covered under damage protection?
+              </h4>
+              <p className="text-gray-600 text-sm">
+                Our insurance covers accidental damage to your property during service delivery, up to $10,000 per incident.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default ServiceGuarantee;

@@ -148,8 +148,8 @@ export const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess, onBac
             <p className="text-lg font-bold">Admin@2024!</p>
           </div>
         </div>
-        <div className="mt-4 p-3 bg-blue-100/50 rounded-lg">
-          <p className="text-xs text-blue-600 font-medium">🔒 Only Admin and Super Admin roles can access the dashboard</p>
+        <div className="mt-4 p-3 bg-purple-100/50 rounded-lg">
+          <p className="text-xs text-purple-600 font-medium">🔒 Only Admin and Super Admin roles can access the dashboard</p>
         </div>
       </div>
 
@@ -188,7 +188,7 @@ export const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess, onBac
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+          className="w-full bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600"
         >
           {loading ? 'Signing in...' : 'Admin Sign In'}
         </Button>

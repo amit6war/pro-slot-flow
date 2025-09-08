@@ -95,8 +95,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onToggleMode 
             type="text"
             value={formData.fullName}
             onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-            placeholder="Enter your full name"
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+            placeholder="Full name"
             required
           />
         </div>
@@ -110,8 +110,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onToggleMode 
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
-            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-            placeholder="Enter your email"
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+            placeholder="Email address"
             required
           />
         </div>
@@ -125,8 +125,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onToggleMode 
             type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({...formData, phone: e.target.value})}
-            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-            placeholder="Enter your phone number"
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+            placeholder="Phone number"
             required
           />
         </div>
@@ -140,7 +140,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onToggleMode 
             onClick={() => setFormData({...formData, role: 'customer'})}
             className={`p-4 rounded-xl border-2 transition-all ${
               formData.role === 'customer'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                ? 'border-purple-500 bg-purple-50 text-purple-700'
                 : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -154,7 +154,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onToggleMode 
             onClick={() => setFormData({...formData, role: 'provider'})}
             className={`p-4 rounded-xl border-2 transition-all ${
               formData.role === 'provider'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                ? 'border-purple-500 bg-purple-50 text-purple-700'
                 : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -174,8 +174,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onToggleMode 
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={(e) => setFormData({...formData, password: e.target.value})}
-            className="w-full pl-10 pr-12 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-            placeholder="Create a password"
+            className="w-full pl-10 pr-12 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+            placeholder="Password"
             required
             minLength={6}
           />
@@ -192,7 +192,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onToggleMode 
       <Button
         type="submit"
         disabled={loading}
-        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+        className="w-full bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
       >
         {loading ? 'Creating Account...' : 'Create Account'}
       </Button>
@@ -203,9 +203,9 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onToggleMode 
           <button
             type="button"
             onClick={onToggleMode}
-            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
           >
-            Sign in
+            Sign In
           </button>
         </p>
       </div>
