@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
 /**
- * Component that redirects users back to their original page after authentication
+ * Component that redirects users based on their role after authentication
  */
 export const DashboardRedirect: React.FC = () => {
   const { user, profile, loading } = useAuth();
@@ -15,96 +15,133 @@ export const DashboardRedirect: React.FC = () => {
 
   useEffect(() => {
     const handleRedirect = async () => {
-      console.log('🔍 DashboardRedirect - State:', { 
+      console.log('🔍 DashboardRedirect - Full State:', { 
         loading, 
         user: !!user, 
         userEmail: user?.email,
         profile: !!profile, 
         profileRole: profile?.auth_role || profile?.role,
+        profileData: profile,
         redirectAttempts,
         isRedirecting,
-        hasTriedRedirect
+        hasTriedRedirect,
+        timestamp: new Date().toISOString()
       });
       
       // If still loading, wait
       if (loading) {
-        console.log('⏳ Still loading auth state...');
+        console.log('⏳ DashboardRedirect - Still loading auth state...');
         return;
       }
 
       // If no user, redirect to auth
       if (!user) {
-        console.log('❌ No user found, redirecting to auth');
+        console.log('❌ DashboardRedirect - No user found, redirecting to auth');
         navigate('/auth', { replace: true });
         return;
       }
 
-      // If we have a user and haven't tried redirecting yet
-      if (user && !hasTriedRedirect) {
-        console.log('🚀 User found, attempting redirect...');
+      // Wait for profile to load, but be more aggressive
+      if (user && !hasTriedRedirect && (profile || redirectAttempts >= 2)) {
+        console.log('🚀 DashboardRedirect - User found, attempting role-based redirect...');
         setHasTriedRedirect(true);
         setIsRedirecting(true);
         
-        // Get the stored redirect URL from localStorage
-        const storedRedirectUrl = localStorage.getItem('redirectAfterLogin');
-        
+        // Determine redirect path based on role
+        const role = profile?.auth_role || profile?.role || 'customer';
         let redirectPath = '/';
         
-        if (storedRedirectUrl) {
-          redirectPath = storedRedirectUrl;
-          // Clear the stored URL after using it
-          localStorage.removeItem('redirectAfterLogin');
-          console.log('✅ Found stored redirect URL:', redirectPath);
-        } else {
-          console.log('ℹ️ No stored redirect URL, redirecting to home page');
+        console.log('🔍 DashboardRedirect - Detected role:', role, 'Profile data:', profile);
+        
+        switch (role) {
+          case 'provider':
+            redirectPath = '/dashboard/provider';
+            console.log('🏢 DashboardRedirect - Redirecting service provider to dashboard');
+            break;
+          case 'admin':
+            redirectPath = '/dashboard/admin';
+            console.log('👨‍💼 DashboardRedirect - Redirecting admin to dashboard');
+            break;
+          case 'super_admin':
+            redirectPath = '/dashboard/admin';
+            console.log('🔑 DashboardRedirect - Redirecting super admin to dashboard');
+            break;
+          case 'customer':
+          default:
+            redirectPath = '/';
+            console.log('🏠 DashboardRedirect - Redirecting customer to home page');
+            break;
         }
         
-        console.log('🎯 Redirecting to:', redirectPath);
+        console.log('🎯 DashboardRedirect - Final redirect path:', redirectPath, 'for role:', role);
         
-        // Use window.location.href for immediate redirect
-        window.location.href = redirectPath;
+        // Use React Router navigation
+        navigate(redirectPath, { replace: true });
       }
     };
 
     handleRedirect();
     
-    // Increment redirect attempts every 2 seconds to show manual buttons
+    // More aggressive retry - every 1 second instead of 2
     const attemptInterval = setInterval(() => {
       if (!hasTriedRedirect) {
+        console.log('🔄 DashboardRedirect - Retry attempt:', redirectAttempts + 1);
         setRedirectAttempts(prev => prev + 1);
       }
-    }, 2000);
+    }, 1000);
     
-    // Emergency timeout - force redirect after 3 seconds regardless
+    // Shorter emergency timeout - 4 seconds instead of 6
     const emergencyTimeout = setTimeout(() => {
       if (user && !hasTriedRedirect) {
-        console.log('🚨 EMERGENCY REDIRECT: Forcing home page');
-        window.location.href = '/';
+        console.log('🚨 DashboardRedirect - EMERGENCY REDIRECT: Forcing redirect based on available data');
+        const role = profile?.auth_role || profile?.role || 'customer';
+        
+        let emergencyPath = '/';
+        switch (role) {
+          case 'provider':
+            emergencyPath = '/dashboard/provider';
+            break;
+          case 'admin':
+          case 'super_admin':
+            emergencyPath = '/dashboard/admin';
+            break;
+          default:
+            emergencyPath = '/';
+            break;
+        }
+        
+        console.log('🚨 DashboardRedirect - Emergency redirecting to:', emergencyPath, 'for role:', role);
+        navigate(emergencyPath, { replace: true });
       }
-    }, 3000);
+    }, 4000);
 
     return () => {
       clearInterval(attemptInterval);
       clearTimeout(emergencyTimeout);
     };
-  }, [user, profile, loading, navigate, hasTriedRedirect]);
+  }, [user, profile, loading, navigate, hasTriedRedirect, redirectAttempts]);
 
   const getLoadingMessage = () => {
     if (loading) return "Loading your account...";
     if (!profile && redirectAttempts > 0) return "Setting up your profile...";
-    if (isRedirecting) return "Redirecting you back...";
+    if (isRedirecting) return "Redirecting you...";
     return "Loading...";
   };
 
-  // Manual redirect functions
+  // Manual redirect functions based on role
   const goToHomePage = () => {
     console.log('🔧 Manual redirect to home page');
     navigate('/', { replace: true });
   };
 
-  const goToServices = () => {
-    console.log('🔧 Manual redirect to services');
-    navigate('/services', { replace: true });
+  const goToProviderDashboard = () => {
+    console.log('🔧 Manual redirect to provider dashboard');
+    navigate('/dashboard/provider', { replace: true });
+  };
+
+  const goToAdminDashboard = () => {
+    console.log('🔧 Manual redirect to admin dashboard');
+    navigate('/dashboard/admin', { replace: true });
   };
 
   return (
@@ -133,14 +170,20 @@ export const DashboardRedirect: React.FC = () => {
                 Home Page
               </button>
               <button
-                onClick={goToServices}
+                onClick={goToProviderDashboard}
                 className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
-                Browse Services
+                Provider Dashboard
+              </button>
+              <button
+                onClick={goToAdminDashboard}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Admin Dashboard
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              You'll be redirected to where you were before login
+              Choose based on your role
             </p>
           </div>
         )}

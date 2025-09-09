@@ -1,7 +1,6 @@
 import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/HeroSection';
 import { CategoryGrid } from '@/components/CategoryGrid';
-import TrustIndicators from '@/components/TrustIndicators';
 import QuickActions from '@/components/QuickActions';
 import Recommendations from '@/components/Recommendations';
 import { MostBookedServices } from '@/components/MostBookedServices';
@@ -10,8 +9,6 @@ import CustomerTestimonials from '@/components/CustomerTestimonials';
 import SafetyBadges from '@/components/SafetyBadges';
 import PromotionalOffers from '@/components/PromotionalOffers';
 import HowItWorks from '@/components/HowItWorks';
-import FeaturedProfessionals from '@/components/FeaturedProfessionals';
-import EmergencyServices from '@/components/EmergencyServices';
 import ServiceGuarantee from '@/components/ServiceGuarantee';
 
 interface Service {
@@ -77,22 +74,17 @@ const ModernIndex: React.FC = () => {
     <Layout>
       {/* Above the Fold Priority (First 3) */}
       <HeroSection onExploreServices={handleExploreServices} />
-      <TrustIndicators />
       <CategoryGrid 
         onCategorySelect={handleCategorySelect}
         selectedCategory={null}
       />
       
       {/* Primary Engagement Zone (4-7) */}
-      <QuickActions />
-      <EmergencyServices />
       <MostBookedServices onServiceSelect={handleServiceSelect} />
       <PromotionalOffers />
       
       {/* Trust & Process Building (8-10) */}
       <HowItWorks />
-      <FeaturedProfessionals />
-      <SafetyBadges />
       
       {/* Personalization & Social Proof (11-14) */}
       <Recommendations />

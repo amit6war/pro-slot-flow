@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, EyeOff, Upload, User, UserCheck, Loader2, Shield, CheckCircle, XCircle, AlertCircle, FileText, Image } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface SignupData {
   email: string;
@@ -37,6 +38,8 @@ interface LoginData {
 }
 
 export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -50,7 +53,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
     match: false
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  // Remove this duplicate line: const { toast } = useToast();
 
   const [loginData, setLoginData] = useState<LoginData>({
     email: '',
@@ -172,19 +175,9 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
   // Handle login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!loginData.email || !loginData.password) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
-    }
+    setLoading(true);
 
     try {
-      setLoading(true);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password,
@@ -197,19 +190,11 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
         description: "You have been logged in successfully",
       });
 
-      // Get the stored redirect URL or default to home
-      const storedRedirectUrl = localStorage.getItem('redirectAfterLogin');
-      const redirectPath = storedRedirectUrl || '/';
+      console.log('🎯 Login successful, calling onAuthSuccess');
       
-      // Clear the stored URL
-      if (storedRedirectUrl) {
-        localStorage.removeItem('redirectAfterLogin');
-      }
+      // Call the callback to let parent handle navigation
+      onAuthSuccess();
       
-      console.log('🎯 Redirecting after login to:', redirectPath);
-      
-      // Redirect to the stored location or home page
-      window.location.href = redirectPath;
     } catch (error: any) {
       console.error('Login error:', error);
       toast({
@@ -575,7 +560,7 @@ export const EnhancedAuthPage: React.FC<{ onAuthSuccess: () => void }> = ({ onAu
                       className="absolute right-0 top-0 h-12 px-3 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>

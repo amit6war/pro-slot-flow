@@ -1,5 +1,6 @@
 
 import React from 'react';
+// This import should remain as-is (correct path)
 import { Header } from './Header';
 import { Footer } from './Footer';
 import AssistanceSection from '../AssistanceSection';
