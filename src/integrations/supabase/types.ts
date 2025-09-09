@@ -480,17 +480,22 @@ export type Database = {
           booking_date: string
           booking_status: string | null
           booking_time: string
+          cart_items: Json | null
           created_at: string | null
+          currency: string | null
           customer_address: string | null
+          customer_info: Json | null
           customer_name: string | null
           customer_phone: string | null
           id: string
+          payment_intent_id: string | null
           payment_status: string | null
           provider_id: string | null
           provider_name: string
           service_id: string | null
           service_name: string
           special_instructions: string | null
+          status: string | null
           stripe_payment_intent_id: string | null
           total_amount: number
           updated_at: string | null
@@ -500,17 +505,22 @@ export type Database = {
           booking_date: string
           booking_status?: string | null
           booking_time: string
+          cart_items?: Json | null
           created_at?: string | null
+          currency?: string | null
           customer_address?: string | null
+          customer_info?: Json | null
           customer_name?: string | null
           customer_phone?: string | null
           id?: string
+          payment_intent_id?: string | null
           payment_status?: string | null
           provider_id?: string | null
           provider_name: string
           service_id?: string | null
           service_name: string
           special_instructions?: string | null
+          status?: string | null
           stripe_payment_intent_id?: string | null
           total_amount: number
           updated_at?: string | null
@@ -520,17 +530,22 @@ export type Database = {
           booking_date?: string
           booking_status?: string | null
           booking_time?: string
+          cart_items?: Json | null
           created_at?: string | null
+          currency?: string | null
           customer_address?: string | null
+          customer_info?: Json | null
           customer_name?: string | null
           customer_phone?: string | null
           id?: string
+          payment_intent_id?: string | null
           payment_status?: string | null
           provider_id?: string | null
           provider_name?: string
           service_id?: string | null
           service_name?: string
           special_instructions?: string | null
+          status?: string | null
           stripe_payment_intent_id?: string | null
           total_amount?: number
           updated_at?: string | null
@@ -552,6 +567,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_intents: {
+        Row: {
+          amount: number
+          cart_items: Json | null
+          client_secret: string | null
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json | null
+          status: string
+          stripe_customer_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          cart_items?: Json | null
+          client_secret?: string | null
+          created_at?: string
+          currency?: string
+          id: string
+          metadata?: Json | null
+          status?: string
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          cart_items?: Json | null
+          client_secret?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          status?: string
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       provider_availability: {
         Row: {

@@ -36,6 +36,8 @@ import Scheduling from './pages/Scheduling';
 import ServiceCategory from './pages/ServiceCategory';
 import DateSelection from './pages/DateSelection';
 import TimeSelection from './pages/TimeSelection';
+import CheckoutRedirect from './pages/CheckoutRedirect';
+import PaymentSuccess from './pages/PaymentSuccess';
 import Payment from './pages/Payment';
 import { DashboardRouter } from "./components/DashboardRouter";
 
@@ -141,9 +143,15 @@ const App = () => {
                       } />
                       <Route path="/checkout" element={
                         <PaymentProtectedRoute>
-                          <Payment />
+                          <CheckoutRedirect />
                         </PaymentProtectedRoute>
                       } />
+                      <Route path="/payment/success" element={
+                        <PaymentProtectedRoute>
+                          <PaymentSuccess />
+                        </PaymentProtectedRoute>
+                      } />
+                      <Route path="/payment/cancel" element={<Cart />} />
                       
                       {/* Role-based dashboard routing */}
                       <Route path="/dashboard" element={<DashboardRouter />} />

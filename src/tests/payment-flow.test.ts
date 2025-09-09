@@ -305,7 +305,7 @@ describe('Payment Flow Integration Tests', () => {
     it('should render payment form with security indicator', async () => {
       await renderPaymentForm();
       
-      expect(screen.getByText(/secure payment environment/i)).toBeInTheDocument();
+      expect(screen.getByText(/secure payment environment/i)).toBeDefined();
     });
 
     it('should show error recovery actions', async () => {
@@ -327,8 +327,8 @@ describe('Payment Flow Integration Tests', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/try these solutions/i)).toBeInTheDocument();
-        expect(screen.getByText(/try a different payment method/i)).toBeInTheDocument();
+        expect(screen.getByText(/try these solutions/i)).toBeDefined();
+        expect(screen.getByText(/try a different payment method/i)).toBeDefined();
       });
     });
   });
