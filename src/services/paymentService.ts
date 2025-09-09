@@ -30,7 +30,86 @@ export interface PaymentResult {
 
 class PaymentService {
   /**
-   * Create a payment intent with Stripe
+   * Create a Stripe Checkout session for hosted payment
+   */
+  async createCheckoutSession(request: CreatePaymentIntentRequest): Promise<PaymentResult & { url?: string }> {
+    return executePaymentOperation(async () => {
+      // Initialize security measures
+      initializeSecurity();
+      
+      // Validate amount
+      if (!validateAmount(request.amount)) {
+        throw new Error('Invalid payment amount');
+      }
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        logSecurityEvent('UNAUTHORIZED_PAYMENT_ATTEMPT', { amount: request.amount, currency: request.currency });
+        return {
+          success: false,
+          error: 'User must be authenticated to create payment'
+        };
+      }
+
+      // Sanitize and validate cart items
+      const sanitizedCartItems = request.cartItems.map(item => ({
+        ...item,
+        serviceName: sanitizeInput(item.serviceName),
+        providerName: sanitizeInput(item.providerName || '')
+      }));
+
+      // Call Supabase Edge Function to create checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          amount: request.amount, // Keep in dollars for checkout
+          currency: sanitizeInput(request.currency || 'usd'),
+          cartItems: sanitizedCartItems,
+          customerEmail: sanitizeInput(request.customerEmail || user.email),
+          customerName: sanitizeInput(request.customerName || user.user_metadata?.full_name),
+          userId: user.id,
+          metadata: {
+            userId: user.id,
+            cartItemsCount: request.cartItems.length.toString(),
+            ...request.metadata
+          }
+        }
+      });
+
+      if (error) {
+        console.error('Error creating checkout session:', error);
+        throw new Error(error.message || 'Failed to create checkout session');
+      }
+
+      logSecurityEvent('CHECKOUT_SESSION_CREATED', {
+        sessionId: data.sessionId,
+        paymentIntentId: data.paymentIntentId,
+        amount: request.amount,
+        currency: request.currency || 'usd'
+      });
+
+      return {
+        success: true,
+        paymentIntent: {
+          id: data.paymentIntentId,
+          client_secret: data.sessionId,
+          amount: request.amount,
+          currency: request.currency || 'usd',
+          status: 'requires_payment_method'
+        },
+        url: data.url
+      };
+    }).catch((error: any) => {
+      const paymentError = handlePaymentError(error, false);
+      return {
+        success: false,
+        error: paymentError.userMessage
+      };
+    });
+  }
+
+  /**
+   * Create a payment intent with Stripe (for embedded Elements)
    */
   async createPaymentIntent(request: CreatePaymentIntentRequest): Promise<PaymentResult> {
     return executePaymentOperation(async () => {
@@ -100,7 +179,54 @@ class PaymentService {
   }
 
   /**
-   * Confirm payment and create order
+   * Verify checkout session and create order
+   */
+  async verifyCheckoutSession(sessionId: string): Promise<PaymentResult> {
+    try {
+      return await executePaymentOperation(async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          logSecurityEvent('UNAUTHORIZED_CHECKOUT_VERIFICATION', { sessionId });
+          return {
+            success: false,
+            error: 'User must be authenticated to verify checkout session'
+          };
+        }
+
+        // Call Supabase Edge Function to verify session and create order
+        const { data, error } = await supabase.functions.invoke('verify-checkout-session', {
+          body: {
+            sessionId: sanitizeInput(sessionId)
+          }
+        });
+
+        if (error) {
+          console.error('Error verifying checkout session:', error);
+          throw new Error(error.message || 'Failed to verify checkout session');
+        }
+
+        logSecurityEvent('CHECKOUT_SESSION_VERIFIED', {
+          sessionId,
+          orderId: data.orderId
+        });
+
+        return {
+          success: true,
+          orderId: data.orderId
+        };
+      });
+    } catch (error: any) {
+      const paymentError = handlePaymentError(error, false);
+      return {
+        success: false,
+        error: paymentError.userMessage
+      };
+    }
+  }
+
+  /**
+   * Confirm payment and create order (for Elements)
    */
   async confirmPayment(paymentIntentId: string, cartItems: CartItem[]): Promise<PaymentResult> {
     try {
