@@ -10,7 +10,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const [currentText, setCurrentText] = useState(0);
 
   const loadingTexts = [
-    "Service Hub",
+    "Service NB Link",
     "Home services at your doorstep",
     "Connecting you with professionals",
     "Almost ready..."
@@ -39,93 +39,43 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   }, [onComplete]);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-white to-primary/10"
-      >
-        {/* Logo Animation */}
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="mb-8"
-        >
-          <div className="relative">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full"
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-primary rounded-full" />
-            </div>
+    <div className="fixed inset-0 bg-gradient-to-br from-purple-50 to-violet-100 flex items-center justify-center z-50">
+      <div className="text-center space-y-6">
+        {/* Logo */}
+        <div className="flex items-center justify-center space-x-3 mb-8">
+          <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-violet-700 rounded-xl flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-xl">S</span>
           </div>
-        </motion.div>
-
-        {/* Brand Name */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-4xl font-bold gradient-text mb-2">ServiceHub</h1>
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={currentText}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.5 }}
-              className="text-lg text-muted-foreground"
-            >
-              {loadingTexts[currentText]}
-            </motion.p>
-          </AnimatePresence>
-        </motion.div>
-
-        {/* Progress Bar */}
-        <motion.div
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: 300, opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="relative h-1 bg-gray-200 rounded-full overflow-hidden"
-        >
-          <motion.div
-            className="h-full bg-gradient-to-r from-primary to-primary-hover rounded-full"
-            style={{ width: `${progress}%` }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          />
-        </motion.div>
-
-        {/* Floating Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-primary/20 rounded-full"
-              animate={{
-                x: [0, 100, 0],
-                y: [0, -100, 0],
-                opacity: [0.2, 0.8, 0.2],
-              }}
-              transition={{
-                duration: 3 + i,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.5,
-              }}
-              style={{
-                left: `${20 + i * 15}%`,
-                top: `${30 + i * 10}%`,
-              }}
-            />
-          ))}
+          <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-violet-700 bg-clip-text text-transparent">
+            Service NB Link
+          </span>
         </div>
-      </motion.div>
-    </AnimatePresence>
+    
+        {/* Animated Spinner */}
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-violet-500 rounded-full animate-spin mx-auto" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+        </div>
+    
+        {/* Loading Text */}
+        <div className="space-y-2">
+          <p className="text-purple-700 font-medium text-lg animate-pulse">
+            {loadingTexts[currentText]}
+          </p>
+          
+          {/* Progress Bar */}
+          <div className="w-64 h-2 bg-purple-100 rounded-full mx-auto overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-purple-600 to-violet-700 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          
+          <p className="text-purple-500 text-sm">
+            {progress}% Complete
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };

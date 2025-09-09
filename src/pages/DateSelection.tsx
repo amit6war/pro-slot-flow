@@ -4,8 +4,7 @@ import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, User, Star } from 'lucide-react';
+import { ArrowLeft, User, Star } from 'lucide-react';
 import { format, addDays, startOfToday, isSameDay } from 'date-fns';
 
 const DateSelection: React.FC = () => {
@@ -128,26 +127,6 @@ const DateSelection: React.FC = () => {
                   </Card>
                 ))}
               </div>
-            </div>
-
-            {/* Calendar View */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <CalendarIcon className="w-5 h-5" />
-                Calendar View
-              </h3>
-              <Card>
-                <CardContent className="p-6">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={handleDateSelect}
-                    disabled={(date) => date < startOfToday()}
-                    initialFocus
-                    className="mx-auto"
-                  />
-                </CardContent>
-              </Card>
             </div>
 
             {/* Selected Services Summary */}

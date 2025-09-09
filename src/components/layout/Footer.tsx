@@ -40,51 +40,42 @@ export const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gray-900 text-white">
-      {/* Main Footer */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-gradient-to-r from-purple-600 to-violet-700 text-white py-12 mt-16 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">SP</span>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 font-bold text-lg">S</span>
               </div>
-              <div>
-                <h3 className="text-xl font-bold">ServicePlatform</h3>
-                <p className="text-sm text-gray-400">Premium Services</p>
-              </div>
+              <span className="text-xl font-bold">Service NB Link</span>
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed">
-              Your trusted platform for booking professional services. Quality guaranteed, convenience delivered.
+            <p className="text-purple-100 text-sm leading-relaxed">
+              Your trusted platform for professional home services. Quality service at your doorstep.
             </p>
-            
-            {/* Contact Info */}
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
-                <MapPin className="h-4 w-4" />
-                <span>Moncton, New Brunswick, Canada</span>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
-                <Phone className="h-4 w-4" />
-                <span>+1 (506) 555-0123</span>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
-                <Mail className="h-4 w-4" />
-                <span>support@serviceplatform.com</span>
-              </div>
+            <div className="flex space-x-4">
+              <a href="#" className="text-purple-200 hover:text-white transition-colors">
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-purple-200 hover:text-white transition-colors">
+                <Twitter className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-purple-200 hover:text-white transition-colors">
+                <Instagram className="w-5 h-5" />
+              </a>
             </div>
           </div>
 
-          {/* Service Categories */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Our Services</h4>
+          {/* Services */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Services</h3>
             <ul className="space-y-2">
               {serviceCategories.map((category) => (
                 <li key={category.name}>
                   <Link
                     to={category.href}
-                    className="text-gray-400 hover:text-white text-sm transition-colors"
+                    className="text-purple-200 hover:text-white transition-colors text-sm"
                   >
                     {category.name}
                   </Link>
@@ -93,15 +84,15 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Company Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Company</h4>
+          {/* Company */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Company</h3>
             <ul className="space-y-2">
               {companyLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="text-gray-400 hover:text-white text-sm transition-colors"
+                    className="text-blue-200 hover:text-white transition-colors text-sm"
                   >
                     {link.name}
                   </Link>
@@ -111,14 +102,14 @@ export const Footer = () => {
           </div>
 
           {/* Support */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Support</h4>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Support</h3>
             <ul className="space-y-2">
               {supportLinks.slice(0, 4).map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="text-gray-400 hover:text-white text-sm transition-colors"
+                    className="text-blue-200 hover:text-white transition-colors text-sm"
                   >
                     {link.name}
                   </Link>
@@ -127,31 +118,29 @@ export const Footer = () => {
             </ul>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Footer */}
-      <div className="border-t border-gray-800">
-        <div className="container mx-auto px-4 py-6">
+        {/* Bottom Footer */}
+        <div className="border-t border-blue-500 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             {/* Copyright */}
-            <div className="text-sm text-gray-400">
-              © 2024 ServicePlatform. All rights reserved.
+            <div className="text-sm text-blue-200">
+              © 2024 ServiceHub. All rights reserved.
             </div>
 
             {/* Social Media */}
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-400">Follow us:</span>
+              <span className="text-sm text-blue-200">Follow us:</span>
               <div className="flex space-x-3">
-                <button className="text-gray-400 hover:text-white transition-colors">
+                <button className="text-blue-200 hover:text-white transition-colors">
                   <Facebook className="h-5 w-5" />
                 </button>
-                <button className="text-gray-400 hover:text-white transition-colors">
+                <button className="text-blue-200 hover:text-white transition-colors">
                   <Twitter className="h-5 w-5" />
                 </button>
-                <button className="text-gray-400 hover:text-white transition-colors">
+                <button className="text-blue-200 hover:text-white transition-colors">
                   <Instagram className="h-5 w-5" />
                 </button>
-                <button className="text-gray-400 hover:text-white transition-colors">
+                <button className="text-blue-200 hover:text-white transition-colors">
                   <Linkedin className="h-5 w-5" />
                 </button>
               </div>
@@ -163,7 +152,7 @@ export const Footer = () => {
                 <Link
                   key={link.name}
                   to={link.href}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-blue-200 hover:text-white transition-colors"
                 >
                   {link.name}
                 </Link>

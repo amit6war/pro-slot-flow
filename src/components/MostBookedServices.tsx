@@ -32,6 +32,7 @@ interface MostBookedServicesProps {
 export const MostBookedServices: React.FC<MostBookedServicesProps> = ({ onServiceSelect }) => {
   const [services, setServices] = useState<MostBookedService[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const fetchMostBookedServices = async () => {
@@ -60,8 +61,17 @@ export const MostBookedServices: React.FC<MostBookedServicesProps> = ({ onServic
 
         if (error) throw error;
         setServices(data || []);
+        
+        // Add a small delay to ensure smooth transition
+        setTimeout(() => {
+          setIsVisible(true);
+        }, 100);
       } catch (error) {
         console.error('Error fetching most booked services:', error);
+        // Still show content even if fetch fails
+        setTimeout(() => {
+          setIsVisible(true);
+        }, 100);
       } finally {
         setLoading(false);
       }
@@ -84,22 +94,9 @@ export const MostBookedServices: React.FC<MostBookedServicesProps> = ({ onServic
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}min` : `${hours}h`;
   };
 
-  if (loading) {
-    return (
-      <div className="py-8">
-        <div className="flex items-center gap-2 mb-6">
-          <TrendingUp className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-bold">Most Booked Services</h2>
-        </div>
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex-shrink-0 w-80">
-              <Card className="skeleton h-48" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+  // Don't render anything until content is ready
+  if (loading || !isVisible) {
+    return null;
   }
 
   if (services.length === 0) {
@@ -107,7 +104,9 @@ export const MostBookedServices: React.FC<MostBookedServicesProps> = ({ onServic
   }
 
   return (
-    <div className="py-8">
+    <div className={`py-8 transition-all duration-700 ease-out transform ${
+      isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+    }`}>
       <div className="flex items-center gap-2 mb-6">
         <TrendingUp className="h-6 w-6 text-primary" />
         <h2 className="text-2xl font-bold">Most Booked Services</h2>
@@ -117,10 +116,14 @@ export const MostBookedServices: React.FC<MostBookedServicesProps> = ({ onServic
       </div>
       
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-        {services.map((service) => (
+        {services.map((service, index) => (
           <Card
             key={service.id}
-            className="flex-shrink-0 w-80 group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            className={`flex-shrink-0 w-80 group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 opacity-0 translate-x-4 animate-slide-in-left`}
+            style={{
+              animationDelay: `${index * 150}ms`,
+              animationFillMode: 'forwards'
+            }}
             onClick={() => onServiceSelect(service)}
           >
             <CardContent className="p-0">

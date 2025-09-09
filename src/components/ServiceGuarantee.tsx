@@ -160,77 +160,41 @@ const ServiceGuarantee: React.FC = () => {
                   <p className="text-sm opacity-90">Support Available</p>
                 </div>
                 <div className="bg-white bg-opacity-10 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold mb-1">99.8%</div>
-                  <p className="text-sm opacity-90">Success Rate</p>
+                  <div className="text-2xl font-bold mb-1">99.9%</div>
+                  <p className="text-sm opacity-90">Uptime Guarantee</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Trust Indicators */}
-        <div className="bg-white rounded-2xl p-8 shadow-lg">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Why Our Guarantees Matter
-            </h3>
-            <p className="text-gray-600">
-              Real results from our commitment to service excellence
-            </p>
+        {/* Trust Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <div>
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="h-8 w-8 text-green-600" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-2">50K+</div>
+            <p className="text-gray-600 mb-2">Happy Customers</p>
+            <p className="text-sm text-gray-500">Served with excellence</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-green-600" />
-              </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">50,000+</div>
-              <p className="text-gray-600 mb-2">Satisfied Customers</p>
-              <p className="text-sm text-gray-500">Who trust our guarantees</p>
+          
+          <div>
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Star className="h-8 w-8 text-yellow-600" />
             </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-blue-600" />
-              </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">4.9/5</div>
-              <p className="text-gray-600 mb-2">Average Rating</p>
-              <p className="text-sm text-gray-500">From verified reviews</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <RefreshCw className="h-8 w-8 text-purple-600" />
-              </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">&lt; 1%</div>
-              <p className="text-gray-600 mb-2">Redo Rate</p>
-              <p className="text-sm text-gray-500">Exceptional first-time success</p>
-            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-2">4.9/5</div>
+            <p className="text-gray-600 mb-2">Average Rating</p>
+            <p className="text-sm text-gray-500">From verified reviews</p>
           </div>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mt-12">
-          <h3 className="text-xl font-bold text-gray-900 text-center mb-8">
-            Frequently Asked Questions
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h4 className="font-semibold text-gray-900 mb-2">
-                How do I claim the money-back guarantee?
-              </h4>
-              <p className="text-gray-600 text-sm">
-                Simply contact our support team within 24 hours of service completion. We'll process your refund immediately after a quick review.
-              </p>
+          
+          <div>
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <RefreshCw className="h-8 w-8 text-purple-600" />
             </div>
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h4 className="font-semibold text-gray-900 mb-2">
-                What's covered under damage protection?
-              </h4>
-              <p className="text-gray-600 text-sm">
-                Our insurance covers accidental damage to your property during service delivery, up to $10,000 per incident.
-              </p>
-            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-2">&lt; 1%</div>
+            <p className="text-gray-600 mb-2">Redo Rate</p>
+            <p className="text-sm text-gray-500">Exceptional first-time success</p>
           </div>
         </div>
       </div>

@@ -52,6 +52,146 @@ const mockServices: Record<string, Service[]> = {
       category: 'beauty'
     }
   ],
+  cleaning: [
+    {
+      id: 'deep-clean-1',
+      name: 'Deep House Cleaning',
+      description: 'Complete deep cleaning of your entire home',
+      price: 2000,
+      duration: 180,
+      rating: 4.8,
+      image_url: '/api/placeholder/300/200',
+      category: 'cleaning'
+    },
+    {
+      id: 'kitchen-clean-1',
+      name: 'Kitchen Deep Clean',
+      description: 'Thorough kitchen cleaning including appliances',
+      price: 1200,
+      duration: 120,
+      rating: 4.7,
+      image_url: '/api/placeholder/300/200',
+      category: 'cleaning'
+    },
+    {
+      id: 'bathroom-clean-1',
+      name: 'Bathroom Sanitization',
+      description: 'Complete bathroom cleaning and sanitization',
+      price: 800,
+      duration: 90,
+      rating: 4.9,
+      image_url: '/api/placeholder/300/200',
+      category: 'cleaning'
+    }
+  ],
+  appliance: [
+    {
+      id: 'ac-repair-1',
+      name: 'AC Service & Repair',
+      description: 'Complete AC maintenance and repair service',
+      price: 1500,
+      duration: 120,
+      rating: 4.8,
+      image_url: '/api/placeholder/300/200',
+      category: 'appliance'
+    },
+    {
+      id: 'fridge-repair-1',
+      name: 'Refrigerator Repair',
+      description: 'Professional refrigerator diagnosis and repair',
+      price: 1200,
+      duration: 90,
+      rating: 4.7,
+      image_url: '/api/placeholder/300/200',
+      category: 'appliance'
+    },
+    {
+      id: 'washing-repair-1',
+      name: 'Washing Machine Service',
+      description: 'Complete washing machine service and repair',
+      price: 1000,
+      duration: 75,
+      rating: 4.6,
+      image_url: '/api/placeholder/300/200',
+      category: 'appliance'
+    }
+  ],
+  repairs: [
+    {
+      id: 'plumbing-1',
+      name: 'Plumbing Services',
+      description: 'Professional plumbing repair and installation',
+      price: 800,
+      duration: 60,
+      rating: 4.8,
+      image_url: '/api/placeholder/300/200',
+      category: 'repairs'
+    },
+    {
+      id: 'electrical-1',
+      name: 'Electrical Work',
+      description: 'Safe and reliable electrical repairs',
+      price: 1000,
+      duration: 90,
+      rating: 4.9,
+      image_url: '/api/placeholder/300/200',
+      category: 'repairs'
+    },
+    {
+      id: 'carpentry-1',
+      name: 'Carpentry Services',
+      description: 'Custom carpentry and furniture repair',
+      price: 1500,
+      duration: 120,
+      rating: 4.7,
+      image_url: '/api/placeholder/300/200',
+      category: 'repairs'
+    }
+  ],
+  pest: [
+    {
+      id: 'general-pest-1',
+      name: 'General Pest Control',
+      description: 'Complete pest control for common household pests',
+      price: 1200,
+      duration: 90,
+      rating: 4.8,
+      image_url: '/api/placeholder/300/200',
+      category: 'pest'
+    },
+    {
+      id: 'termite-1',
+      name: 'Termite Treatment',
+      description: 'Professional termite inspection and treatment',
+      price: 2500,
+      duration: 180,
+      rating: 4.9,
+      image_url: '/api/placeholder/300/200',
+      category: 'pest'
+    }
+  ],
+  painting: [
+    {
+      id: 'interior-paint-1',
+      name: 'Interior Painting',
+      description: 'Professional interior wall painting service',
+      price: 3000,
+      duration: 480,
+      rating: 4.8,
+      image_url: '/api/placeholder/300/200',
+      category: 'painting'
+    },
+    {
+      id: 'exterior-paint-1',
+      name: 'Exterior Painting',
+      description: 'Weather-resistant exterior painting service',
+      price: 5000,
+      duration: 720,
+      rating: 4.7,
+      image_url: '/api/placeholder/300/200',
+      category: 'painting'
+    }
+  ],
   spa: [
     {
       id: 'spa-1',
@@ -162,10 +302,16 @@ const ServiceCategory: React.FC = () => {
   };
 
   const categoryTitles: Record<string, string> = {
-    beauty: 'Facials & Cleanups',
-    spa: 'Spa for Women', 
-    massage: 'Massage for Men',
-    waxing: 'Roll-on Waxing'
+    beauty: 'Beauty & Wellness Services',
+    spa: 'Spa Services', 
+    massage: 'Massage Services',
+    waxing: 'Waxing Services',
+    cleaning: 'Home Cleaning Services',
+    appliance: 'Appliance Repair Services',
+    repairs: 'Home Repair Services',
+    pest: 'Pest Control Services',
+    painting: 'Painting & Renovation Services',
+    all: 'All Services'
   };
 
   return (
@@ -225,12 +371,16 @@ const ServiceCategory: React.FC = () => {
                       <img
                         src={service.image_url}
                         alt={service.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.svg';
+                        }}
                       />
                       {selectedServices.includes(service.id) && (
                         <div className="absolute top-3 right-3">
                           <Badge className="bg-primary text-primary-foreground">
-                            Selected
+                            ✓ Selected
                           </Badge>
                         </div>
                       )}

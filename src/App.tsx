@@ -9,9 +9,11 @@ import Orders from "./pages/Orders";
 import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+// Remove this import (AdminDashboard is just a wrapper)
+// import { AdminDashboard } from "./components/admin/AdminDashboard";
+
+// Keep this import
 import { EnhancedAdminDashboard } from "./components/admin/EnhancedAdminDashboard";
-import StableCustomerDashboard from "./components/StableCustomerDashboard";
-import DatabaseCustomerDashboard from "./components/customer/DatabaseCustomerDashboard";
 import ProfessionalCustomerDashboard from "./components/customer/ProfessionalCustomerDashboard";
 import { ProviderDashboard } from "./components/provider/ProviderDashboard";
 import { EnhancedAuthPage } from "./components/auth/EnhancedAuthPage";
@@ -29,13 +31,13 @@ import { applySecurityHeaders, initializeSecurityMonitoring } from "./utils/secu
 import { useEffect, useState } from "react";
 import { redirectToLogin } from '@/utils/loginRedirect';
 import { Loader2 } from 'lucide-react';
-import ProviderSelection from './pages/ProviderSelection';
+import ProviderSelectionNew from './pages/ProviderSelectionNew';
 import Scheduling from './pages/Scheduling';
 import ServiceCategory from './pages/ServiceCategory';
-import ProviderSelectionNew from './pages/ProviderSelectionNew';
 import DateSelection from './pages/DateSelection';
 import TimeSelection from './pages/TimeSelection';
 import Payment from './pages/Payment';
+import { DashboardRouter } from "./components/DashboardRouter";
 
 const queryClient = new QueryClient();
 
@@ -113,100 +115,103 @@ const App = () => {
               <CartProvider>
                 <Toaster />
                 <Sonner />
-                {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
-                <BrowserRouter
-                  future={{
-                    v7_startTransition: true,
-                    v7_relativeSplatPath: true
-                  }}
-                >
-                  <Routes>
-                    {/* Public routes - no authentication required */}
-                    <Route path="/" element={<ModernIndex />} />
-                    <Route path="/services" element={<ModernIndex />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/orders" element={<Orders />} />
-                    <Route path="/favorites" element={<Favorites />} />
-                    <Route path="/profile" element={<Profile />} />
-                    
-                    {/* Payment routes - require authentication */}
-                    <Route path="/payment" element={
-                      <PaymentProtectedRoute>
-                        <Payment />
-                      </PaymentProtectedRoute>
-                    } />
-                    <Route path="/checkout" element={
-                      <PaymentProtectedRoute>
-                        <Payment />
-                      </PaymentProtectedRoute>
-                    } />
-                    
-                    {/* Role-based dashboard routing */}
-                    <Route path="/dashboard" element={<DashboardRedirect />} />
-                    
-                    {/* Specific role-based dashboard routes with enhanced security */}
-                    <Route path="/dashboard/customer/*" element={
-                      <SecureCustomerRoute>
-                        <ProfessionalCustomerDashboard />
-                      </SecureCustomerRoute>
-                    } />
-                    <Route path="/dashboard/provider/*" element={
-                      <SecureProviderRoute>
-                        <ProviderDashboard />
-                      </SecureProviderRoute>
-                    } />
-                    <Route path="/dashboard/admin/*" element={
-                      <SecureAdminRoute>
-                        <EnhancedAdminDashboard />
-                      </SecureAdminRoute>
-                    } />
-                    <Route path="/dashboard/super_admin/*" element={
-                      <SecureAdminRoute>
-                        <EnhancedAdminDashboard />
-                      </SecureAdminRoute>
-                    } />
-                    
-                    {/* Legacy routes for backward compatibility with enhanced security */}
-                    <Route path="/customer/*" element={
-                      <SecureCustomerRoute>
-                        <ProfessionalCustomerDashboard />
-                      </SecureCustomerRoute>
-                    } />
-                    <Route path="/provider/*" element={
-                      <SecureProviderRoute>
-                        <ProviderDashboard />
-                      </SecureProviderRoute>
-                    } />
-                    <Route path="/admin/*" element={
-                      <SecureAdminRoute>
-                        <EnhancedAdminDashboard />
-                      </SecureAdminRoute>
-                    } />
-                    
-                    {/* Auth page */}
-                    <Route path="/auth" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/'} />} />
-                    <Route path="/login" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/'} />} />
-                    
-                    {/* Admin login - dedicated route for admin authentication */}
-                    <Route path="/admin-login" element={<AdminLogin />} />
-                    
-                    {/* Dev access */}
-                    <Route path="/dev-admin" element={<DevAdminAccess />} />
-                    
-                    {/* 404 */}
-                    <Route path="*" element={<NotFound />} />
-                    
-                    {/* Service booking flow routes */}
-                    <Route path="/services/:category" element={<ServiceCategory />} />
-                    <Route path="/provider-selection" element={<ProviderSelectionNew />} />
-                    <Route path="/date-selection" element={<DateSelection />} />
-                    <Route path="/time-selection" element={<TimeSelection />} />
-                    
-                    {/* Legacy routes */}
-                    <Route path="/provider-selection/:serviceId" element={<ProviderSelection />} />
-                    <Route path="/scheduling/:serviceId/:providerId" element={<Scheduling />} />
-                  </Routes>
-                </BrowserRouter>
+                {isLoading ? (
+                  <LoadingScreen onComplete={handleLoadingComplete} />
+                ) : (
+                  <BrowserRouter
+                    future={{
+                      v7_startTransition: true,
+                      v7_relativeSplatPath: true
+                    }}
+                  >
+                    <Routes>
+                      {/* Public routes - no authentication required */}
+                      <Route path="/" element={<ModernIndex />} />
+                      <Route path="/services" element={<ModernIndex />} />
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/orders" element={<Orders />} />
+                      <Route path="/favorites" element={<Favorites />} />
+                      <Route path="/profile" element={<Profile />} />
+                      
+                      {/* Payment routes - require authentication */}
+                      <Route path="/payment" element={
+                        <PaymentProtectedRoute>
+                          <Payment />
+                        </PaymentProtectedRoute>
+                      } />
+                      <Route path="/checkout" element={
+                        <PaymentProtectedRoute>
+                          <Payment />
+                        </PaymentProtectedRoute>
+                      } />
+                      
+                      {/* Role-based dashboard routing */}
+                      <Route path="/dashboard" element={<DashboardRouter />} />
+                      
+                      {/* Specific role-based dashboard routes with enhanced security */}
+                      <Route path="/dashboard/customer/*" element={
+                        <SecureCustomerRoute>
+                          <ProfessionalCustomerDashboard />
+                        </SecureCustomerRoute>
+                      } />
+                      <Route path="/dashboard/provider/*" element={
+                        <SecureProviderRoute>
+                          <ProviderDashboard />
+                        </SecureProviderRoute>
+                      } />
+                      <Route path="/dashboard/admin/*" element={
+                        <SecureAdminRoute>
+                          <EnhancedAdminDashboard />
+                        </SecureAdminRoute>
+                      } />
+                      <Route path="/dashboard/super_admin/*" element={
+                        <SecureAdminRoute>
+                          <EnhancedAdminDashboard />
+                        </SecureAdminRoute>
+                      } />
+                      
+                      {/* Legacy routes for backward compatibility with enhanced security */}
+                      <Route path="/customer/*" element={
+                        <SecureCustomerRoute>
+                          <ProfessionalCustomerDashboard />
+                        </SecureCustomerRoute>
+                      } />
+                      <Route path="/provider/*" element={
+                        <SecureProviderRoute>
+                          <ProviderDashboard />
+                        </SecureProviderRoute>
+                      } />
+                      <Route path="/admin/*" element={
+                        <SecureAdminRoute>
+                          <EnhancedAdminDashboard />
+                        </SecureAdminRoute>
+                      } />
+                      
+                      {/* Auth page */}
+                      <Route path="/auth" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/dashboard'} />} />
+                      <Route path="/login" element={<EnhancedAuthPage onAuthSuccess={() => window.location.href = '/dashboard'} />} />
+                      
+                      {/* Admin login - dedicated route for admin authentication */}
+                      <Route path="/admin-login" element={<AdminLogin />} />
+                      
+                      {/* Dev access */}
+                      <Route path="/dev-admin" element={<DevAdminAccess />} />
+                      
+                      {/* 404 */}
+                      <Route path="*" element={<NotFound />} />
+                      
+                      {/* Service booking flow routes */}
+                      <Route path="/services/:category" element={<ServiceCategory />} />
+                      <Route path="/provider-selection" element={<ProviderSelectionNew />} />
+                      <Route path="/date-selection" element={<DateSelection />} />
+                      <Route path="/time-selection" element={<TimeSelection />} />
+                      
+                      {/* Legacy routes */}
+                      <Route path="/provider-selection/:serviceId" element={<ProviderSelectionNew />} />
+                      <Route path="/scheduling/:serviceId/:providerId" element={<Scheduling />} />
+                    </Routes>
+                  </BrowserRouter>
+                )}
               </CartProvider>
             </AuthProvider>
           </TooltipProvider>
