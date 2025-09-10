@@ -151,51 +151,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [isAuthStable, userId, toast]);
 
-  // Load cart items on mount and auth state changes (with stable dependencies)
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadCart = async () => {
-      if (isMounted && (isAuthStable !== undefined)) { // Only load when auth state is determined
-        await loadCartItems();
-      }
-    };
-    
-    // Only load if we haven't loaded before or auth state changed
-    loadCart();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthStable, userId, loadCartItems]);
-
-  // Preserve cart on logout - don't clear
-  useEffect(() => {
-    if (isAuthStable === false && userId === undefined) {
-      // User logged out - transfer cart items to guest storage
-      const transferToGuest = async () => {
-        if (items.length > 0) {
-          try {
-            const guestSessionId = getGuestSessionId();
-            // Store current cart items in guest storage as backup
-            localStorage.setItem('guest_cart_backup', JSON.stringify(items));
-            console.log('Cart backed up to guest storage on logout');
-          } catch (error) {
-            console.error('Failed to backup cart on logout:', error);
-          }
-        }
-      };
-      transferToGuest();
-    }
-  }, [isAuthStable, userId, items]);
-
+  // Transfer guest cart to authenticated user
   const transferGuestCartToUser = useCallback(async () => {
-    if (!userId) return;
-
-    const guestSessionId = sessionStorage.getItem('guest_session_id');
-    if (!guestSessionId) return;
-
+    if (!isAuthStable || !userId || items.length === 0) return;
+    
     try {
+      const guestSessionId = getGuestSessionId();
+      
       // Get guest cart items
       const { data: guestItems } = await supabase
         .from('guest_cart_items')
@@ -204,45 +166,41 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (guestItems && guestItems.length > 0) {
         // Transfer to user cart
-        for (const item of guestItems) {
-          await supabase
-            .from('cart_items')
-            .insert({
-              user_id: userId,
-              service_id: item.service_id,
-              service_name: item.service_name,
-              provider_id: item.provider_id,
-              provider_name: item.provider_name,
-              price: item.price,
-              quantity: item.quantity,
-              service_details: item.service_details
-            });
-        }
+        const userCartItems = guestItems.map(item => ({
+          user_id: userId,
+          service_id: item.service_id,
+          service_name: item.service_name,
+          provider_id: item.provider_id,
+          provider_name: item.provider_name,
+          price: item.price,
+          quantity: item.quantity,
+          service_details: item.service_details
+        }));
 
+        await supabase.from('cart_items').insert(userCartItems);
+        
         // Clear guest cart
         await supabase
           .from('guest_cart_items')
           .delete()
           .eq('session_id', guestSessionId);
-
-        // Clear local storage
+        
         localStorage.removeItem('guest_cart');
-        sessionStorage.removeItem('guest_session_id');
-
-        toast({
-          title: 'Cart transferred',
-          description: 'Your cart items have been saved to your account'
-        });
-
+        
         // Reload cart items
-        loadCartItems();
+        await loadCartItems();
       }
     } catch (error) {
       console.error('Error transferring guest cart:', error);
     }
-  }, [userId, toast, loadCartItems]);
+  }, [isAuthStable, userId, items.length, loadCartItems]);
 
-  // Transfer guest cart to authenticated user on login (with stable dependencies)
+  // Load cart items on mount and auth changes
+  useEffect(() => {
+    loadCartItems();
+  }, [loadCartItems]);
+
+  // Transfer guest cart when user logs in
   useEffect(() => {
     if (isAuthStable && userId) {
       transferGuestCartToUser();
@@ -250,16 +208,24 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [isAuthStable, userId, transferGuestCartToUser]);
 
   const addToCart = useCallback(async (newItem: Omit<CartItem, 'id' | 'quantity'>) => {
-    if (isLoading) return; // Prevent concurrent operations
+    if (isLoading) return;
     
     setIsLoading(true);
     try {
+      console.log('🛒 Cart Debug Info:', {
+        isAuthenticated: isAuthStable,
+        userId: userId,
+        newItem: newItem,
+        supabaseUrl: supabase.supabaseUrl,
+        timestamp: new Date().toISOString()
+      });
+  
       // Check if item already exists
       const existingItem = items.find(item => 
         item.serviceId === newItem.serviceId && 
         item.providerId === newItem.providerId
       );
-
+  
       if (existingItem) {
         // Update quantity - we'll implement this separately to avoid recursion
         const newQuantity = existingItem.quantity + 1;
@@ -283,41 +249,55 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         // Add new item
         if (isAuthStable && userId) {
-          const { data, error } = await supabase
+          const insertData = {
+            user_id: userId,
+            service_id: newItem.serviceId,
+            service_name: newItem.serviceName,
+            provider_id: newItem.providerId || null,
+            provider_name: newItem.providerName || null,
+            price: newItem.price,
+            quantity: 1,
+            service_details: newItem.serviceDetails || {}
+          };
+            
+          console.log('📊 Insert data:', insertData);
+            
+          const { data: insertedData, error: insertError } = await supabase
             .from('cart_items')
-            .insert({
-              user_id: userId,
-              service_id: newItem.serviceId,
-              service_name: newItem.serviceName,
-              provider_id: newItem.providerId,
-              provider_name: newItem.providerName,
-              price: newItem.price,
-              quantity: 1,
-              service_details: newItem.serviceDetails || {}
-            })
+            .insert(insertData)
             .select()
             .single();
-
-          if (error) throw error;
-
+  
+          if (insertError) {
+            console.error('❌ Database insert error:', {
+              error: insertError,
+              code: insertError.code,
+              message: insertError.message,
+              details: insertError.details,
+              hint: insertError.hint
+            });
+            throw insertError;
+          }
+            
+          console.log('✅ Successfully inserted:', insertedData);
           const cartItem: CartItem = {
-            id: data.id,
-            serviceId: data.service_id,
-            serviceName: data.service_name,
-            providerId: data.provider_id,
-            providerName: data.provider_name,
-            price: Number(data.price),
-            quantity: data.quantity,
-            serviceDetails: data.service_details
+            id: insertedData.id,
+            serviceId: insertedData.service_id,
+            serviceName: insertedData.service_name,
+            providerId: insertedData.provider_id,
+            providerName: insertedData.provider_name,
+            price: Number(insertedData.price),
+            quantity: insertedData.quantity,
+            serviceDetails: insertedData.service_details
           };
-
+  
           setItems(prev => [...prev, cartItem]);
         } else {
           // Guest user
           const guestSessionId = getGuestSessionId();
           
           try {
-            const { data, error } = await supabase
+            const { data: guestData, error: guestError } = await supabase
               .from('guest_cart_items')
               .insert({
                 session_id: guestSessionId,
@@ -331,20 +311,20 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               })
               .select()
               .single();
-
-            if (error) throw error;
-
+  
+            if (guestError) throw guestError;
+  
             const cartItem: CartItem = {
-              id: data.id,
-              serviceId: data.service_id,
-              serviceName: data.service_name,
-              providerId: data.provider_id,
-              providerName: data.provider_name,
-              price: Number(data.price),
-              quantity: data.quantity,
-              serviceDetails: data.service_details
+              id: guestData.id,
+              serviceId: guestData.service_id,
+              serviceName: guestData.service_name,
+              providerId: guestData.provider_id,
+              providerName: guestData.provider_name,
+              price: Number(guestData.price),
+              quantity: guestData.quantity,
+              serviceDetails: guestData.service_details
             };
-
+  
             setItems(prev => [...prev, cartItem]);
           } catch (error) {
             // Fallback to localStorage
@@ -358,14 +338,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               quantity: 1,
               serviceDetails: newItem.serviceDetails || {}
             };
-
+  
             const updatedItems = [...items, cartItem];
             setItems(updatedItems);
             localStorage.setItem('guest_cart', JSON.stringify(updatedItems));
           }
         }
       }
-
+  
       toast({
         title: 'Added to cart',
         description: `${newItem.serviceName} has been added to your cart`
