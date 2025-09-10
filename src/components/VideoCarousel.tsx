@@ -8,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useAdminSettings } from '@/hooks/useAdminSettings';
 
 interface VideoCategory {
   id: string;
@@ -18,44 +19,35 @@ interface VideoCategory {
   category: string;
 }
 
-const videoCategories: VideoCategory[] = [
-  {
-    id: '1',
-    title: 'FACIALS &',
-    subtitle: 'CLEANUPS',
-    videoThumbnail: '/lovable-uploads/ecaa6d37-10a5-43d6-b2c8-3c0712032d51.png',
-    videoUrl: '/videos/facials-cleanups.mp4',
-    category: 'beauty'
-  },
-  {
-    id: '2',
-    title: 'SPA',
-    subtitle: 'for WOMEN',
-    videoThumbnail: '/api/placeholder/600/400',
-    videoUrl: '/videos/spa-women.mp4',
-    category: 'spa'
-  },
-  {
-    id: '3',
-    title: 'MASSAGE',
-    subtitle: 'FOR MEN',
-    videoThumbnail: '/api/placeholder/600/400', 
-    videoUrl: '/videos/massage-men.mp4',
-    category: 'massage'
-  },
-  {
-    id: '4',
-    title: 'Roll-on',
-    subtitle: 'waxing',
-    videoThumbnail: '/api/placeholder/600/400',
-    videoUrl: '/videos/roll-on-waxing.mp4',
-    category: 'waxing'
-  }
-];
-
 export const VideoCarousel: React.FC = () => {
   const [currentVideo, setCurrentVideo] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { data: videoData, isLoading } = useAdminSettings('video_carousel');
+
+  if (isLoading) {
+    return <section className="py-16 bg-gradient-to-b from-background to-muted/20">
+      <div className="container mx-auto px-4">
+        <div className="animate-pulse text-center mb-12">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="aspect-[3/4] bg-gray-200 rounded-2xl animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    </section>;
+  }
+
+  const videoCategories: VideoCategory[] = (videoData as any)?.videos?.map((video: any, index: number) => ({
+    id: (index + 1).toString(),
+    title: video.title.split(' ')[0],
+    subtitle: video.title.split(' ').slice(1).join(' '),
+    videoThumbnail: video.thumbnail,
+    videoUrl: video.video_url,
+    category: video.title.toLowerCase().replace(/\s+/g, '-')
+  })) || [];
 
   const handlePlayVideo = (videoUrl: string) => {
     setCurrentVideo(videoUrl);
@@ -73,10 +65,10 @@ export const VideoCarousel: React.FC = () => {
             Watch real transformations
           </p>
           <h2 className="text-4xl font-bold text-foreground mb-4">
-            Service Experience Videos
+            {(videoData as any)?.title || 'Service Experience Videos'}
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            See our professional services in action and the quality transformations we deliver.
+            {(videoData as any)?.subtitle || 'See our professional services in action and the quality transformations we deliver.'}
           </p>
         </div>
 

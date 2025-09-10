@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Gift, Percent, Clock, Star, Copy, Check } from 'lucide-react';
+import { useAdminSettings } from '@/hooks/useAdminSettings';
 
 interface Offer {
   id: number;
@@ -20,55 +21,37 @@ interface Offer {
 
 const PromotionalOffers: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const { data: promoData, isLoading } = useAdminSettings('promotional_offers');
 
-  const offers: Offer[] = [
-    {
-      id: 1,
-      type: 'discount',
-      title: 'First Time User Special',
-      description: 'Get instant discount on your first booking',
-      code: 'WELCOME50',
-      discount: '50% OFF',
-      validUntil: 'Dec 31, 2024',
-      minOrder: '$25',
-      isPopular: true,
-      gradient: 'from-purple-500 to-pink-500'
-    },
-    {
-      id: 2,
-      type: 'cashback',
-      title: 'Weekend Special',
-      description: 'Extra cashback on weekend bookings',
-      code: 'WEEKEND20',
-      discount: '20% Cashback',
-      validUntil: 'Every Weekend',
-      category: 'Home Services',
-      gradient: 'from-blue-500 to-cyan-500'
-    },
-    {
-      id: 3,
-      type: 'free',
-      title: 'Free Deep Cleaning',
-      description: 'Book 3 regular cleanings, get 1 deep cleaning free',
-      code: 'CLEAN3GET1',
-      discount: 'Buy 3 Get 1',
-      validUntil: 'Limited Time',
-      category: 'Cleaning',
-      gradient: 'from-green-500 to-emerald-500'
-    },
-    {
-      id: 4,
-      type: 'bundle',
-      title: 'Beauty Bundle Deal',
-      description: 'Combine multiple beauty services for extra savings',
-      code: 'BEAUTY30',
-      discount: '30% OFF',
-      validUntil: 'Jan 15, 2025',
-      minOrder: '$100',
-      category: 'Beauty & Wellness',
-      gradient: 'from-orange-500 to-red-500'
-    }
-  ];
+  if (isLoading) {
+    return <section className="py-16 bg-gradient-to-b from-orange-50 to-pink-50">
+      <div className="container mx-auto px-6">
+        <div className="animate-pulse text-center mb-12">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-80 bg-gray-200 rounded-lg animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    </section>;
+  }
+
+  const offers: Offer[] = (promoData as any)?.offers?.map((offer: any, index: number) => ({
+    id: index + 1,
+    type: 'discount',
+    title: offer.title,
+    description: offer.description,
+    code: offer.code,
+    discount: offer.discount,
+    validUntil: offer.expires,
+    isPopular: index === 0,
+    gradient: index % 4 === 0 ? 'from-purple-500 to-pink-500' : 
+              index % 4 === 1 ? 'from-blue-500 to-cyan-500' :
+              index % 4 === 2 ? 'from-green-500 to-emerald-500' : 'from-orange-500 to-red-500'
+  })) || [];
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -98,10 +81,10 @@ const PromotionalOffers: React.FC = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-medium mb-4">
             <Gift className="h-4 w-4 mr-2" />
-            Special Offers
+            {(promoData as any)?.subtitle || 'Special Offers'}
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            Exclusive Deals & Offers
+            {(promoData as any)?.title || 'Exclusive Deals & Offers'}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Save more with our limited-time promotional offers and seasonal discounts

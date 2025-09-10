@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, Users, Clock, ArrowRight, MapPin, Shield, DollarSign, Award } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminSettings } from '@/hooks/useAdminSettings';
 
 interface HeroSectionProps {
   onExploreServices: () => void;
@@ -11,15 +12,52 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreServices }) => {
   const { user } = useAuth();
+  const { data: heroContent, isLoading } = useAdminSettings('hero_content');
+  const { data: companyInfo } = useAdminSettings('company_info');
+  
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Guest';
   const userLocation = 'New Delhi'; // This would come from user's saved location or geolocation
 
-  const trustIndicators = [
-    { icon: Shield, text: 'Verified professionals' },
-    { icon: DollarSign, text: 'Transparent pricing' },
-    { icon: Award, text: 'Quality guaranteed' },
-    { icon: Star, text: 'Safe & secure' }
+  if (isLoading) {
+    return <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-orange-50 py-16 sm:py-20 lg:py-24">
+      <div className="max-w-7xl mx-auto px-6 text-center">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+          <div className="h-16 bg-gray-200 rounded w-full mb-6"></div>
+          <div className="h-6 bg-gray-200 rounded w-2/3 mx-auto"></div>
+        </div>
+      </div>
+    </div>;
+  }
+
+  const trustIndicators = (heroContent as any)?.trust_indicators || [
+    { icon: 'Shield', text: 'Verified professionals' },
+    { icon: 'DollarSign', text: 'Transparent pricing' },
+    { icon: 'Award', text: 'Quality guaranteed' },
+    { icon: 'Star', text: 'Safe & secure' }
   ];
+
+  const serviceCards = (heroContent as any)?.service_cards || [
+    { emoji: '🏠', title: 'Home Cleaning', description: 'Deep cleaning & more', color: 'purple' },
+    { emoji: '💄', title: 'Beauty & Wellness', description: 'Salon at home', color: 'orange' },
+    { emoji: '🔧', title: 'Appliance Repair', description: 'AC, fridge & more', color: 'green' },
+    { emoji: '👨‍🍳', title: 'Personal Chef', description: 'Home cooking', color: 'blue' }
+  ];
+
+  const getIconComponent = (iconName: string) => {
+    const icons = { Shield, DollarSign, Award, Star };
+    return icons[iconName as keyof typeof icons] || Shield;
+  };
+
+  const getColorClass = (color: string) => {
+    const colors = {
+      purple: 'bg-purple-100',
+      orange: 'bg-orange-100', 
+      green: 'bg-green-100',
+      blue: 'bg-blue-100'
+    };
+    return colors[color as keyof typeof colors] || 'bg-purple-100';
+  };
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-orange-50">
@@ -40,7 +78,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreServices }) =
             {/* Welcome Message */}
             <div className="mb-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                Hi {userName}!
+                {(heroContent as any)?.subtitle?.replace('Hi there!', `Hi ${userName}!`) || `Hi ${userName}!`}
               </h2>
               <div className="flex items-center justify-center lg:justify-start gap-2 text-gray-600 mb-4">
                 <MapPin className="h-4 w-4" />
@@ -50,20 +88,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreServices }) =
             
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              What can we help you with 
+              {(heroContent as any)?.title || 'What can we help you with '}
               <span className="bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
                 today?
               </span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0">
-              Book trusted professionals for cleaning, repairs, beauty and more. Quality service at your doorstep.
+              {(heroContent as any)?.description || 'Book trusted professionals for cleaning, repairs, beauty and more. Quality service at your doorstep.'}
             </p>
 
             {/* Trust Indicators */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {trustIndicators.map((indicator, index) => {
-                const IconComponent = indicator.icon;
+                const IconComponent = getIconComponent(indicator.icon);
                 return (
                   <div key={index} className="flex items-center space-x-2 text-sm text-gray-700">
                     <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -98,47 +136,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreServices }) =
           {/* Right Content - Service Cards Preview */}
           <div className="relative">
             <div className="grid grid-cols-2 gap-4 lg:gap-6">
-              {/* Top Row */}
-              <Card className="card-floating animate-float hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
-                    🏠
-                  </div>
-                  <h3 className="font-semibold mb-1">Home Cleaning</h3>
-                  <p className="text-sm text-gray-600">Deep cleaning & more</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="card-floating animate-float hover:shadow-lg transition-shadow" style={{ animationDelay: '0.5s' }}>
-                <CardContent className="p-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-3">
-                    💄
-                  </div>
-                  <h3 className="font-semibold mb-1">Beauty & Wellness</h3>
-                  <p className="text-sm text-gray-600">Salon at home</p>
-                </CardContent>
-              </Card>
-
-              {/* Bottom Row */}
-              <Card className="card-floating animate-float hover:shadow-lg transition-shadow" style={{ animationDelay: '1s' }}>
-                <CardContent className="p-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-3">
-                    🔧
-                  </div>
-                  <h3 className="font-semibold mb-1">Appliance Repair</h3>
-                  <p className="text-sm text-gray-600">AC, fridge & more</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="card-floating animate-float hover:shadow-lg transition-shadow" style={{ animationDelay: '1.5s' }}>
-                <CardContent className="p-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
-                    👨‍🍳
-                  </div>
-                  <h3 className="font-semibold mb-1">Personal Chef</h3>
-                  <p className="text-sm text-gray-600">Home cooking</p>
-                </CardContent>
-              </Card>
+              {serviceCards.map((card, index) => (
+                <Card key={index} className="card-floating animate-float hover:shadow-lg transition-shadow" style={{ animationDelay: `${index * 0.5}s` }}>
+                  <CardContent className="p-4">
+                    <div className={`w-12 h-12 ${getColorClass(card.color)} rounded-xl flex items-center justify-center mb-3`}>
+                      {card.emoji}
+                    </div>
+                    <h3 className="font-semibold mb-1">{card.title}</h3>
+                    <p className="text-sm text-gray-600">{card.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
             {/* Floating Elements */}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, Quote } from 'lucide-react';
+import { useAdminSettings } from '@/hooks/useAdminSettings';
 
 interface Testimonial {
   id: number;
@@ -15,48 +16,35 @@ interface Testimonial {
 }
 
 const CustomerTestimonials: React.FC = () => {
-  const testimonials: Testimonial[] = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      location: "Downtown",
-      service: "Home Cleaning",
-      rating: 5,
-      review: "Absolutely fantastic service! The team was professional, thorough, and left my home spotless. I'll definitely book again.",
-      date: "2 days ago",
-      avatar: "SJ"
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      location: "Westside",
-      service: "AC Repair",
-      rating: 5,
-      review: "Quick response and excellent work. Fixed my AC in no time and explained everything clearly. Highly recommended!",
-      date: "1 week ago",
-      avatar: "MC"
-    },
-    {
-      id: 3,
-      name: "Emily Rodriguez",
-      location: "Eastside",
-      service: "Beauty & Wellness",
-      rating: 5,
-      review: "Amazing spa experience at home! The therapist was skilled and professional. Felt completely relaxed and rejuvenated.",
-      date: "3 days ago",
-      avatar: "ER"
-    },
-    {
-      id: 4,
-      name: "David Thompson",
-      location: "Northside",
-      service: "Plumbing",
-      rating: 4,
-      review: "Great service and fair pricing. The plumber arrived on time and solved the issue efficiently. Very satisfied!",
-      date: "5 days ago",
-      avatar: "DT"
-    }
-  ];
+  const { data: testimonialsData, isLoading } = useAdminSettings('customer_testimonials');
+  const { data: siteStats } = useAdminSettings('site_stats');
+
+  if (isLoading) {
+    return <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+      <div className="container mx-auto px-6">
+        <div className="animate-pulse text-center mb-12">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    </section>;
+  }
+
+  const testimonials: Testimonial[] = (testimonialsData as any)?.testimonials?.map((testimonial: any, index: number) => ({
+    id: index + 1,
+    name: testimonial.name,
+    location: testimonial.location,
+    service: testimonial.service,  
+    rating: testimonial.rating,
+    review: testimonial.comment,
+    date: "Recent",
+    avatar: testimonial.name.split(' ').map((n: string) => n[0]).join('')
+  })) || [];
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, index) => (
@@ -79,10 +67,10 @@ const CustomerTestimonials: React.FC = () => {
             Customer Stories
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            What Our Customers Say
+            {(testimonialsData as any)?.title || 'What Our Customers Say'}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Real experiences from thousands of satisfied customers across the city
+            {(testimonialsData as any)?.subtitle || 'Real experiences from thousands of satisfied customers across the city'}
           </p>
         </div>
 
@@ -136,20 +124,20 @@ const CustomerTestimonials: React.FC = () => {
         {/* Trust Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
           <div className="text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-2">50K+</div>
+            <div className="text-3xl font-bold text-purple-600 mb-2">{(siteStats as any)?.customers?.toLocaleString() || '50K'}+</div>
             <p className="text-gray-600 text-sm">Happy Customers</p>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-2">4.8</div>
+            <div className="text-3xl font-bold text-orange-500 mb-2">{(siteStats as any)?.rating || '4.8'}</div>
             <p className="text-gray-600 text-sm">Average Rating</p>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">98%</div>
-            <p className="text-gray-600 text-sm">Satisfaction Rate</p>
+            <div className="text-3xl font-bold text-green-600 mb-2">{(siteStats as any)?.providers?.toLocaleString() || '2.5K'}+</div>
+            <p className="text-gray-600 text-sm">Service Providers</p>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">24/7</div>
-            <p className="text-gray-600 text-sm">Support Available</p>
+            <div className="text-3xl font-bold text-blue-600 mb-2">{(siteStats as any)?.cities || '50'}+</div>
+            <p className="text-gray-600 text-sm">Cities Served</p>
           </div>
         </div>
       </div>

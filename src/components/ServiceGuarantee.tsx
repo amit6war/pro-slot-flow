@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Shield, RefreshCw, Award, Clock, CheckCircle, DollarSign, Users, Star } from 'lucide-react';
+import { useAdminSettings } from '@/hooks/useAdminSettings';
 
 interface Guarantee {
   id: number;
@@ -15,60 +16,49 @@ interface Guarantee {
 }
 
 const ServiceGuarantee: React.FC = () => {
-  const guarantees: Guarantee[] = [
-    {
-      id: 1,
-      icon: <DollarSign className="h-8 w-8" />,
-      title: "Money-Back Guarantee",
-      description: "100% satisfaction or your money back",
-      details: [
-        "Full refund if not satisfied",
-        "No questions asked policy",
-        "Quick refund processing"
-      ],
-      color: "text-green-600",
-      bgColor: "bg-green-50"
-    },
-    {
-      id: 2,
-      icon: <RefreshCw className="h-8 w-8" />,
-      title: "Redo Guarantee",
-      description: "Free service redo if you're not happy",
-      details: [
-        "Free repeat service",
-        "Different professional assigned",
-        "Priority scheduling"
-      ],
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
-    },
-    {
-      id: 3,
-      icon: <Shield className="h-8 w-8" />,
-      title: "Damage Protection",
-      description: "Comprehensive insurance coverage",
-      details: [
-        "Up to $10,000 coverage",
-        "Property damage protection",
-        "Instant claim processing"
-      ],
-      color: "text-purple-600",
-      bgColor: "bg-purple-50"
-    },
-    {
-      id: 4,
-      icon: <Clock className="h-8 w-8" />,
-      title: "On-Time Guarantee",
-      description: "Professionals arrive on scheduled time",
-      details: [
-        "Punctuality guaranteed",
-        "Real-time tracking",
-        "Compensation for delays"
-      ],
-      color: "text-orange-600",
-      bgColor: "bg-orange-50"
-    }
-  ];
+  const { data: guaranteeData, isLoading } = useAdminSettings('service_guarantee');
+  const { data: siteStats } = useAdminSettings('site_stats');
+
+  if (isLoading) {
+    return <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+      <div className="container mx-auto px-6">
+        <div className="animate-pulse text-center mb-12">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    </section>;
+  }
+
+  const getIconComponent = (iconName: string) => {
+    const icons = { Shield, RefreshCw, Award, Clock, DollarSign, Users, Star };
+    const IconComponent = icons[iconName as keyof typeof icons] || Shield;
+    return <IconComponent className="h-8 w-8" />;
+  };
+
+  const getColorClass = (index: number) => {
+    const colors = ['text-green-600', 'text-blue-600', 'text-purple-600', 'text-orange-600'];
+    const bgColors = ['bg-green-50', 'bg-blue-50', 'bg-purple-50', 'bg-orange-50'];
+    return { color: colors[index % colors.length], bgColor: bgColors[index % bgColors.length] };
+  };
+
+  const guarantees: Guarantee[] = (guaranteeData as any)?.guarantees?.map((guarantee: any, index: number) => {
+    const { color, bgColor } = getColorClass(index);
+    return {
+      id: index + 1,
+      icon: getIconComponent(guarantee.icon),
+      title: guarantee.title,
+      description: guarantee.description,
+      details: guarantee.details || [],
+      color,
+      bgColor
+    };
+  }) || [];
 
   return (
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
@@ -80,10 +70,10 @@ const ServiceGuarantee: React.FC = () => {
             Our Promise
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            Service Guarantee
+            {(guaranteeData as any)?.title || 'Service Guarantee'}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            We stand behind every service with comprehensive guarantees for your peace of mind
+            {(guaranteeData as any)?.subtitle || 'We stand behind every service with comprehensive guarantees for your peace of mind'}
           </p>
         </div>
 
