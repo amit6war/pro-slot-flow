@@ -9,7 +9,8 @@ export const generateCSP = (): string => {
       "'unsafe-inline'", // Required for Vite in development
       "'unsafe-eval'", // Required for Vite in development
       'https://cdn.jsdelivr.net',
-      'https://unpkg.com'
+      'https://unpkg.com',
+      'https://js.stripe.com' // Add Stripe scripts
     ],
     'style-src': [
       "'self'",
@@ -32,7 +33,14 @@ export const generateCSP = (): string => {
       "'self'",
       'https://*.supabase.co', // Supabase API
       'wss://*.supabase.co', // Supabase realtime
-      'https://api.stripe.com' // If using Stripe
+      'https://api.stripe.com', // Stripe API
+      'https://checkout.stripe.com' // Stripe checkout
+    ],
+    'frame-src': [
+      "'self'",
+      'https://js.stripe.com',
+      'https://hooks.stripe.com',
+      'https://checkout.stripe.com'
     ],
     'frame-ancestors': ["'none'"],
     'base-uri': ["'self'"],
